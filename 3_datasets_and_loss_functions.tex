@@ -1,121 +1,121 @@
-\chapter{Datasets and losses}
+\chapter{Наборы данных и функции потерь}
 \label{chap:supervised_learning}
 
-\begin{supportbox}{About this chapter}
-This chapter formalizes the supervised learning scenario. We introduce the concepts of datasets, loss functions, and empirical risk minimization, stressing the basic assumptions made in supervised learning. We close by providing a probabilistic formulation of supervised learning built on the notion of maximum likelihood. This short chapter serves as the backbone for the rest of the book.
+\begin{supportbox}{Об этой главе}
+В этой главе формализуется сценарий обучения с учителем. Мы вводим понятия наборов данных, функций потерь и минимизации эмпирического риска, подчеркивая основные допущения, сделанные в обучении с учителем. В заключение мы приводим вероятностную формулировку обучения с учителем, основанную на понятии максимального правдоподобия. Эта короткая глава служит основой для остальной части книги.
 \end{supportbox}
 
-\section{What is a dataset?}
+\section{Что такое набор данных?}
 \label{sec:dataset}
 
-We consider a scenario in which manually coding a certain function is unfeasible (e.g., recognizing objects from real-world images), but gathering \textbf{examples} of the desired behaviour is sufficiently easy. Examples of this abound, ranging from speech recognition to robot navigation. We formalise this idea with the following definition.
+Мы рассматриваем сценарий, в котором ручное кодирование определенной функции нецелесообразно (например, распознавание объектов на реальных изображениях), но сбор \textbf{примеров} желаемого поведения достаточно прост. Примеров этого предостаточно, от распознавания речи до навигации роботов. Мы формализуем эту идею следующим определением.
 
-\begin{definition}[Dataset] \addbottle
-A \textbf{supervised dataset} $\mathcal{S}_n$ of size $n$ is a set of $n$ pairs $\mathcal{S}_n = \left\{(x_i, y_i)\right\}_{i=1}^n$, where each $(x_i, y_i)$ is an example of an input-output relationship we want to model. We further assume that each example is an \textbf{identically} and \textbf{independently} distributed (i.i.d.) draw from some unknown (and unknowable) probability distribution $p(x,y)$.
+\begin{definition}[Набор данных] \addbottle
+\textbf{Набор данных для обучения с учителем} $\mathcal{S}_n$ размера $n$ — это множество из $n$ пар $\mathcal{S}_n = \left\{(x_i, y_i)\right\}_{i=1}^n$, где каждая пара $(x_i, y_i)$ является примером вход-выходной зависимости, которую мы хотим смоделировать. Мы также предполагаем, что каждый пример является \textbf{одинаково} и \textbf{независимо} распределенной (i.i.d.) выборкой из некоторого неизвестного (и непознаваемого) распределения вероятностей $p(x,y)$.
 \end{definition}
 
-See Appendix \ref{chap:probability_theory} if upon reading the definition you want to brush up on probability theory. The last assumption appears technical, but it is there to ensure that the relationship we are trying to model is meaningful. In particular, samples being \textbf{identically distributed} means that we are trying to approximate something which is sufficiently stable and unchanging through time. As a representative example, consider the task of gathering a dataset to recognise car models from photos. This assumption will be satisfied if we collect images over a short time span, but it will be invalid if collecting images from the last few decades, since car models will have changed over time. In the latter case, training and deploying a model on this dataset will fail as it will be unable to recognise new models or will have sub-optimal performance when used.
+См. Приложение \ref{chap:probability_theory}, если после прочтения определения вы захотите освежить свои знания по теории вероятностей. Последнее предположение кажется техническим, но оно необходимо для того, чтобы гарантировать, что моделируемая нами зависимость имеет смысл. В частности, то, что выборки \textbf{одинаково распределены}, означает, что мы пытаемся аппроксимировать нечто достаточно стабильное и неизменное во времени. В качестве характерного примера рассмотрим задачу сбора набора данных для распознавания моделей автомобилей по фотографиям. Это предположение будет выполнено, если мы будем собирать изображения в течение короткого промежутка времени, но оно будет неверным, если собирать изображения за последние несколько десятилетий, поскольку модели автомобилей со временем изменились. В последнем случае обучение и развертывание модели на этом наборе данных потерпят неудачу, поскольку она не сможет распознавать новые модели или будет иметь неоптимальную производительность при использовании.
 
-Similarly, samples being \textbf{independently distributed} means that our dataset has no bias in its collection, and it is sufficiently representative of the entire distribution. Going back to the previous example, gathering images close to a Tesla dealership will be invalid, since we will collect an overabundance of images of a certain type while loosing on images of other makers and models. Note that the validity of these assumptions depends on the context: a car dataset collected in Italy may be valid when deploying our model in Rome or Milan, while it may invalid when deploying our model in Tokyo or in Taiwan. The i.i.d. assumption should always be checked carefully to ensure we are applying our supervised learning tools to a valid scenario. Interestingly, modern LLMs are trained on such large distributions of data that even understanding what tasks are truly \textit{in-distribution} against what is \textit{out-of-distribution} (and how much the models are able to generalize) becomes blurred \cite{yuan2024revisiting}.
+Аналогично, то, что выборки \textbf{независимо распределены}, означает, что в нашем наборе данных нет смещения при сборе, и он достаточно репрезентативен для всего распределения. Возвращаясь к предыдущему примеру, сбор изображений рядом с дилерским центром Tesla будет неверным, поскольку мы соберем избыток изображений определенного типа, упустив изображения других производителей и моделей. Обратите внимание, что справедливость этих предположений зависит от контекста: набор данных автомобилей, собранный в Италии, может быть действителен при развертывании нашей модели в Риме или Милане, но может быть недействителен при развертывании нашей модели в Токио или на Тайване. Предположение i.i.d. всегда следует тщательно проверять, чтобы убедиться, что мы применяем наши инструменты обучения с учителем к действительному сценарию. Интересно, что современные БЯМ обучаются на таких больших распределениях данных, что даже понимание того, какие задачи действительно находятся \textit{в распределении}, а какие \textit{вне распределения} (и насколько модели способны к обобщению), становится размытым \cite{yuan2024revisiting}.
 
-\subsection{Variants of supervised learning}
+\subsection{Варианты обучения с учителем}
 \label{subsec:variants_supervised_learning}
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\textwidth]{images/embedding.pdf}
-    \caption{Differentiable models process data by transforming it sequentially via linear algebra operations. In many cases, after we optimize these programs, the internal representations of the input data of the model (what we call a \textbf{pre-trained} model) have geometric properties: for example, semantically similar images are projected to points that are close in this “latent” space. Transforming data from a non-metric space (original input images) to a metric space (bottom right) is called \textbf{embedding} the data.}
+    \caption{Дифференцируемые модели обрабатывают данные, последовательно преобразуя их с помощью операций линейной алгебры. Во многих случаях после оптимизации этих программ внутренние представления входных данных модели (то, что мы называем \textbf{предварительно обученной} моделью) имеют геометрические свойства: например, семантически схожие изображения проецируются в точки, которые близки в этом «скрытом» пространстве. Преобразование данных из неметрического пространства (исходные входные изображения) в метрическое пространство (внизу справа) называется \textbf{вложением} данных.}
     \label{fig:embedding}
 \end{figure}
 
-There exists many variations on the standard supervised learning scenario, although most successful applications make use of supervised learning in some form or another. For example, some datasets may not have available \textbf{targets} $y_i$, in which case we  talk about \textbf{unsupervised} learning. Typical applications of unsupervised learning are \textbf{clustering} algorithms, in which we want to aggregate our input data into \textit{clusters} such that points in a cluster are similar and points between clusters are dissimilar \cite{hastie2009elements}. As another example, in a \textbf{retrieval} system we may want to search a large database for the top-$k$ most similar elements to a user-given query.
+Существует множество вариаций стандартного сценария обучения с учителем, хотя большинство успешных приложений в той или иной форме используют обучение с учителем. Например, в некоторых наборах данных могут отсутствовать \textbf{целевые значения} $y_i$, и в этом случае мы говорим об \textbf{обучении без учителя}. Типичными приложениями обучения без учителя являются алгоритмы \textbf{кластеризации}, в которых мы хотим сгруппировать наши входные данные в \textit{кластеры} так, чтобы точки в одном кластере были похожи, а точки между кластерами — непохожи \cite{hastie2009elements}. В качестве другого примера, в системе \textbf{поиска} мы можем захотеть найти в большой базе данных $k$ наиболее похожих элементов на запрос пользователя.
 
-When dealing with complex data such as images, this is non-trivial because distances on images are ill-defined if we operate on pixels (i.e., even small perturbations can modify millions of pixels). However, assume we have available some (differentiable) model that we have already optimized for some other task which we assume sufficiently generic, e.g., image classification. We call it a  \textbf{pre-trained} model. As we will see, the internal states of this model can be interpreted as vectors in a high-dimensional space. In many cases, these vectors are shown to have useful geometrical properties, in the sense that objects that are semantically similar are sent (\textbf{embedded}) into points that are close in these representations. Hence, we can use these latent representations with standard clustering models, such as Gaussian mixture models \cite{huang2014deep}. See Figure \ref{fig:embedding} for a high-level overview of this idea.
+При работе со сложными данными, такими как изображения, это нетривиально, потому что расстояния на изображениях плохо определены, если мы работаем с пикселями (т.е. даже небольшие возмущения могут изменить миллионы пикселей). Однако предположим, что у нас есть некоторая (дифференцируемая) модель, которую мы уже оптимизировали для какой-то другой, достаточно общей задачи, например, классификации изображений. Мы называем ее \textbf{предварительно обученной} моделью. Как мы увидим, внутренние состояния этой модели можно интерпретировать как векторы в многомерном пространстве. Во многих случаях эти векторы демонстрируют полезные геометрические свойства, в том смысле, что семантически схожие объекты отображаются (\textbf{вкладываются}) в точки, которые близки в этих представлениях. Следовательно, мы можем использовать эти скрытые представления со стандартными моделями кластеризации, такими как модели гауссовых смесей \cite{huang2014deep}. См. Рисунок \ref{fig:embedding} для общего обзора этой идеи.
 
-What if we do not have access to a pre-trained model? A common variation of unsupervised learning is called \textbf{self-supervised} learning (SSL, \cite{zbontar2021barlow}). The aim of SSL is to automatically find some supervised objective from a generic unsupervised dataset, in order to optimize a model that can be used in a large set of downstream tasks. For example, if we have access to a large corpus of text, we can always optimize a program to predict how a small piece of text is likely to continue \cite{radford2019language}. The realization that neural networks can also perform an efficient embedding of text  when pre-trained in a self-supervised way had a profound impact on the community \cite{mikolov2013distributed}.\footnote{Large-scale web datasets are also full of biases, profanity, and vulgar content. Recognizing that models trained on this data internalize these biases was another important realization \cite{bolukbasi2016man} and it is one of the major criticisms of closed-source foundation models \cite{bender2021dangers}.}
+Что, если у нас нет доступа к предварительно обученной модели? Распространенный вариант обучения без учителя называется \textbf{самообучением} (SSL, \cite{zbontar2021barlow}). Цель SSL — автоматически найти некоторую задачу обучения с учителем из общего набора данных без учителя, чтобы оптимизировать модель, которую можно будет использовать в большом наборе последующих задач. Например, если у нас есть доступ к большому корпусу текста, мы всегда можем оптимизировать программу для предсказания вероятного продолжения небольшого фрагмента текста \cite{radford2019language}. Осознание того, что нейронные сети также могут выполнять эффективное вложение текста при предварительном обучении в режиме самообучения, оказало глубокое влияние на сообщество \cite{mikolov2013distributed}.\footnote{Крупномасштабные веб-наборы данных также полны предвзятости, ненормативной лексики и вульгарного контента. Признание того, что модели, обученные на этих данных, усваивают эти предвзятости, было еще одним важным осознанием \cite{bolukbasi2016man} и является одной из основных критик моделей-оснований с закрытым исходным кодом \cite{bender2021dangers}.}
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.95\textwidth]{images/using_models.pdf}
-    \caption{Three ways of using trained models. \textbf{Zero-shot}: a question is directly given to the model. This can be achieved with generative language models (introduced in Chapter \ref{chap:convolutions_beyond_images}). \textbf{Few-shot prompting} is similar, but a few examples are provided as input. Both techniques can be employed only if the underlying model shows a large amount of generalization capabilities. \textbf{Fine-tuning}: the model is optimized via gradient descent on a small dataset of examples. This proceeds similarly to training the model from scratch.}
+    \caption{Три способа использования обученных моделей. \textbf{Нулевой выстрел}: вопрос напрямую задается модели. Этого можно достичь с помощью генеративных языковых моделей (представленных в Главе \ref{chap:convolutions_beyond_images}). \textbf{Промптинг с несколькими примерами} похож, но в качестве входных данных предоставляется несколько примеров. Обе техники могут применяться только в том случае, если базовая модель демонстрирует большие возможности обобщения. \textbf{Дообучение}: модель оптимизируется с помощью градиентного спуска на небольшом наборе данных примеров. Это происходит аналогично обучению модели с нуля.}
     \label{fig:using_models}
 \end{figure}
 
-As we will see in Chapter \ref{chap:convolutions_beyond_images} and Chapter \ref{chap:transformers}, LLMs can be seen as modern iterations on this basic idea, since optimizing models such as GPT or Llama \cite{touvron2023llama} always start by a basic self-supervised training in terms of next-token prediction. These models are sometimes called \textbf{foundation models}. In the simplest case, they can be used out-of-the-box for a new task, such as answering a query: in this case, we say they are used in a \textbf{zero-shot} fashion. For LLMs, it is also possible to provide a small number of examples of a new task as input prompt, in which case we talk about \textbf{few-shot prompting}. In the most general case, we can take a pre-trained foundation model and optimize its parameters by gradient descent on a new task: this is called \textbf{fine-tuning} the model. See Figure \ref{fig:using_models} for a comparison of the three approaches. In this book we focus on building models from scratch, but fine-tuning can be done by similar means.
+Как мы увидим в Главе \ref{chap:convolutions_beyond_images} и Главе \ref{chap:transformers}, БЯМ можно рассматривать как современные итерации этой основной идеи, поскольку оптимизация моделей, таких как GPT или Llama \cite{touvron2023llama}, всегда начинается с базового самообучения в терминах предсказания следующего токена. Эти модели иногда называют \textbf{фундаментальными моделями}. В простейшем случае их можно использовать «из коробки» для новой задачи, например, для ответа на запрос: в этом случае мы говорим, что они используются в режиме \textbf{нулевого выстрела}. Для БЯМ также возможно предоставить небольшое количество примеров новой задачи в качестве входного промпта, и в этом случае мы говорим о \textbf{промптинге с несколькими примерами}. В самом общем случае мы можем взять предварительно обученную фундаментальную модель и оптимизировать ее параметры с помощью градиентного спуска для новой задачи: это называется \textbf{дообучением} модели. См. Рисунок \ref{fig:using_models} для сравнения трех подходов. В этой книге мы сосредоточимся на создании моделей с нуля, но дообучение можно проводить аналогичными способами.
 
-Fine-tuning is made especially easy by the presence of large open-source repositories online.\footnote{\url{https://huggingface.co/models}} Fine-tuning can be done on the full set of parameters of the starting model, or by considering only a smaller subset or a small number of additional parameters: this is called \textbf{parameter-efficient fine-tuning} (PEFT) \cite{lialin2023scaling}.\footnote{Few-shot learning can also be done by fine-tuning the model. In cases in which fine-tuning is not needed, we say the model is performing \textbf{in-context learning} \cite{akyurek2022learning}.} We will consider PEFT techniques in the next volume.
+Дообучение особенно упрощается благодаря наличию больших репозиториев с открытым исходным кодом в Интернете.\footnote{\url{https://huggingface.co/models}} Дообучение можно проводить на полном наборе параметров исходной модели или, рассматривая только меньшее подмножество или небольшое количество дополнительных параметров: это называется \textbf{параметрически-эффективным дообучением} (PEFT) \cite{lialin2023scaling}.\footnote{Обучение с несколькими примерами также можно проводить путем дообучения модели. В случаях, когда дообучение не требуется, мы говорим, что модель выполняет \textbf{обучение в контексте} \cite{akyurek2022learning}.}
 
-Many other variations of supervised learning are possible, which we do not have space to list in detail here except for some generic hints. If only parts of a dataset are labeled, we have a \textbf{semi-supervised} scenario \cite{belkin2006manifold}. We will see some examples of semi-supervised learning in Chapter \ref{chap:gnns}. Additionally, we can have scenarios with multiple datasets belonging to “similar” distributions, or the same distribution over different period of times, giving rise to countless tasks depending on the order in which the tasks or the data are provided, including \textbf{domain adaptation}, \textbf{meta-learning} \cite{finn2017model}, \textbf{continual learning} \cite{parisi2019continual,biesialska2020continual}, \textbf{metric learning}, \textbf{unlearning}, etc. Some of these will be treated in the next volume.
+Возможны многие другие вариации обучения с учителем, которые мы не можем подробно перечислить здесь, за исключением некоторых общих намеков. Если помечена только часть набора данных, у нас есть \textbf{полууправляемый} сценарий \cite{belkin2006manifold}. Мы увидим некоторые примеры полууправляемого обучения в Главе \ref{chap:gnns}. Кроме того, у нас могут быть сценарии с несколькими наборами данных, принадлежащими к «похожим» распределениям, или одному и тому же распределению в разные периоды времени, что порождает бесчисленные задачи в зависимости от порядка, в котором предоставляются задачи или данные, включая \textbf{адаптацию домена}, \textbf{мета-обучение} \cite{finn2017model}, \textbf{непрерывное обучение} \cite{parisi2019continual,biesialska2020continual}, \textbf{метрическое обучение}, \textbf{разучивание} и т.д. Некоторые из них будут рассмотрены в следующем томе.
 
-\begin{supportbox}{More on the i.i.d. property}
-Importantly, ensuring the i.i.d. property is not a one-shot process, and it must be checked constantly during the lifetime of a model. In the case of car classification, if unchecked, subtle changes in the distribution of cars over time will degrade the performance of a machine  learning model, an example of \textbf{domain shift}. As another example, a recommender system will change the way users interact with a certain app, as they will start reacting to suggestions of the recommender system itself. This creates \textbf{feedback loops} \cite{cinus2022effect} that require constant re-evaluation of the performance of the system and of the app.
+\begin{supportbox}{Подробнее о свойстве i.i.d.}
+Важно отметить, что обеспечение свойства i.i.d. — это не одноразовый процесс, и его необходимо постоянно проверять в течение всего срока службы модели. В случае классификации автомобилей, если это не проверять, тонкие изменения в распределении автомобилей со временем приведут к ухудшению производительности модели машинного обучения, что является примером \textbf{сдвига домена}. В качестве другого примера, рекомендательная система изменит способ взаимодействия пользователей с определенным приложением, поскольку они начнут реагировать на предложения самой рекомендательной системы. Это создает \textbf{петли обратной связи} \cite{cinus2022effect}, которые требуют постоянной переоценки производительности системы и приложения.
 \end{supportbox}
 
-\section{Loss functions}
+\section{Функции потерь}
 \label{sec:loss_functions}
 
-\addclock Once data has been gathered, we need to formalize our idea of “approximating” the desired behavior, which we do by introducing the concept of \textbf{loss functions}.
+\addclock После сбора данных нам необходимо формализовать нашу идею «аппроксимации» желаемого поведения, что мы делаем, вводя понятие \textbf{функций потерь}.
 
-\begin{definition}[Loss function] \addbottle
-Given a desired target $y$ and the predicted value $\hat{y}=f(x)$ from a model $f$, a \textbf{loss function} $l(y, \hat{y}) \in \mathbb{R}$ is a scalar, differentiable function whose value correlates with the performance of the model, i.e., $l(y, \hat{y}_1) < l(y, \hat{y}_2)$ means that the prediction $\hat{y}_1$ is better than the prediction $\hat{y}_2$ when considering the reference value (target) $y$.
+\begin{definition}[Функция потерь] \addbottle
+Для желаемой цели $y$ и предсказанного значения $\hat{y}=f(x)$ из модели $f$, \textbf{функция потерь} $l(y, \hat{y}) \in \mathbb{R}$ — это скалярная, дифференцируемая функция, значение которой коррелирует с производительностью модели, т.е. $l(y, \hat{y}_1) < l(y, \hat{y}_2)$ означает, что предсказание $\hat{y}_1$ лучше, чем предсказание $\hat{y}_2$, при рассмотрении эталонного значения (цели) $y$.
 \end{definition}
 
-A loss function embeds our understanding of the task and our preferences in the solutions’ space on a real-valued scale that can be exploited in an optimization algorithm. Being differentiable, it allows us to turn our learning problem into a mathematical optimization problem that can be solved via gradient descent by minimizing the average loss on our dataset.
+Функция потерь воплощает наше понимание задачи и наши предпочтения в пространстве решений в виде вещественной шкалы, которую можно использовать в алгоритме оптимизации. Будучи дифференцируемой, она позволяет нам превратить нашу задачу обучения в задачу математической оптимизации, которую можно решить с помощью градиентного спуска, минимизируя средние потери на нашем наборе данных.
 
-To this end, given a dataset $\mathcal{S}_n = \left\{(x_i, y_i)\right\}$ and a loss function $l(\cdot, \cdot)$, a sensible optimization task to solve is the minimum average loss on the dataset achievable by any possible \textit{differentiable} model $f$:
+Для этого, имея набор данных $\mathcal{S}_n = \left\{(x_i, y_i)\right\}$ и функцию потерь $l(\cdot, \cdot)$, разумной задачей оптимизации является минимизация средней потери на наборе данных, достижимая любой возможной \textit{дифференцируемой} моделью $f$:
 
 \vspace{1em}
 \begin{equation}
     f^* = \underset{f}{\arg\min} \;\; \eqnmarkbox[drawred]{node}{\frac{1}{n}\sum_{i=1}^n} l(y_i, \eqnmarkbox[drawblue]{node2}{f(x_i)})
     \label{eq:empirical_risk_minimization}
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{Average over the dataset}
-\annotate[yshift=-1.5em]{below,left}{node2}{Prediction of $f$ on the $i$-th  sample from the dataset}
+\annotate[yshift=1em]{above,right}{node}{Среднее по набору данных}
+\annotate[yshift=-1.5em]{below,left}{node2}{Предсказание $f$ на $i$-м примере из набора данных}
 
 \vspace{1em}
-For historical reasons, \eqref{eq:empirical_risk_minimization} is referred to as \textbf{empirical risk minimization} (ERM), where \textit{risk} is used as a generic synonym for \textit{loss}. See also the box in the next page for more on the origin of the term.
+По историческим причинам \eqref{eq:empirical_risk_minimization} называется \textbf{минимизацией эмпирического риска} (ERM), где \textit{риск} используется как общий синоним \textit{потерь}. См. также вставку на следующей странице для получения дополнительной информации о происхождении термина.
 
-In \eqref{eq:empirical_risk_minimization} we are implicitly assuming that we are minimizing across the space of all possible functions defined on our input $x$. We will see shortly that our models can always be parameterized by a set of tensors $w$ (called \textbf{parameters} of the model), and minimization is done by searching for the optimal value of these parameters via numerical optimization, which we denote by $f(x,w)$. Hence, given a dataset $\mathcal{S}_n$, a loss function $l$, and a model space $f$, we can \textbf{train} our model by optimizing the empirical risk \eqref{eq:empirical_risk_minimization} via gradient descent \eqref{eq:gradient_descent}:
+В \eqref{eq:empirical_risk_minimization} мы неявно предполагаем, что минимизируем по пространству всех возможных функций, определенных на нашем входе $x$. Вскоре мы увидим, что наши модели всегда можно параметризовать набором тензоров $w$ (называемых \textbf{параметрами} модели), и минимизация выполняется путем поиска оптимального значения этих параметров с помощью численной оптимизации, которую мы обозначаем как $f(x,w)$. Следовательно, имея набор данных $\mathcal{S}_n$, функцию потерь $l$ и пространство моделей $f$, мы можем \textbf{обучать} нашу модель, оптимизируя эмпирический риск \eqref{eq:empirical_risk_minimization} с помощью градиентного спуска \eqref{eq:gradient_descent}:
 %
 \begin{equation}
     {\color{drawred}w^*} = \underset{w}{\arg\min} \;\; \frac{1}{n}\sum_{i=1}^n l(y_i, f(x_i, {\color{drawred}w}))
     \label{eq:empirical_risk_minimization_2}
 \end{equation}
 %
-where the minimization is now done with respect to the parameter's tensor $w$.
+где минимизация теперь выполняется по отношению к тензору параметров $w$.
 
-\subsection*{On the differentiability of the loss}
+\subsection*{О дифференцируемости потерь}
 \label{subsec:differentiability_loss}
 
- Before proceeding, we make two observations on the ERM framework. \addteacup First, note that the differentiability requirement on $l$ is fundamental. Consider a simple \textbf{binary classification} task (that we will introduce properly in the next chapter), where $y \in \left\{-1,+1\right\}$ can only take two values, $-1$ or $1$. Given a real-valued model $f(x) \in \mathbb{R}$, we can equate the two decisions with the sign of $f$ -- which we denote as $\text{sign}(f(x))$ -- and define a \textbf{0/1 loss} as:
+ Прежде чем продолжить, сделаем два замечания о фреймворке ERM. \addteacup Во-первых, обратите внимание, что требование дифференцируемости $l$ является фундаментальным. Рассмотрим простую задачу \textbf{бинарной классификации} (которую мы должным образом представим в следующей главе), где $y \in \left\{-1,+1\right\}$ может принимать только два значения, $-1$ или $1$. Для вещественнозначной модели $f(x) \in \mathbb{R}$ мы можем приравнять два решения к знаку $f$ — который мы обозначаем как $\text{sign}(f(x))$ — и определить \textbf{потери 0/1} как:
 %
 \begin{equation}
-l(y, \hat{y})=\begin{cases} 0 & \text{ if } \text{sign}(\hat{y}) = y \\ 1 & \text{ otherwise } \end{cases}
+l(y, \hat{y})=\begin{cases} 0 & \text{ если } \text{sign}(\hat{y}) = y \\ 1 & \text{ иначе } \end{cases}
 \label{eq:01_loss}
 \end{equation}
 %
-While this aligns with our intuitive notion of “being right”, it is useless as loss function since its gradient will almost always be zero (except when the sign of $f$ switches), and any gradient descent algorithm will remain stuck at initialization. A less intuitive quantity in this case is the \textbf{margin} $y\hat{y}$, which is positive [negative] depending on whether the sign of the model aligns [or does not align] with the desired one, but it varies continuously differently from 0/1 loss in \eqref{eq:01_loss}. 
+Хотя это соответствует нашему интуитивному представлению о «правоте», это бесполезно в качестве функции потерь, поскольку ее градиент почти всегда будет равен нулю (за исключением случаев, когда знак $f$ меняется), и любой алгоритм градиентного спуска застрянет на инициализации. Менее интуитивной величиной в этом случае является \textbf{отступ} $y\hat{y}$, который положителен [отрицателен] в зависимости от того, совпадает ли знак модели с желаемым [или не совпадает], но он изменяется непрерывно, в отличие от потерь 0/1 в \eqref{eq:01_loss}. 
 
-A possible loss function in this case is the \textbf{hinge loss} $l(y,\hat{y}) = \max(0, 1 - y\hat{y})$, which is used to train support-vector models. Details apart, this shows the inherent tension between designing loss functions that encode our notion of performance while at the same time being useful for numerical optimization.
+Возможной функцией потерь в этом случае является \textbf{шарнирная функция потерь} $l(y,\hat{y}) = \max(0, 1 - y\hat{y})$, которая используется для обучения моделей опорных векторов. Детали в стороне, это показывает внутреннее напряжение между разработкой функций потерь, которые кодируют наше представление о производительности, и в то же время являются полезными для численной оптимизации.
 
-\subsection{Expected risk and overfitting}
+\subsection{Ожидаемый риск и переобучение}
 
-As a second observation, note that the empirical risk is always trivial to minimize, by defining:
+Во-вторых, обратите внимание, что эмпирический риск всегда тривиально минимизировать, определив:
 
 \begin{equation}
-f(x) = \begin{cases} y & \text{ if } \eqnmarkbox[drawred]{node}{(x,y) \in \mathcal{S}_n} \\ \eqnmarkbox[drawblue]{node2}{\bar{y}} & \text{ otherwise} \end{cases} \;.
+f(x) = \begin{cases} y & \text{ если } \eqnmarkbox[drawred]{node}{(x,y) \in \mathcal{S}_n} \\ \eqnmarkbox[drawblue]{node2}{\bar{y}} & \text{ иначе} \end{cases} \;.
 \label{eq:lookup_table}
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{$x$ is in the training set}
-\annotate[yshift=-1em]{below,right}{node2}{Default value, e.g., $0$}
+\annotate[yshift=1em]{above,right}{node}{$x$ находится в обучающем наборе}
+\annotate[yshift=-1em]{below,right}{node2}{Значение по умолчанию, например, $0$}
 
 \vspace{1em}
-This is a look-up table that returns a prediction $y$ if the pair $(x,y)$ is contained in the dataset, while it defaults to some constant prediction $\bar{y}$ (e.g., 0) otherwise. Assuming that the loss is lower-bounded whenever $y = \hat{y}$, this model will always achieve the lowest possible value of empirical risk, while providing no actual practical value. 
+Это таблица поиска, которая возвращает предсказание $y$, если пара $(x,y)$ содержится в наборе данных, а в противном случае возвращает некоторое постоянное предсказание $\bar{y}$ (например, 0). Предполагая, что потери ограничены снизу, когда $y = \hat{y}$, эта модель всегда будет достигать наименьшего возможного значения эмпирического риска, не имея при этом никакой практической ценности. 
 
-This shows the difference between \textbf{memorization} and \textbf{learning} (optimization). Although we search for a model by optimizing some average loss quantity on our training data, as in \eqref{eq:empirical_risk_minimization}, our true objective is minimizing this quantity on some unknown, future input yet to be seen. The elements of our training set are only a proxy to this end. We can formalize this idea by defining the \textbf{expected risk minimization} problem.
+Это показывает разницу между \textbf{запоминанием} и \textbf{обучением} (оптимизацией). Хотя мы ищем модель, оптимизируя некоторую среднюю величину потерь на наших обучающих данных, как в \eqref{eq:empirical_risk_minimization}, нашей истинной целью является минимизация этой величины на некотором неизвестном, будущем входе, который еще предстоит увидеть. Элементы нашего обучающего набора являются лишь средством для достижения этой цели. Мы можем формализовать эту идею, определив задачу \textbf{минимизации ожидаемого риска}.
 
-\begin{definition}[Expected risk]
-Given a probability distribution $p(x,y)$ and a loss function $l$, the \textbf{expected risk} (ER) is defined as:
+\begin{definition}[Ожидаемый риск]
+Для распределения вероятностей $p(x,y)$ и функции потерь $l$, \textbf{ожидаемый риск} (ER) определяется как:
 %
 \begin{equation}
 \textnormal{ER}[f] = \mathbb{E}_{p(x,y)}\left[ l(y, f(x)) \right]
@@ -123,113 +123,113 @@ Given a probability distribution $p(x,y)$ and a loss function $l$, the \textbf{e
 \end{equation}
 \end{definition}
 
-Minimizing \eqref{eq:expected_risk} can be interpreted as minimizing the average (expected) loss across \textit{all possible input-output pairs} (e.g., all possible emails) that our model could see. Clearly, a model with low expected risk would be guaranteed to work correctly. However, the quantity in \eqref{eq:expected_risk} is unfeasible to compute in practice, as enumerating and labeling all data points is impossible. The empirical risk provides an estimate of the expected risk under the choice of a given dataset and can be seen as a Monte Carlo approximation of the ER term.
+Минимизацию \eqref{eq:expected_risk} можно интерпретировать как минимизацию средней (ожидаемой) потери по \textit{всем возможным парам вход-выход} (например, всем возможным электронным письмам), которые может увидеть наша модель. Очевидно, что модель с низким ожидаемым риском гарантированно будет работать правильно. Однако величина в \eqref{eq:expected_risk} на практике невычислима, так как перечисление и маркировка всех точек данных невозможны. Эмпирический риск дает оценку ожидаемого риска при выборе данного набора данных и может рассматриваться как аппроксимация методом Монте-Карло члена ER.
 
-The difference in loss between the expected and the empirical risk is called the \textbf{generalization gap}: a pure memorization algorithm like \eqref{eq:lookup_table} will have poor generalization or, in other terms, it will \textbf{overfit} to the specific training data we provided. Generalization can be tested in practice by keeping a separate \textbf{test dataset} $\mathcal{T}_m$ with $m$ data points never used during training, $\mathcal{S}_n \cap \mathcal{T}_m = \emptyset$. Then, the difference in empirical loss between $\mathcal{S}_n$ and $\mathcal{T}_m$ can be used as an approximate measure of overfitting.
+Разница в потерях между ожидаемым и эмпирическим риском называется \textbf{разрывом обобщения}: алгоритм чистого запоминания, подобный \eqref{eq:lookup_table}, будет иметь плохую обобщающую способность или, другими словами, он будет \textbf{переобучаться} на конкретные предоставленные нами обучающие данные. Обобщение можно проверить на практике, оставив отдельный \textbf{тестовый набор данных} $\mathcal{T}_m$ с $m$ точками данных, никогда не использовавшимися во время обучения, $\mathcal{S}_n \cap \mathcal{T}_m = \emptyset$. Тогда разницу в эмпирических потерях между $\mathcal{S}_n$ и $\mathcal{T}_m$ можно использовать как приблизительную меру переобучения.
 
-\begin{supportbox}{Risk and loss}
-Empirical and expected risk minimization framed in this way are generally associated with the work of the Russian computer scientist V. Vapnik \cite{vapnik2013nature}, which gave rise to the field of \textit{statistical learning theory} (SLT). SLT is especially concerned with the behaviour of \eqref{eq:empirical_risk_minimization} when seen as a finite-sample approximation of \eqref{eq:expected_risk} under some restricted class of functions $f$ and measure of underlying complexity \cite{poggio2003mathematics,shalev2014understanding,mohri2018foundations}. The counter-intuitive properties of modern neural networks (such as strong generalization long after overfitting should have been expected) have opened many new avenues of research in SLT \cite{poggio2020theoretical}. See also the introduction of Chapter \ref{chap:deep_cnns}.
+\begin{supportbox}{Риск и потери}
+Минимизация эмпирического и ожидаемого риска, сформулированная таким образом, обычно ассоциируется с работами российского ученого В. Вапника \cite{vapnik2013nature}, которые положили начало области \textit{статистической теории обучения} (SLT). SLT особенно занимается поведением \eqref{eq:empirical_risk_minimization}, рассматриваемого как аппроксимация конечной выборкой \eqref{eq:expected_risk} при некотором ограниченном классе функций $f$ и мере базовой сложности \cite{poggio2003mathematics,shalev2014understanding,mohri2018foundations}. Контринтуитивные свойства современных нейронных сетей (такие как сильное обобщение далеко за пределами того, где следовало бы ожидать переобучения) открыли много новых направлений исследований в SLT \cite{poggio2020theoretical}. См. также введение к Главе \ref{chap:deep_cnns}.
 \end{supportbox}
 
-\subsection{How to select a valid loss function?} 
+\subsection{Как выбрать правильную функцию потерь?} 
 \label{subsec:how_to_select_a_loss}
 
 \begin{tcolorbox}
-If you have not done so already, this is a good time to study (or skim) the material in Appendix \ref{chap:probability_theory}, especially probability distributions, sufficient statistics, and maximum likelihood estimation.
+Если вы еще этого не сделали, сейчас самое время изучить (или бегло просмотреть) материал в Приложении \ref{chap:probability_theory}, особенно распределения вероятностей, достаточные статистики и оценку максимального правдоподобия.
 \end{tcolorbox}
 
-As we will see in the next chapters, the loss encodes our a priori knowledge on the task to be solved, and it has a large impact on performance. In some cases, simple considerations on the problem are enough to design valid losses (e.g., as done for the hinge loss in Section \ref{subsec:differentiability_loss}).
+Как мы увидим в следующих главах, функция потерь кодирует наши априорные знания о решаемой задаче и оказывает большое влияние на производительность. В некоторых случаях простых соображений о задаче достаточно для разработки правильных функций потерь (например, как это было сделано для шарнирной функции потерь в Разделе \ref{subsec:differentiability_loss}).
 
-However, it is possible to work in a more principled fashion by reformulating the entire training process in purely probabilistic terms, as we show now. This formulation provides an alternative viewpoint on learning, which may be more intuitive or more useful in certain scenarios. It is also the preferred viewpoint of many books \cite{bishop2024deep}. We provide the basic ideas in this section, and we consider specific applications later on in the book.
+Однако можно работать более принципиально, переформулировав весь процесс обучения в чисто вероятностных терминах, как мы сейчас покажем. Эта формулировка предоставляет альтернативную точку зрения на обучение, которая может быть более интуитивной или более полезной в определенных сценариях. Это также предпочтительная точка зрения многих книг \cite{bishop2024deep}. Мы приводим основные идеи в этом разделе и рассмотрим конкретные приложения позже в книге.
 
-The key observation is the following. In Section \ref{sec:dataset}, we started by assuming that our examples come from a distribution $p(x, y)$. By the product rule of probability, we can decompose $p(x,y)$ as $p(x,y) = p(x)p(y \mid x)$, such that $p(x)$ depends on the probability of observing each input $x$, and the conditional term $p(y \mid x)$ describes the probability of observing a certain output $y$ given an input $x$.\footnote{We can also decompose it as $p(x, y) = p(x \mid y)p(y)$. Methods that require to estimate $p(x)$ or $p(x \mid y)$ are called \textbf{generative}, while methods that estimate $p(y \mid x)$ are called \textbf{discriminative}. Apart from language modeling, in this book we focus on the latter case. We consider generative modelling more broadly in the next volume.} Approximating $p(y \;\vert\; x)$ with a function $f(x)$ makes sense if we assume that the probability mass is mostly concentrated around a single point $y$, i.e., $p(y \;\vert\; x)$ is close to a so-called Dirac delta function, and it drastically simplifies the overall problem formulation.
+Ключевое наблюдение заключается в следующем. В Разделе \ref{sec:dataset} мы начали с предположения, что наши примеры происходят из распределения $p(x, y)$. По правилу произведения вероятностей мы можем разложить $p(x,y)$ как $p(x,y) = p(x)p(y \mid x)$, так что $p(x)$ зависит от вероятности наблюдения каждого входа $x$, а условный член $p(y \mid x)$ описывает вероятность наблюдения определенного выхода $y$ при заданном входе $x$.\footnote{Мы также можем разложить его как $p(x, y) = p(x \mid y)p(y)$. Методы, требующие оценки $p(x)$ или $p(x \mid y)$, называются \textbf{генеративными}, в то время как методы, оценивающие $p(y \mid x)$, называются \textbf{дискриминативными}. За исключением языкового моделирования, в этой книге мы сосредоточимся на последнем случае. Мы рассмотрим генеративное моделирование более широко в следующем томе.} Аппроксимация $p(y \;\vert\; x)$ функцией $f(x)$ имеет смысл, если мы предполагаем, что масса вероятности в основном сосредоточена вокруг одной точки $y$, т.е. $p(y \;\vert\; x)$ близка к так называемой дельта-функции Дирака, и это значительно упрощает общую формулировку задачи.
 
-However, we can relax this by assuming that our model $f(x)$ does not provide directly the prediction, but it is used instead to parameterize the sufficient statistics of a conditional probability distribution $p(y \mid f(x))$ over possible outputs. For example, consider a classification problem where $y \in \left\{1,2,3\right\}$ can take three possible values. We can assume our model has three outputs that parameterize a categorical distribution over these classes, such that:
+Однако мы можем ослабить это предположение, предположив, что наша модель $f(x)$ не дает непосредственно предсказание, а используется вместо этого для параметризации достаточных статистик условного распределения вероятностей $p(y \mid f(x))$ по возможным выходам. Например, рассмотрим задачу классификации, где $y \in \left\{1,2,3\right\}$ может принимать три возможных значения. Мы можем предположить, что наша модель имеет три выхода, которые параметризуют категориальное распределение по этим классам, так что:
 %
 $$
 p(\mathbf{y} \;\vert\; f(x)) = \prod_{i=1}^3 {f_i(x)}^{y_i}
 $$
 %
-where $\mathbf{y} \sim \text{Binary}(3)$ is the one-hot encoding of the class $y$\footnote{Given an integer $i$, its one-hot representation is a vector of all zeros except the $i$-th element, which is $1$. This is introduced formally in Section \ref{sec:linear_models_for_classification}.} and $f(x) \sim \Delta(3)$ are the predicted probabilities for each class. As another example, assume we want to predict a single scalar value $y \in \mathbb{R}$ (\textbf{regression}). We can model this with a two-valued function $f(x) \sim (2)$ such that the prediction is a Gaussian with appropriate mean and variance:
+где $\mathbf{y} \sim \text{Binary}(3)$ — это one-hot кодирование класса $y$\footnote{Для целого числа $i$ его one-hot представление — это вектор из всех нулей, за исключением $i$-го элемента, который равен $1$. Это формально вводится в Разделе \ref{sec:linear_models_for_classification}.} и $f(x) \sim \Delta(3)$ — это предсказанные вероятности для каждого класса. В качестве другого примера, предположим, мы хотим предсказать одно скалярное значение $y \in \mathbb{R}$ (\textbf{регрессия}). Мы можем смоделировать это с помощью функции с двумя значениями $f(x) \sim (2)$ так, что предсказание является гауссианой с соответствующим средним и дисперсией:
 
 \begin{equation}
 p(y \;\vert\; f(x))=\mathcal{N}(y \mid f_1(x), \eqnmarkbox[drawred]{node}{f_2^2(x)})
 \label{eq:gaussian_conditional_distribution}
 \end{equation}
-\annotate[yshift=-1em]{below,right}{node}{Squared to ensure positivity}
+\annotate[yshift=-1em]{below,right}{node}{В квадрате для обеспечения положительности}
 
 \vspace{1em}
-where the second output of $f(x)$ is squared to ensure that the predicted variance remains positive. As can be seen, this is a very general setup that subsumes our previous discussion, and it provides more flexibility to the designer, as choosing a specific parameterization for $p(y \;\vert\; x)$ can be easier than choosing a specific loss function $l(y, \hat{y})$. In addition, this framework provides a more immediate way to model uncertainty, such as the variance in \eqref{eq:gaussian_conditional_distribution}.
+где второй выход $f(x)$ возводится в квадрат, чтобы гарантировать, что предсказанная дисперсия остается положительной. Как видно, это очень общая схема, которая включает в себя наше предыдущее обсуждение и предоставляет больше гибкости разработчику, поскольку выбор конкретной параметризации для $p(y \;\vert\; x)$ может быть проще, чем выбор конкретной функции потерь $l(y, \hat{y})$. Кроме того, этот фреймворк предоставляет более непосредственный способ моделирования неопределенности, такой как дисперсия в \eqref{eq:gaussian_conditional_distribution}.
 %
-\subsection{Maximum likelihood}
+\subsection{Максимальное правдоподобие}
 %
-How can we train a probabilistic model? Remember that we assumed the samples in our dataset $\mathcal{S}_n$ to be i.i.d. samples from a probability distribution $p(x,y)$. Hence, given a model $f(x)$, the probability assigned to the dataset itself by a specific choice $f$ of function is given by the product of each sample in the dataset:
+Как мы можем обучать вероятностную модель? Помните, что мы предположили, что выборки в нашем наборе данных $\mathcal{S}_n$ являются i.i.d. выборками из распределения вероятностей $p(x,y)$. Следовательно, для модели $f(x)$ вероятность, присвоенная самому набору данных конкретным выбором функции $f$, задается произведением вероятностей каждого примера в наборе данных:
 %
 $$
 p(\mathcal{S}_n \;\vert\; f)=\prod_{i=1}^n p(y_i \;\vert\; f(x_i))
 $$
 
-The quantity $p(\mathcal{S}_n  \;\vert\; f)$ is called the \textbf{likelihood} of the dataset. For a random choice of $f(x)$, the model will assign probabilities more or less at random across all possible inputs and outputs, and the likelihood of our specific dataset will be small. A sensible strategy, then, is to select the model such that the likelihood of the dataset is instead maximized. This is a direct application of the maximum likelihood approach (see Section \ref{sec:maximum_likelihood_estimation} in Appendix \ref{chap:probability_theory}).
+Величина $p(\mathcal{S}_n \;\vert\; f)$ называется \textbf{правдоподобием} набора данных. При случайном выборе $f(x)$ модель будет присваивать вероятности более или менее случайным образом по всем возможным входам и выходам, и правдоподобие нашего конкретного набора данных будет небольшим. Разумной стратегией, таким образом, является выбор модели таким образом, чтобы правдоподобие набора данных было максимальным. Это прямое применение подхода максимального правдоподобия (см. Раздел \ref{sec:maximum_likelihood_estimation} в Приложении \ref{chap:probability_theory}).
 
-\begin{definition}[Supervised learning as maximum likelihood] \addbottle
-Given a dataset $\mathcal{S}_n = \left\{(x_i, y_i)\right\}$ and a family of probability distributions $p(y \;\vert\; f(x))$ parameterized by $f(x)$, the \textbf{maximum likelihood} (ML) solution is given by:
+\begin{definition}[Обучение с учителем как максимальное правдоподобие] \addbottle
+Для набора данных $\mathcal{S}_n = \left\{(x_i, y_i)\right\}$ и семейства распределений вероятностей $p(y \;\vert\; f(x))$, параметризованных $f(x)$, решение по \textbf{максимальному правдоподобию} (МП) задается как:
 %
 $$
-f^* = \underset{f}{\arg\max}\prod_{i=1}^n p(y_i \;\vert\; f(x_i)) \,.
+f^* = \underset{f}{\arg\max}\prod_{i=1}^n p(y_i \;\vert\; f(x_i)) \;.
 $$
 \end{definition}
 
-While we are again left with an optimization problem, it now follows directly from the laws of probability once all probability distributions are chosen, which is in contrast to before, where the specific loss was part of the design space. The two viewpoints, however, are closely connected. Working in log-space and switching to a minimization problem we obtain:
+Хотя мы снова остаемся с задачей оптимизации, теперь она следует непосредственно из законов вероятности после выбора всех распределений вероятностей, что контрастирует с предыдущим подходом, где конкретная функция потерь была частью пространства проектирования. Однако эти две точки зрения тесно связаны. Работая в логарифмическом пространстве и переходя к задаче минимизации, мы получаем:
 %
 $$
-\underset{f}{\arg\max} \left\{ \log \prod_{i=1}^n p(y_i \;\vert\; f(x_i)) \right\} = \underset{f}{\arg\min} \left\{ \sum_{i=1}^n -\log(p(y_i \;\vert\; f(x_i)) \right\}
+\underset{f}{\arg\max} \left\{ \log \prod_{i=1}^n p(y_i \;\vert\; f(x_i)) \right\} = \underset{f}{\arg\min} \left\{ \sum_{i=1}^n -\log(p(y_i \;\vert\; f(x_i))) \right\}
 $$
 %
-Hence, the two formulations are identical if we identify $-\log(p(y \;\vert\; f(x))$ as a “pseudo-loss” to be optimized. As we will see, all loss functions used in practice can be obtained under the ML principle for specific choices of this term. Both viewpoints are interesting, and we urge readers to keep them in mind as we progress in the book.
+Следовательно, две формулировки идентичны, если мы отождествим $-\log(p(y \;\vert\; f(x))$ с «псевдо-потерями», которые нужно оптимизировать. Как мы увидим, все функции потерь, используемые на практике, могут быть получены по принципу МП для конкретных выборов этого члена. Обе точки зрения интересны, и мы призываем читателей помнить о них по мере продвижения по книге.
 
-\section{Even more probability: Bayesian learning}
+\section{Еще больше вероятности: Байесовское обучение}
 \label{sec:bayesian_learning}
 
-\addteacup We discuss here a further generalization of the probabilistic formulation called \textbf{Bayesian neural networks} (BNNs), which is of interest in the literature. We only provide the general idea and we refer the reader to one of many in-depth tutorials, e.g., \cite{jospin2022hands}, for more details.
+\addteacup Здесь мы обсуждаем дальнейшее обобщение вероятностной формулировки, называемое \textbf{Байесовскими нейронными сетями} (БНС), которое представляет интерес в литературе. Мы приводим только общую идею и отсылаем читателя к одному из многих подробных руководств, например, \cite{jospin2022hands}, для получения более подробной информации.
 
-By designing a probability function $p(y \;\vert\; f(x))$ instead of $f(x)$ directly, we can handle situations where more than one prediction is of interest (i.e., the probability function has more than a single mode). However, our procedure still returns a \textit{single function} $f(x)$ out of the space of all possible functions, while it may happen than more than a single parameterization across the entire model’s space is valid. In this case, it could be useful to have access to all of them for a more faithful prediction.
+Проектируя функцию вероятности $p(y \;\vert\; f(x))$ вместо непосредственно $f(x)$, мы можем обрабатывать ситуации, когда представляет интерес более одного предсказания (т.е. функция вероятности имеет более одной моды). Однако наша процедура все равно возвращает \textit{одну функцию} $f(x)$ из пространства всех возможных функций, в то время как может случиться, что действительна более чем одна параметризация во всем пространстве модели. В этом случае было бы полезно иметь доступ ко всем из них для более точного предсказания.
 
-Once again, we can achieve this objective by designing another probability distribution and then letting the rules of probability guide us. Since we are now planning to obtain a distribution across all possible functions, we start by defining a \textbf{prior probability distribution} $p(f)$ over all possible functions (once again, remember than in the rest of the book $f$ will be described by a finite set of parameters, in which case the prior $p(f)$ would be a prior over these weights). For example, we will see that in many situations functions with smaller norm are preferred (as they are more stable), in which case we could define a prior $p(f) \propto \frac{1}{\lVert f \rVert}$ for some norm $\lVert f \rVert$ of $f$. 
+И снова, мы можем достичь этой цели, спроектировав еще одно распределение вероятностей, а затем позволив правилам вероятности вести нас. Поскольку мы теперь планируем получить распределение по всем возможным функциям, мы начинаем с определения \textbf{априорного распределения вероятностей} $p(f)$ по всем возможным функциям (еще раз напомним, что в остальной части книги $f$ будет описываться конечным набором параметров, и в этом случае априорное распределение $p(f)$ будет априорным распределением по этим весам). Например, мы увидим, что во многих ситуациях предпочтительны функции с меньшей нормой (поскольку они более стабильны), и в этом случае мы могли бы определить априорное распределение $p(f) \propto \frac{1}{\lVert f \rVert}$ для некоторой нормы $\lVert f \rVert$ функции $f$. 
 
-Once a dataset is observed, the probability over $f$ shifts depending on the prior and the likelihood, and the update is given by \textbf{Bayes’ theorem}:
+После наблюдения набора данных вероятность $f$ смещается в зависимости от априорного распределения и правдоподобия, и обновление задается \textbf{теоремой Байеса}:
 
 \vspace*{1em}
 \begin{equation}
 \eqnmarkbox[drawblue]{node2}{p(f \;\vert\; \mathcal{S}_n)}=\frac{p(\mathcal{S}_n \;\vert\; f)\eqnmarkbox[drawred]{node}{p(f)}}{p(\mathcal{S}_n)}
 \label{eq:posterior_distribution}
 \end{equation}
-\annotate[yshift=1em]{above,left}{node}{Prior (\textit{before} observing the dataset)}
-\annotate[yshift=-1em]{below,right}{node2}{Posterior (\textit{after} observing the dataset)}
+\annotate[yshift=1em]{above,left}{node}{Априорное (\textit{до} наблюдения набора данных)}
+\annotate[yshift=-1em]{below,right}{node2}{Апостериорное (\textit{после} наблюдения набора данных)}
 
 \vspace{1em}
-The term $p(f \;\vert\; \mathcal{S}_n)$ is called the \textbf{posterior distribution function}, while the term $p(\mathcal{S}_n)$ in the denominator is called the \textbf{evidence} and it is needed to ensure that the posterior is properly normalized. Assume for now that we have access to the posterior. Differently from before, the distribution can encode preference for more than a single function $f$, which may provide better predictive power. Given an input $x$, we can make a prediction by averaging all possible models based on their posterior’s weight:
+Член $p(f \;\vert\; \mathcal{S}_n)$ называется \textbf{апостериорной функцией распределения}, в то время как член $p(\mathcal{S}_n)$ в знаменателе называется \textbf{свидетельством} и необходим для обеспечения правильной нормализации апостериорного распределения. Предположим пока, что у нас есть доступ к апостериорному распределению. В отличие от предыдущего случая, распределение может кодировать предпочтение более чем одной функции $f$, что может обеспечить лучшую предсказательную силу. Для входа $x$ мы можем сделать предсказание, усреднив все возможные модели на основе их апостериорного веса:
 
 \vspace{1em}
 \begin{equation}
 p(y \;\vert\; x)=\int_f \eqnmarkbox[drawred]{node}{p(y \;\vert\; f(x))}\eqnmarkbox[drawblue]{node2}{p(f \;\vert\; \mathcal{S}_n)} \approx \eqnmarkbox[drawgreen]{node3}{\frac{1}{k}\sum_{i=1}^k} p(y \;\vert\; f_i(x))p(f_i \;\vert\; \mathcal{S}_n)
 \label{predictive_distribution}
 \end{equation}
-\annotate[yshift=1em]{above,left}{node}{Prediction of $f(x)$}
-\annotate[yshift=1.5em]{above,right}{node2}{Weight assigned to $f$}
-\annotate[yshift=-1em]{below,right}{node3}{Monte Carlo approximation}
+\annotate[yshift=1em]{above,left}{node}{Предсказание $f(x)$}
+\annotate[yshift=1.5em]{above,right}{node2}{Вес, присвоенный $f$}
+\annotate[yshift=-1em]{below,right}{node3}{Аппроксимация методом Монте-Карло}
 
 \vspace{1em}
-where on the right term of \eqref{predictive_distribution} we have approximated the integral with a Monte Carlo average over $k$ random samples from the posterior distribution $f_k \sim p(f \;\vert\; \mathcal{S}_n)$. The overall beauty of this setup is marred by the fact that the posterior is in general impossible to compute in closed-form, except for very specific choices of prior and likelihood \cite{bishop2006pattern}. Lacking this, one is forced to approximated solutions, either by \textbf{Markov chain Monte Carlo} or by \textbf{variational inference} \cite{jospin2022hands}. We will see in Section \ref{subsec:dropout} one example of Bayesian treatment of the model's parameters called \textbf{Monte Carlo dropout}.
+где в правой части \eqref{predictive_distribution} мы аппроксимировали интеграл средним по методу Монте-Карло по $k$ случайным выборкам из апостериорного распределения $f_k \sim p(f \;\vert\; \mathcal{S}_n)$. Общая красота этой схемы омрачается тем фактом, что апостериорное распределение в общем случае невозможно вычислить в замкнутой форме, за исключением очень специфических выборов априорного распределения и правдоподобия \cite{bishop2006pattern}. В отсутствие этого приходится прибегать к приближенным решениям, либо с помощью \textbf{метода Монте-Карло по цепям Маркова}, либо с помощью \textbf{вариационного вывода} \cite{jospin2022hands}. Мы увидим в Разделе \ref{subsec:dropout} один пример байесовского подхода к параметрам модели, называемый \textbf{дропаутом Монте-Карло}.
 
-We remark on two interesting facts about the posterior before closing this section. First, suppose we are only interested about the function having highest posterior density. In this case, the evidence term can be ignored and the solution decomposed into two separate terms:
+Прежде чем закончить этот раздел, отметим два интересных факта об апостериорном распределении. Во-первых, предположим, что нас интересует только функция с наибольшей апостериорной плотностью. В этом случае член свидетельства можно проигнорировать, и решение разложить на два отдельных члена:
 
 \begin{gather}
-f^*=\underset{f}{\arg\max} \; p(\mathcal{S}_n \;\vert\; f)p(f) = \\ \underset{f}{\arg\max} \; \left\{\eqnmarkbox[drawred]{node}{\log p(\mathcal{S}_n \;\vert\; f)} + \eqnmarkbox[drawblue]{node2}{\log p(f)}\right\}
+f^*=\underset{f}{\arg\max} \; p(\mathcal{S}_n \;\vert\; f)p(f) = \\
+\underset{f}{\arg\max} \; \left\{\eqnmarkbox[drawred]{node}{\log p(\mathcal{S}_n \;\vert\; f)} + \eqnmarkbox[drawblue]{node2}{\log p(f)}\right\}
 \end{gather}
-\annotate[yshift=-1em]{below,left}{node}{Likelihood term}
-\annotate[yshift=-1em]{below,right}{node2}{Regularization term}
+\annotate[yshift=-1em]{below,left}{node}{Член правдоподобия}
+\annotate[yshift=-1em]{below,right}{node2}{Член регуляризации}
 
-This is called the \textbf{maximum a posteriori} (MAP) solution. If all functions have the same weight a priori (i.e., $p(f)$ is uniform over the function’s space), then the second term is a constant and the problem reduces to the maximum likelihood solution. In general, however, the MAP solution will impose a penalty to functions deviating too much from our prior distribution. We will see this is a useful idea to combat overfitting and impose specific constraints on the function $f$. The term $\log p(f)$ is generally called a \textbf{regularizer} over the function’s space as it pushes the solution towards the basin of attraction defined by the prior distribution.\footnote{The difference between maximum likelihood and maximum a posteriori solutions is loosely connected to the difference between the \textbf{frequentist} and \textbf{Bayesian} interpretation of probability \cite{hackenberger2019bayes}, i.e., probabilities as frequency of events or probabilities as a measure of uncertainty. From a very high-level point of view, ML sees the parameters as an unknown fixed term and the data as a random sample, while a Bayesian treatment sees the data as fixed and the parameters as random variables.} 
+Это называется решением по \textbf{максимуму апостериорной вероятности} (MAP). Если все функции имеют одинаковый априорный вес (т.е. $p(f)$ равномерно по пространству функций), то второй член является константой и задача сводится к решению по максимальному правдоподобию. Однако в общем случае решение MAP будет налагать штраф на функции, слишком сильно отклоняющиеся от нашего априорного распределения. Мы увидим, что это полезная идея для борьбы с переобучением и наложения определенных ограничений на функцию $f$. Член $\log p(f)$ обычно называется \textbf{регуляризатором} по пространству функций, поскольку он подталкивает решение к бассейну притяжения, определяемому априорным распределением.\footnote{Разница между решениями по максимальному правдоподобию и по максимуму апостериорной вероятности слабо связана с разницей между \textbf{частотной} и \textbf{байесовской} интерпретацией вероятности \cite{hackenberger2019bayes}, т.е. вероятности как частоты событий или вероятности как меры неопределенности. С очень общей точки зрения, МП рассматривает параметры как неизвестный фиксированный член, а данные — как случайную выборку, в то время как байесовский подход рассматривает данные как фиксированные, а параметры — как случайные переменные.} 
 
-Second, the full Bayesian treatment provides a simple way to incorporate new data, e.g., a new dataset $\mathcal{S}^\prime_n$ from the same distribution. To do that, we replace the prior function in \eqref{eq:posterior_distribution} with the posterior distribution that we computed on the first portion of the dataset, which now represents the starting assumption on the possible values of $f$ which gets updated
-by looking at new data.\footnote{Think of the original prior function as the distribution on $f$ after having observed an initial \textit{empty set} of values.} This can mitigate issues when training models online, most notably the so-called \textit{catastrophic forgetting} of old information \cite{kirkpatrick2017overcoming}.
+Во-вторых, полный байесовский подход предоставляет простой способ включения новых данных, например, нового набора данных $\mathcal{S}^\prime_n$ из того же распределения. Для этого мы заменяем априорную функцию в \eqref{eq:posterior_distribution} апостериорным распределением, которое мы вычислили на первой части набора данных, которое теперь представляет собой начальное предположение о возможных значениях $f$, которое обновляется при просмотре новых данных.\footnote{Думайте об исходной априорной функции как о распределении на $f$ после наблюдения начального \textit{пустого множества} значений.} Это может смягчить проблемы при онлайн-обучении моделей, в частности, так называемое \textit{катастрофическое забывание} старой информации \cite{kirkpatrick2017overcoming}.

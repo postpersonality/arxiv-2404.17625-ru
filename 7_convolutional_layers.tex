@@ -1,50 +1,50 @@
-\chapter{Convolutional layers}
+\chapter{Свёрточные слои}
 \label{chap:cnns}
 
-\begin{supportbox}{About this chapter}
-In this chapter we introduce our second core layer, the \textbf{convolutional layer}, which is designed to work with images (or, more in general, sequential data of any kind) by exploiting two  key ideas that we call \textit{locality} and \textit{parameter sharing}.
+\begin{supportbox}{Об этой главе}
+В этой главе мы представляем наш второй основной слой, \textbf{свёрточный слой}, который предназначен для работы с изображениями (или, в более общем смысле, с последовательными данными любого рода), используя две ключевые идеи, которые мы называем \textit{локальностью} и \textit{разделением параметров}.
 \end{supportbox}
 
-Fully-connected layers are important historically, but less so from a practical point of view: on unstructured data (what we also call \textbf{tabular} data, as it can be easily represented as a table) MLPs are generally outperformed by other alternatives, such as random forests or well tuned support vector machines \cite{grinsztajn2022tree}. This is not true, however, as soon as we consider other types of data, having some structure that can be exploited in the design of the layers and of the model.
+Полносвязные слои важны с исторической точки зрения, но менее важны с практической: на неструктурированных данных (которые мы также называем \textbf{табличными} данными, поскольку их можно легко представить в виде таблицы) МЛП, как правило, уступают другим альтернативам, таким как случайные леса или хорошо настроенные машины опорных векторов \cite{grinsztajn2022tree}. Однако это не так, как только мы рассматриваем другие типы данных, имеющие некоторую структуру, которую можно использовать при проектировании слоев и модели.
 
-In this chapter we  consider the image domain, while in the next chapters we also consider applications to time series, audio, graphs, and videos. In all these cases, the input has a sequential structure (either temporal, spatial, or of other type) that can be leveraged to design layers that are both performant, easily composable, and highly efficient in terms of parameters. Interestingly, we will see that possible solutions can be designed by taking as starting point a fully-connected layer, and then suitably restricting or generalizing it based on the properties of the input.
+В этой главе мы рассматриваем область изображений, в то время как в следующих главах мы также рассмотрим приложения к временным рядам, аудио, графам и видео. Во всех этих случаях вход имеет последовательную структуру (временную, пространственную или другого типа), которую можно использовать для проектирования слоев, которые являются одновременно производительными, легко компонуемыми и высокоэффективными с точки зрения параметров. Интересно, что мы увидим, что возможные решения можно спроектировать, взяв за отправную точку полносвязный слой, а затем соответствующим образом ограничив или обобщив его на основе свойств входа.
 %
-\section{Towards convolutional layers}
+\section{На пути к свёрточным слоям}
 \label{sec:towards_convolutive_layers}
 %
-\subsection{Why fully-connected layers are not enough}
+\subsection{Почему полносвязных слоев недостаточно}
 %
-An image can be described by a tensor $X \sim(h,w,c)$, where $h$ is the height of the image, $w$ the width of the image, and $c$ is the number of channels (which can be $1$ for black and white images, $3$ for color images, or higher for, e.g., hyper-spectral images). Hence, a mini-batch of images will generally be of rank $4$ with an additional leading batch dimension $(b, h, w, c)$. The three dimensions are not identical, since $h$ and $w$ represent a spatial arrangement of \textit{pixels}, while the channels $c$ do not have a specific ordering, in the sense that storing images in an RGB or a GBR format is only a matter of convention. 
+Изображение можно описать тензором $X \sim(h,w,c)$, где $h$ — высота изображения, $w$ — ширина изображения, а $c$ — количество каналов (которое может быть $1$ для черно-белых изображений, $3$ для цветных изображений или выше, например, для гиперспектральных изображений). Следовательно, мини-пакет изображений, как правило, будет иметь ранг $4$ с дополнительным ведущим измерением пакета $(b, h, w, c)$. Три измерения не идентичны, поскольку $h$ и $w$ представляют пространственное расположение \textit{пикселей}, в то время как каналы $c$ не имеют определенного порядка, в том смысле, что хранение изображений в формате RGB или GBR — это всего лишь вопрос соглашения. 
 
-\begin{supportbox}{On notation, channels, and features}
-We use the same symbol we used for features in the tabular case ($c$) because it will play a similar role in the design of the models, i.e., we can think of each pixel as described by a generic set of $c$ \textit{features} which are updated in parallel by the layers of the model. Hence, the convolutional layer will return a generic tensor $(h,w,c^\prime)$ with an embedding of size $c^\prime$ for each of the $hw$ pixels.
+\begin{supportbox}{О нотации, каналах и признаках}
+Мы используем тот же символ, который мы использовали для признаков в табличном случае ($c$), потому что он будет играть аналогичную роль в проектировании моделей, т.е. мы можем думать о каждом пикселе как об описанном общим набором из $c$ \textit{признаков}, которые обновляются параллельно слоями модели. Следовательно, свёрточный слой вернет общий тензор $(h,w,c^\prime)$ с вложением размера $c^\prime$ для каждого из $hw$ пикселей.
 \end{supportbox}
 
-In order to use a fully-connected layer, we would need to “flatten” (vectorize) the image:
+Чтобы использовать полносвязный слой, нам нужно было бы «сплющить» (векторизовать) изображение:
 %
 \begin{equation}
 \mathbf{h} =\phi(\mathbf{W}\cdot \eqnmarkbox[drawred]{node}{\text{vect}(X)})
 \label{eq:basic_image_layer}
 \end{equation}
-\annotate[yshift=-1em]{below,right}{node}{Flattened image}
+\annotate[yshift=-1em]{below,right}{node}{Сплющенное изображение}
 
 \vspace{1em}
-where $\text{vect}(x)$ is equivalent to {\footnotesize\mintinline{python}{x.reshape(-1)}} in PyTorch, and it returns for a generic rank-$n$ tensor $x \sim (i_1, i_2, \ldots, i_n)$ an equivalent tensor $\mathbf{x} \sim \left(\prod_{j=1}^n i_j\right)$.
+где $\text{vect}(x)$ эквивалентно {\footnotesize\mintinline{python}{x.reshape(-1)}} в PyTorch, и для общего тензора ранга $n$ $x \sim (i_1, i_2, \ldots, i_n)$ возвращает эквивалентный тензор $\mathbf{x} \sim \left(\prod_{j=1}^n i_j\right)$.
 
 
-Although it should be clear this is an inelegant approach, it is worth emphasizing some of its disadvantages. First, we have lost a very important property from the previous section, namely, \textbf{composability}: our input is an image, while our output is a vector, meaning we cannot concatenate two of these layers. We can recover this by reshaping the output vector to an image:
+Хотя должно быть ясно, что это неэлегантный подход, стоит подчеркнуть некоторые его недостатки. Во-первых, мы потеряли очень важное свойство из предыдущего раздела, а именно, \textbf{компонуемость}: наш вход — это изображение, а наш выход — вектор, что означает, что мы не можем объединить два таких слоя. Мы можем восстановить это, изменив форму выходного вектора на изображение:
 %
 \begin{equation}
 H = \text{unvect}(\phi(\mathbf{W}\cdot\text{vect}(X)))
 \end{equation}
 %
-where we assume that the layer does not modify the number of pixels, and $\text{unvect}$ reshapes the output to a $(h,w,c^\prime)$ tensor, with $c^\prime$ an hyper-parameter. 
+где мы предполагаем, что слой не изменяет количество пикселей, и $\text{unvect}$ изменяет форму выхода на тензор $(h,w,c^\prime)$, где $c^\prime$ — гиперпараметр. 
 
-This leads directly to the second issue, which is that the layer has a \textit{huge} number of parameters. Considering, for example, a (1024, 1024) image in RGB, keeping the same dimensionality in output results in $(1024*1024*3)^2$ parameters (or $(hw)^2cc^\prime)$ in general), which is in the order of $10^{13}$! We can interpret the previous layer as follows: for each pixel, every channel in the output is a weighted combination of \textit{all} channels of \textit{all} pixels in the input image. As we will see, we can obtain a more efficient solution by restricting this computation.
+Это напрямую ведет ко второй проблеме, которая заключается в том, что слой имеет \textit{огромное} количество параметров. Рассматривая, например, изображение RGB размером (1024, 1024), сохранение той же размерности на выходе приводит к $(1024*1024*3)^2$ параметрам (или $(hw)^2cc^\prime)$ в общем), что составляет порядка $10^{13}$! Мы можем интерпретировать предыдущий слой следующим образом: для каждого пикселя каждый канал на выходе является взвешенной комбинацией \textit{всех} каналов \textit{всех} пикселей на входном изображении. Как мы увидим, мы можем получить более эффективное решение, ограничив это вычисление.
 
-\begin{supportbox}{More on reshaping}
+\begin{supportbox}{Подробнее об изменении формы}
 %
-In order to flatten (or more in general, reshape) a tensor, we need to decide an ordering in which to process the values. In practice, this is determined by the way the tensors are stored in memory: in most frameworks, the tensor's data is stored sequentially in a contiguous block of memory, in what is called a \textbf{strided layout}. Consider the following example:
+Чтобы сплющить (или, в более общем смысле, изменить форму) тензор, нам нужно определить порядок, в котором обрабатывать значения. На практике это определяется тем, как тензоры хранятся в памяти: в большинстве фреймворков данные тензора хранятся последовательно в непрерывном блоке памяти, в так называемом \textbf{шаговом расположении}. Рассмотрим следующий пример:
 
 \vspace{1em}
 \begin{center}
@@ -53,17 +53,17 @@ In order to flatten (or more in general, reshape) a tensor, we need to decide an
 \end{center}
 \vspace{1em}
 
-The stride is the number of steps that must be taken in memory to move of $1$ position along that axis, i.e., the last dimension of the tensor is contiguous, while to move of one position in the first dimension we need $96$ ($32*3$) steps. This is called a \textbf{row-major} ordering or, in image analysis, a \textbf{raster} order.\footnote{\url{https://en.wikipedia.org/wiki/Raster_scan}} Every reshaping operation works by moving along this strided representation.
+Шаг — это количество шагов, которые необходимо сделать в памяти, чтобы переместиться на $1$ позицию вдоль этой оси, т.е. последнее измерение тензора является непрерывным, в то время как для перемещения на одну позицию в первом измерении нам нужно $96$ ($32*3$) шагов. Это называется \textbf{построчным} порядком или, в анализе изображений, \textbf{растровым} порядком.\footnote{\url{https://en.wikipedia.org/wiki/Raster_scan}} Каждая операция изменения формы работает путем перемещения по этому шаговому представлению.
 %
 \end{supportbox}
 
-As a running example to visualize what follows, consider a 1D sequence (we will consider 1D sequences more in-depth later on; for now, you can think of this as “\textit{4 pixels with a single channel}”):
+В качестве текущего примера для визуализации того, что следует, рассмотрим 1D-последовательность (мы рассмотрим 1D-последовательности более подробно позже; пока вы можете думать об этом как о «\textit{4 пикселях с одним каналом}»):
 
 $$
 \mathbf{x} = \left[x_1, x_2, x_3, x_4\right]
 $$
 %
-In this case, we do not need any reshaping operations, and the previous layer (with $c^\prime = 1$) can be written as:
+В этом случае нам не нужны никакие операции изменения формы, и предыдущий слой (с $c^\prime = 1$) можно записать как:
 %
 $$
 \begin{bmatrix} h_1 \\ h_2 \\ h_3 \\ h_4 \end{bmatrix}=\begin{bmatrix}W_{11} & W_{12} & W_{13} & W_{14} \\ W_{21} & W_{22} & W_{23} & W_{24} \\ W_{31} & W_{32} & W_{33} & W_{34} \\ W_{41} & W_{42} & W_{43} & W_{44} \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix}
@@ -72,312 +72,313 @@ $$
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.4\textwidth]{images/patch}
-    \caption{Given a tensor $(h,w,c)$ and a maximum distance $k$, the \textbf{patch} $P_k(i,j)$ (shown in red) is a $(2k+1,2k+1,c)$ tensor collecting all pixels at distance at most $k$ from the pixel in position $(i,j)$.}
+    \caption{Для тензора $(h,w,c)$ и максимального расстояния $k$, \textbf{патч} $P_k(i,j)$ (показан красным) — это тензор $(2k+1,2k+1,c)$, собирающий все пиксели на расстоянии не более $k$ от пикселя в позиции $(i,j)$.}
     \label{fig:patch}
 \end{SCfigure}
 
-\subsection{Local layers}
+\subsection{Локальные слои}
 
-The spatial arrangement of pixels introduces a metric (a distance) between the pixels. While there are many valid notions of “distance”, we will find it convenient to work with the following definition, which defines the distance between pixel $(i,j)$ and $(i^\prime, j^\prime)$ as the maximum distance across the two axes:
+Пространственное расположение пикселей вводит метрику (расстояние) между пикселями. Хотя существует много допустимых понятий «расстояния», нам будет удобно работать со следующим определением, которое определяет расстояние между пикселями $(i,j)$ и $(i^\prime, j^\prime)$ как максимальное расстояние по двум осям:
 %
 \begin{equation}
 d((i,j), (i^\prime,j^\prime))=\max(\lvert i-i^\prime \rvert,\lvert j-j^\prime\rvert)
 \label{eq:pixel_distance}
-\end{equation}
 %
-How can we exploit this idea in the definition of a layer? Ideally, we can imagine that the influence of a pixel on another one decreases with a factor inversely proportional to their distance. Pushing this idea to its extreme, we can assume that the influence is effectively zero for a distance larger than some threshold. To formalize this insight, we introduce the concept of a \textbf{patch}.
+\end{equation}
 
-\begin{definition}[Image patch] \addbottle
-Given an image $X$, we define the \textbf{patch} $P_{k}(i,j)$ as the sub-image centered at $(i,j)$ and containing all pixels at distance equal or lower than $k$:
+Как мы можем использовать эту идею в определении слоя? В идеале мы можем представить, что влияние одного пикселя на другой уменьшается с коэффициентом, обратно пропорциональным их расстоянию. Доводя эту идею до крайности, мы можем предположить, что влияние фактически равно нулю для расстояния, превышающего некоторый порог. Чтобы формализовать это понимание, мы вводим понятие \textbf{патча}.
+
+\begin{definition}[Патч изображения] \addbottle
+Для изображения $X$, мы определяем \textbf{патч} $P_{k}(i,j)$ как подизображение с центром в $(i,j)$ и содержащее все пиксели на расстоянии, равном или меньшем $k$:
 %
 $$
 P_{k}(i,j) = \idx{X}{i-k:i+k,j-k:j+k,:}
 $$
 %
-where distance is defined as in \eqref{eq:pixel_distance}. This is shown visually in Figure \ref{fig:patch}.
+где расстояние определяется как в \eqref{eq:pixel_distance}. Это визуально показано на Рисунке \ref{fig:patch}.
 %
 \end{definition}
 
 
 
-The definition is only valid for pixels which are at least $k$ steps away from the borders of the image: we will ignore this point for now and return to it later. Each patch is of shape $(s,s,c)$, where $s=2k+1$, since we consider $k$ pixels in each direction along with the central pixel. For reasons that will be clarified later on, we call $s$ the \textbf{filter size} or \textbf{kernel size}.
+Определение справедливо только для пикселей, которые находятся на расстоянии не менее $k$ шагов от границ изображения: мы пока проигнорируем этот момент и вернемся к нему позже. Каждый патч имеет форму $(s,s,c)$, где $s=2k+1$, поскольку мы рассматриваем $k$ пикселей в каждом направлении вместе с центральным пикселем. По причинам, которые будут разъяснены позже, мы называем $s$ \textbf{размером фильтра} или \textbf{размером ядра}.
 
-Consider a generic layer $H = f(X)$ taking as input a tensor of shape $(h,w,c)$ and returning a tensor of shape $(h,w,c^\prime)$. If the output for a given pixel only depends on a patch of predetermined size, we say that the layer is \textbf{local}.
+Рассмотрим общий слой $H = f(X)$, принимающий на вход тензор формы $(h,w,c)$ и возвращающий тензор формы $(h,w,c^\prime)$. Если выход для данного пикселя зависит только от патча предопределенного размера, мы говорим, что слой \textbf{локальный}.
 
-\begin{definition}[Local layer]
-Given an input image $X \sim(h,w,c)$, a layer $f(X) \sim(h,w,c^\prime)$ is \textbf{local} if there exists a $k$ such that:
+\begin{definition}[Локальный слой]
+Для входного изображения $X \sim(h,w,c)$ слой $f(X) \sim(h,w,c^\prime)$ является \textbf{локальным}, если существует $k$ такое, что:
 %
 $$
 \idx{f(X)}{ij} = f(P_{k}(i, j))
 $$
 %
-This has to hold for all pixels of the image.
+Это должно выполняться для всех пикселей изображения.
 %
 \end{definition}
 
-We can transform the layer \eqref{eq:basic_image_layer} into a local layer by setting to $0$ all weights belonging to pixels outside the influence region (\textbf{receptive field}) of each pixel:
+Мы можем преобразовать слой \eqref{eq:basic_image_layer} в локальный слой, установив в $0$ все веса, принадлежащие пикселям за пределами области влияния (\textbf{рецептивного поля}) каждого пикселя:
 
 \vspace{1em}
 $$
 H_{ij} =\phi\left(\eqnmarkbox[drawgreen]{node2}{\mathbf{W}_{ij}}\cdot\eqnmarkbox[drawred]{node}{\text{vect}(P_{k}(i,j))}\right)
 $$
-\annotate[yshift=1em]{above,right}{node}{Flattened patch (of shape $s^2c^\prime c$)}
-\annotate[yshift=-1em]{below,right}{node2}{Position-dependent weight matrix}
+\annotate[yshift=1em]{above,right}{node}{Сплющенный патч (формы $s^2c^\prime c$)}
+\annotate[yshift=-1em]{below,right}{node2}{Зависящая от позиции весовая матрица}
 
 \vspace{1em}
-We call this class of layers \textbf{locally-connected}. Note that we have a different weight matrix $\mathbf{W}_{ij} \sim({c^\prime, ssc})$ for each output pixel, resulting in $hw(s^2cc^\prime)$ parameters. By comparison, we had $(hw)^2cc^\prime$ parameters in the initial layer, for a reduction factor of $\frac{s^2}{hw}$ in the number of parameters.
+Мы называем этот класс слоев \textbf{локально-связными}. Обратите внимание, что у нас есть разная весовая матрица $\mathbf{W}_{ij} \sim({c^\prime, ssc})$ для каждого выходного пикселя, что приводит к $hw(s^2cc^\prime)$ параметрам. Для сравнения, в начальном слое у нас было $(hw)^2cc^\prime$ параметров, что дает коэффициент уменьшения $\frac{s^2}{hw}$ в количестве параметров.
 
-Considering our toy example, assuming for example $k=1$ (hence $s=3$) we can write the resulting operation as:
+Рассматривая наш игрушечный пример, предполагая, например, $k=1$ (следовательно, $s=3$), мы можем записать результирующую операцию как:
 %
 $$
 \begin{bmatrix} h_1 \\ h_2 \\ h_3 \\ h_4 \end{bmatrix}=\begin{bmatrix}W_{12} & W_{13} & {\color{drawred}0} & {\color{drawred}0} \\ W_{21} & W_{22} & W_{23} & {\color{drawred}0} \\ {\color{drawred}0} & W_{31} & W_{32} & W_{33} \\ {\color{drawred}0} & {\color{drawred}0} & W_{41} & W_{42} \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix}
 $$
 %
-Our operation is not defined for $x_1$ and $x_4$, in which case we have considered a “shortened” filter by removing the weights corresponding to undefined operations. Equivalently, you can think of adding $0$ on the border whenever necessary:
+Наша операция не определена для $x_1$ и $x_4$, и в этом случае мы рассмотрели «укороченный» фильтр, удалив веса, соответствующие неопределенным операциям. Эквивалентно, вы можете думать о добавлении $0$ на границе, когда это необходимо:
 %
 $$
 \begin{bmatrix} h_1 \\ h_2 \\ h_3 \\ h_4 \end{bmatrix}=\begin{bmatrix}W_{11} & W_{12} & W_{13} & 0 & 0 & {\color{drawred}0}\\ {\color{drawred}0} & W_{21} & W_{22} & W_{23} & 0 & {\color{drawred}0}\\ {\color{drawred}0} & 0 & W_{31} & W_{32} & W_{33} & {\color{drawred}0} \\ {\color{drawred}0} & 0 & 0 & W_{41} & W_{42} & W_{43} \end{bmatrix} \begin{bmatrix} {\color{drawred}0} \\ x_1 \\ x_2 \\ x_3 \\ x_4 \\ {\color{drawred}0} \end{bmatrix}
 $$
 %
-This technique is called \textbf{zero-padding}. In an image, for a kernel size $2k+1$ we need exactly $k$ rows and columns of $0$ on each side to ensure that the operation is valid for each pixel. Otherwise, the output cannot be computed close to the borders, and the output tensor will have shape $(h-2k, w-2k, c^\prime)$. Both are valid options in most frameworks.
+Эта техника называется \textbf{дополнением нулями}. На изображении для размера ядра $2k+1$ нам нужно ровно $k$ строк и столбцов из $0$ с каждой стороны, чтобы гарантировать, что операция действительна для каждого пикселя. В противном случае выход не может быть вычислен вблизи границ, и выходной тензор будет иметь форму $(h-2k, w-2k, c^\prime)$. Оба варианта являются допустимыми в большинстве фреймворков.
 
-\begin{supportbox}{On our definition of patches}
-The definition of convolutions using the idea of patches is a bit unconventional, but I find it to greatly simplify the notation. I provide a more conventional, signal processing oriented definition later on. The two definitions are equivalent and can be used interchangeably. The patch-oriented definition requires an \textbf{odd} kernel size and does not allow for \textbf{even} kernel sizes, but these are uncommon in practice.
+\begin{supportbox}{О нашем определении патчей}
+Определение свёрток с использованием идеи патчей немного нетрадиционно, но я нахожу, что оно значительно упрощает нотацию. Позже я приведу более традиционное, ориентированное на обработку сигналов определение. Эти два определения эквивалентны и могут использоваться взаимозаменяемо. Определение, ориентированное на патчи, требует \textbf{нечетного} размера ядра и не допускает \textbf{четных} размеров ядра, но последние на практике встречаются редко.
 \end{supportbox}
 
-\subsection{Translation equivariance and the convolutive layer}
+\subsection{Трансляционная эквивариантность и свёрточный слой}
 
-\addclock In a locally-connected layer, two identical patches can result in different outputs based on their location: some content on pixel $(5,2)$, for example, will be processed differently than the same content on pixel $(39, 81)$ because the two matrices $\mathbf{W}_{5,2}$ and $\mathbf{W}_{39,81}$ are different. For the most part, however, we can assume that this information is irrelevant: informally, “a horse is a horse”, irrespective of its positioning on the input image. We can formalize this with a property called \textbf{translation equivariance}.
+\addclock В локально-связном слое два идентичных патча могут приводить к разным выходам в зависимости от их местоположения: некоторое содержимое на пикселе $(5,2)$, например, будет обработано иначе, чем то же содержимое на пикселе $(39, 81)$, потому что две матрицы $\mathbf{W}_{5,2}$ и $\mathbf{W}_{39,81}$ различны. Однако по большей части мы можем предположить, что эта информация не имеет значения: неформально, «лошадь — это лошадь», независимо от ее положения на входном изображении. Мы можем формализовать это свойством, называемым \textbf{трансляционной эквивариантностью}.
 
-\begin{definition}[Translation equivariance]
-We say that a layer $H = f(X)$ is \textbf{translation equivariant} if:
+\begin{definition}[Трансляционная эквивариантность]
+Мы говорим, что слой $H = f(X)$ является \textbf{трансляционно эквивариантным}, если:
 
 $$
-\eqnmarkbox[drawred]{node}{P_{k}(i,j) = P_{k}(i^\prime, j^\prime)} \;\; \textnormal{implies} \;\;  \eqnmarkbox[drawgreen]{node2}{f(P_{k}(i,j)) = f(P_{k}(i^\prime, j^\prime))}
+\eqnmarkbox[drawred]{node}{P_{k}(i,j) = P_{k}(i^\prime, j^\prime)} \;\; \textnormal{подразумевает} \;\;  \eqnmarkbox[drawgreen]{node2}{f(P_{k}(i,j)) = f(P_{k}(i^\prime, j^\prime))}
 $$
-\annotate[yshift=-1em]{below,left}{node}{Identical patches}
-\annotate[yshift=-1em]{below,right}{node2}{Identical outputs}
+\annotate[yshift=-1em]{below,left}{node}{Идентичные патчи}
+\annotate[yshift=-1em]{below,right}{node2}{Идентичные выходы}
 
 \end{definition}
 
 \vspace{0.5em}
-To understand the nomenclature, note that we can interpret the previous definition as follows: whenever an object moves (translates) on the image from position $(i,j)$ to position $(i^\prime, j^\prime)$, the output $f(P_{k}(i,j))$ that we we had in $(i,j)$ will now be found in $f(P_{k}(i^\prime,j^\prime))$. Hence, the activations of the layer are moving with the same (\textit{èqui} in Latin) translational movement as the input. We will define more formally equivariance and invariance later on.
+Чтобы понять номенклатуру, обратите внимание, что мы можем интерпретировать предыдущее определение следующим образом: всякий раз, когда объект перемещается (транслируется) на изображении из положения $(i,j)$ в положение $(i^\prime, j^\prime)$, выход $f(P_{k}(i,j))$, который мы имели в $(i,j)$, теперь будет найден в $f(P_{k}(i^\prime,j^\prime))$. Следовательно, активации слоя движутся с тем же (\textit{èqui} на латыни) трансляционным движением, что и вход. Мы определим более формально эквивариантность и инвариантность позже.
 
-A simple way to achieve translation equivariance is given by \textbf{weight sharing}, i.e., letting every position share the same set of weights:
+Простой способ достичь трансляционной эквивариантности — это \textbf{разделение весов}, т.е. позволить каждой позиции разделять один и тот же набор весов:
 %
 $$
 H_{ij} =\phi(\eqnmarkbox[drawred]{node}{\mathbf{W}}\cdot\text{vect}(P_{k}(i,j)))
 $$
-\annotate[yshift=-1em]{below,right}{node}{Weight matrix does not depend on $(i,j)$}
+\annotate[yshift=-1em]{below,right}{node}{Весовая матрица не зависит от $(i,j)$}
 
-This is called a \textbf{convolutional layer}, and it is extremely efficient in terms of parameters: we only have a single weight matrix $\mathbf{W}$ of shape $(c^\prime, ssc)$, which is independent from the resolution of the original image (once again, contrast this with a layer which is only locally-connected with $hw(s^2c^\prime c)$ parameters: we have reduced them by another factor $\frac{1}{hw}$). We can write a variant with biases by adding $c^\prime$ additional parameters in the form of a bias vector $\mathbf{b} \sim (c^\prime)$. Because of its importance, we restate the full definition of the layer below.
+Это называется \textbf{свёрточным слоем}, и он чрезвычайно эффективен с точки зрения параметров: у нас есть только одна весовая матрица $\mathbf{W}$ формы $(c^\prime, ssc)$, которая не зависит от разрешения исходного изображения (еще раз, сравните это со слоем, который является только локально-связным с $hw(s^2c^\prime c)$ параметрами: мы уменьшили их еще на коэффициент $\frac{1}{hw}$). Мы можем написать вариант со смещениями, добавив $c^\prime$ дополнительных параметров в виде вектора смещения $\mathbf{b} \sim (c^\prime)$. Из-за его важности мы переформулируем полное определение слоя ниже.
 
-\begin{definition}[Convolutional layer] \addbottle
+\begin{definition}[Свёрточный слой] \addbottle
 %
-Given an image $X \sim (h,w,c)$ and a kernel size $s=2k+1$, a \textbf{convolutional layer} $H=\textnormal{Conv2D}(X)$ is defined element-wise by:
+Для изображения $X \sim (h,w,c)$ и размера ядра $s=2k+1$, \textbf{свёрточный слой} $H=\textnormal{Conv2D}(X)$ определяется поэлементно как:
 %
 \begin{equation}
 H_{ij} = \mathbf{W} \cdot \textnormal{vect}(P_{k}(i,j)) + \mathbf{b}
 \label{eq:convolutive_layer}
 \end{equation}
 %
-The trainable parameters are $\mathbf{W} \sim (c^\prime, ssc)$ and $\mathbf{b} \sim (c^\prime)$. The hyper-parameters are $k$, $c^\prime$, and (eventually) whether to apply zero-padding or not. In the former case the output has shape $(h,w,c^\prime)$, in the latter case it has shape $(h-2k,w-2k,c^\prime)$. 
+Обучаемыми параметрами являются $\mathbf{W} \sim (c^\prime, ssc)$ и $\mathbf{b} \sim (c^\prime)$. Гиперпараметрами являются $k$, $c^\prime$ и (возможно) применять ли дополнение нулями или нет. В первом случае выход имеет форму $(h,w,c^\prime)$, во втором — $(h-2k,w-2k,c^\prime)$. 
 \end{definition}
 
-\begin{mypy}{Convolution in PyTorch. Note that the channel dimension is -- by default -- the first one after the batch dimension. The kernel matrix is organized as a $(c^\prime, c, k, k)$ tensor. Padding can be specified as an integer or a string (`same' meaning that the output must have the same shape as the input, `valid' meaning no padding).}{code:convolution}
+\begin{mypy}{Свёртка в PyTorch. Обратите внимание, что измерение канала — по умолчанию — первое после измерения пакета. Матрица ядра организована как тензор $(c^\prime, c, k, k)$. Дополнение можно указать как целое число или строку (`same` означает, что выход должен иметь ту же форму, что и вход, `valid` означает отсутствие дополнения).}{code:convolution}
 x = torch.randn(16, 3, 32, 32)
 w = torch.randn(64, 3, 5, 5)
 torch.nn.functional.conv2d(x, w, padding='same').shape 
 # [Out]: torch.Size([16, 64, 32, 32])
 \end{mypy}
 
-See Box \ref{code:convolution} for a code example. The equivalent object-oriented implementation can be found in {\footnotesize\mintinline{python}{torch.nn.Conv2D}}. By comparison, our toy example can be refined as follows:
+См. Листинг \ref{code:convolution} для примера кода. Эквивалентную объектно-ориентированную реализацию можно найти в {\footnotesize\mintinline{python}{torch.nn.Conv2D}}. Для сравнения, наш игрушечный пример можно уточнить следующим образом:
 
 \begin{equation}
 \begin{bmatrix} h_1 \\ h_2 \\ h_3 \\ h_4 \end{bmatrix}=\begin{bmatrix}{\color{drawred}W_2} & {\color{drawred}W_3} & 0 & 0 \\ {\color{drawred}W_1} & {\color{drawred}W_2} & {\color{drawred}W_3} & 0 \\ 0 & {\color{drawred}W_1} & {\color{drawred}W_2} & {\color{drawred}W_3} \\ 0 & 0 & {\color{drawred}W_1} & {\color{drawred}W_2} \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \\ x_3 \\ x_4 \end{bmatrix}
 \label{eq:convolution_example}
 \end{equation}
 
-where we now have only three weights $\mathbf{W} = \left[W_1, W_2, W_3\right]^\top$ (the zero-padded version is equivalent to before and we omit it for brevity). This weight matrix has a special structure, where each element across any diagonal is a constant (e.g., on the main diagonal we only find $W_2$). We call these matrices \textbf{Toeplitz matrices},\footnote{\url{https://en.wikipedia.org/wiki/Toeplitz_matrix}} and they are fundamental to properly implement a convolutional layer on modern hardware. Toeplitz matrices are an example of \textbf{structured} dense matrices \cite{qiu2024compute}. Equation \eqref{eq:convolution_example} should also clarify that a convolution remains a \textit{linear} operation, albeit with a highly restricted weight matrix compared to a fully-connected one.
+где у нас теперь только три веса $\mathbf{W} = \left[W_1, W_2, W_3\right]^\top$ (версия с дополнением нулями эквивалентна предыдущей, и мы опускаем ее для краткости). Эта весовая матрица имеет особую структуру, где каждый элемент на любой диагонали является константой (например, на главной диагонали мы находим только $W_2$). Мы называем эти матрицы \textbf{матрицами Тёплица},\footnote{\url{https://en.wikipedia.org/wiki/Toeplitz_matrix}} и они являются фундаментальными для правильной реализации свёрточного слоя на современном оборудовании. Матрицы Тёплица являются примером \textbf{структурированных} плотных матриц \cite{qiu2024compute}. Уравнение \eqref{eq:convolution_example} также должно прояснить, что свёртка остается \textit{линейной} операцией, хотя и с сильно ограниченной весовой матрицей по сравнению с полносвязной.
 
-\subsection*{Convolutions and terminology}
+\subsection*{Свёртки и терминология}
 
-\addteacup Our terminology comes (mostly) from signal processing. We can understand this by rewriting the output of the convolutional layer in a more standard form. To this end, we first rearrange the weight matrix into an equivalent weight tensor $W$ of shape $(s,s,c,c^\prime)$, similar to the PyTorch implementation in Box \ref{code:convolution}. For convenience, we also define a function that converts an integer $i^\prime$ from the interval $\left[1, \ldots, 2k+1\right]$ to the interval $\left[ i - k, \ldots, i + k\right]$:
+\addteacup Наша терминология происходит (в основном) из обработки сигналов. Мы можем понять это, переписав выход свёрточного слоя в более стандартной форме. Для этого мы сначала переупорядочим весовую матрицу в эквивалентный весовой тензор $W$ формы $(s,s,c,c^\prime)$, аналогично реализации PyTorch в Листинге \ref{code:convolution}. Для удобства мы также определим функцию, которая преобразует целое число $i^\prime$ из интервала $\left[1, \ldots, 2k+1\right]$ в интервал $\left[ i - k, \ldots, i + k\right]$:
 %
 \begin{equation}
 t(i) = i - k - 1
 \label{eq:convolutive_offset}
 \end{equation}
 %
-where $k$ is left implicit in the arguments of $t(\bullet)$. We now rewrite the output of the layer with explicit summations across the axes:
+где $k$ неявно присутствует в аргументах $t(\bullet)$. Теперь мы перепишем выход слоя с явными суммированиями по осям:
 %
 \begin{equation}
 H_{ijz} = \sum_{i^\prime=1}^{2k+1}\sum_{j^\prime = 1}^{2k+1}\sum_{d=1}^{c} \idx{W}{i^\prime, j^\prime, z, d}\idx{X}{i^\prime+t(i),j^\prime+t(j), d}
 \label{eq:convolution_full_indexing}
 \end{equation}
 %
-Check carefully the indexing: for a given pixel $(i,j)$ and output channel $z$ (a free index running from $1$ to $c^\prime$), on the spatial dimensions $W$ must be indexed along $1, 2, \ldots, 2k+1$, while $X$ must be indexed along $i-k, i-k+1, \ldots, i+k-1,i+k$. The index $d$ runs instead over the input channels.
+Внимательно проверьте индексацию: для данного пикселя $(i,j)$ и выходного канала $z$ (свободный индекс, пробегающий от $1$ до $c^\prime$), по пространственным измерениям $W$ должен индексироваться по $1, 2, \ldots, 2k+1$, в то время как $X$ должен индексироваться по $i-k, i-k+1, \ldots, i+k-1,i+k$. Индекс $d$ пробегает по входным каналам.
 
-From the point of view of signal processing, equation \eqref{eq:convolution_full_indexing} corresponds to a filtering operation on the input signal $X$ through a set of \textbf{finite impulse response} (FIR) filters \cite{uncini2015fundamentals}, implemented via a discrete convolution (apart from a sign change). Each filter here corresponds to a slice $W_{:,:,:,i}$ of the weight matrix. In standard signal processing, these filters can be manually designed to perform specific operations on the image. As an example, a $3 \times 3$ filter to detect ridges can be written as:\footnote{\url{https://en.wikipedia.org/wiki/Kernel_(image_processing)}}
+С точки зрения обработки сигналов, уравнение \eqref{eq:convolution_full_indexing} соответствует операции фильтрации входного сигнала $X$ через набор \textbf{фильтров с конечной импульсной характеристикой} (FIR) \cite{uncini2015fundamentals}, реализованной с помощью дискретной свёртки (за исключением изменения знака). Каждый фильтр здесь соответствует срезу $W_{:,:,:,i}$ весовой матрицы. В стандартной обработке сигналов эти фильтры могут быть спроектированы вручную для выполнения конкретных операций над изображением. В качестве примера, фильтр $3 \times 3$ для обнаружения гребней можно записать как:\footnote{\url{https://en.wikipedia.org/wiki/Kernel_(image_processing)}}
 %
 $$
 W =\begin{bmatrix}-1&-1&-1\\-1&8&-1\\-1&-1&-1\end{bmatrix}
 $$
 %
-In convolutional layers, instead, these filters can be randomly initialized and trained via gradient descent. We consider the design of \textbf{convolutional models} built on convolutional layers in the next section. Before continuing, we mention that an interesting aspect of convolutional layers is that the output maintains a kind of “spatial consistency” and it can be plotted: we call a slice $H_{:,:,i}$ of the output an \textbf{activation map} of the layer, representing how much the specific filter was “activated” on each input region. We will consider in more detail the exploration of these maps in the next volume.
+В свёрточных слоях, напротив, эти фильтры могут быть случайно инициализированы и обучены с помощью градиентного спуска. Мы рассмотрим проектирование \textbf{свёрточных моделей}, построенных на свёрточных слоях, в следующем разделе. Прежде чем продолжить, мы упомянем, что интересный аспект свёрточных слоев заключается в том, что выход сохраняет своего рода «пространственную согласованность» и его можно построить: мы называем срез $H_{:,:,i}$ выхода \textbf{картой активации} слоя, представляющей, насколько конкретный фильтр был «активирован» в каждой области входа. Мы рассмотрим более подробно исследование этих карт в следующем томе.
 
-\section{Convolutional models}
+\section{Свёрточные модели}
 
-\subsection{Designing convolutional “blocks”}
+\subsection{Проектирование свёрточных «блоков»}
 
-With the definition of a convolutional layer in hand, we now turn to the task of building \textbf{convolutional models}, also called \textbf{convolutional neural networks} (CNNs). We consider the problem of image classification, although a lot of what we say can be extended to other cases. To begin with, we formalize the concept of \textbf{receptive field}.
+Имея определение свёрточного слоя, мы теперь переходим к задаче построения \textbf{свёрточных моделей}, также называемых \textbf{свёрточными нейронными сетями} (СНС). Мы рассмотрим задачу классификации изображений, хотя многое из того, что мы скажем, можно распространить и на другие случаи. Для начала мы формализуем понятие \textbf{рецептивного поля}.
 
-\begin{definition}[Receptive field]
-Denote by $X$ an image, and by $H = g(X)$ a generic intermediate output of a convolutional model, e.g., the result of applying 1 or more convolutional layers. The \textbf{receptive field} $R(i,j)$ of pixel $(i,j)$ is the subset of $X$ which contributed to its computation:
+\begin{definition}[Рецептивное поле]
+Обозначим через $X$ изображение, а через $H = g(X)$ — общий промежуточный выход свёрточной модели, например, результат применения 1 или более свёрточных слоев. \textbf{Рецептивное поле} $R(i,j)$ пикселя $(i,j)$ — это подмножество $X$, которое внесло вклад в его вычисление:
 $$
  \idx{g(X)}{ij} = g(R(i,j)), \;\;\; R(i,j) \subseteq X
 $$
 %
 \end{definition}
 
-For a single convolutional layer, the receptive field of a pixel is equal to a patch: $R(i,j) = P_{k}(i,j)$. However, it is easy to prove that for two convolutional layers in sequence with identical kernel size, the resulting receptive field is $R(i,j) = P_{2k}(i,j)$, then $P_{3k}(i,j)$ for three layers, and so on. Hence, the receptive field increases \textit{linearly} in the number of convolutional layers. This motivates our notion of locality: even if a single layer is limited in its receptive field by the kernel size, a sufficiently large stack of them results in a \textit{global} receptive field.
+Для одного свёрточного слоя рецептивное поле пикселя равно патчу: $R(i,j) = P_{k}(i,j)$. Однако легко доказать, что для двух последовательных свёрточных слоев с одинаковым размером ядра результирующее рецептивное поле равно $R(i,j) = P_{2k}(i,j)$, затем $P_{3k}(i,j)$ для трех слоев и так далее. Следовательно, рецептивное поле увеличивается \textit{линейно} с числом свёрточных слоев. Это мотивирует наше понятие локальности: даже если один слой ограничен в своем рецептивном поле размером ядра, достаточно большой стек из них приводит к \textit{глобальному} рецептивному полю.
 
-Consider now a sequence of two convolutional layers:
+Рассмотрим теперь последовательность из двух свёрточных слоев:
 %
 $$
 H=\text{Conv}(\text{Conv}(X))
 $$
 %
-Because convolution is a linear operation (see previous section), this is equivalent to a single convolution with a larger kernel size (as per the above). We can avoid this “collapse” in a similar way to fully-connected layers, by interleaving them with activation functions:
+Поскольку свёртка является линейной операцией (см. предыдущий раздел), это эквивалентно одной свёртке с большим размером ядра (как указано выше). Мы можем избежать этого «схлопывания» аналогично полносвязным слоям, чередуя их с функциями активации:
 %
 \begin{equation}
 H = (\phi \circ \text{Conv}\circ\ldots\circ\phi\circ\text{Conv})(X)
 \label{eq:convolutional_block}
 \end{equation}
 %
-To continue with our design, we note that in \eqref{eq:convolutional_block} the channel dimension will be modified by each convolutional layer, while the spatial dimensions will remain of the same shape (or will be slightly reduced if we avoid zero-padding). However, it can be advantageous in practice to eventually reduce this dimensionality if our aim is something like image classification.
+Чтобы продолжить наше проектирование, мы отмечаем, что в \eqref{eq:convolutional_block} измерение канала будет изменяться каждым свёрточным слоем, в то время как пространственные измерения останутся той же формы (или будут немного уменьшены, если мы избегаем дополнения нулями). Однако на практике может быть выгодно в конечном итоге уменьшить эту размерность, если нашей целью является что-то вроде классификации изображений.
 
-Consider again the example of a horse appearing in two different regions across two different images. The translation equivariance property of convolutional layers guarantees that every feature found in region 1 in the first image will be found, correspondingly, in region 2 of the second image. However, if our aim is “horse classification”, we eventually need one or more neurons activating for an horse \textit{irrespective of where it is found} in the image itself: if we only consider shifts, this property is called \textbf{translation invariance}.
+Снова рассмотрим пример лошади, появляющейся в двух разных областях на двух разных изображениях. Свойство трансляционной эквивариантности свёрточных слоев гарантирует, что каждый признак, найденный в области 1 на первом изображении, будет найден, соответственно, в области 2 второго изображения. Однако, если нашей целью является «классификация лошадей», нам в конечном итоге нужен один или несколько нейронов, активирующихся для лошади \textit{независимо от того, где она находится} на изображении: если мы рассматриваем только сдвиги, это свойство называется \textbf{трансляционной инвариантностью}.
 
-Many operations that reduce over the spatial dimensions are trivially invariant to translations, for example:
+Многие операции, которые уменьшают пространственные измерения, тривиально инвариантны к трансляциям, например:
 %
 $$
-H^\prime=\sum_{i,j}H_{ij} \;\text{ or }\; H^\prime=\max_{i,j}(H_{ij})
+H^\prime=\sum_{i,j}H_{ij} \;\text{ или }\; H^\prime=\max_{i,j}(H_{ij})
 $$
 %
-In the context of CNNs, this is called a \textbf{global pooling}. However, this destroys all spatial information present in the image. We can obtain a slightly more efficient solution with a partial reduction, called \textbf{max-pooling}. 
+В контексте СНС это называется \textbf{глобальным пулингом}. Однако это уничтожает всю пространственную информацию, присутствующую в изображении. Мы можем получить немного более эффективное решение с частичным уменьшением, называемым \textbf{макс-пулингом}. 
 
-\begin{definition}[Max-pooling layer] \addbottle
-Given a tensor $X \sim (h,w,c)$, a max-pooling layer, denoted as $\text{MaxPool(X)} \sim (\frac{h}{2}, \frac{w}{2}, c)$, is defined element-wise as:
+\begin{definition}[Слой макс-пулинга] \addbottle
+Для тензора $X \sim (h,w,c)$ слой макс-пулинга, обозначаемый как $\text{MaxPool(X)} \sim (\frac{h}{2}, \frac{w}{2}, c)$, определяется поэлементно как:
 
 $$
 \idx{\textnormal{MaxPool}(X)}{ijc} = \max\left(\eqnmarkbox[drawred]{node}{\idx{X}{2i-1:2i, 2j-1:2j,c}}\right)
 $$
-\annotate[yshift=-1em]{below,right}{node}{$2 \times 2$ image patch}
+\annotate[yshift=-1em]{below,right}{node}{Патч изображения $2 \times 2$}
 
 \end{definition}
 
 \vspace{1em}
-Hence, we take $2\times 2$ windows of the input, and we compute the maximum value independently for each channel (this is generalized trivially to larger windows). Max-pooling effectively halves the spatial resolution while leaving the number of channels untouched. An example is shown in Figure \ref{fig:max_pooling}.
+Следовательно, мы берем окна $2\times 2$ входа и вычисляем максимальное значение независимо для каждого канала (это тривиально обобщается на большие окна). Макс-пулинг эффективно уменьшает пространственное разрешение вдвое, оставляя количество каналов неизменным. Пример показан на Рисунке \ref{fig:max_pooling}.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.5\textwidth]{images/max_pooling}
-    \caption{Visualization of 2x2 max-pooling on a (4,4,1) image. For multiple channels, the operation is applied independently on each channel.
+    \caption{Визуализация макс-пулинга 2x2 на изображении (4,4,1). Для нескольких каналов операция применяется независимо к каждому каналу.
 }
     \label{fig:max_pooling}
 \end{SCfigure}
 
-We can build a convolutional “block” by stacking several convolutional layers with a max-pooling operation  (see Figure \ref{fig:cnn_blocks}):
+Мы можем построить свёрточный «блок», объединив несколько свёрточных слоев с операцией макс-пулинга (см. Рисунок \ref{fig:cnn_blocks}):
 %
 $$
 \text{ConvBlock}(X)= (\text{MaxPool} \circ \phi \circ \text{Conv}\circ\ldots\circ\phi\circ\text{Conv})(X)
 $$
 %
-And a more complex network by stacking together multiple such blocks:
+И более сложную сеть, объединив несколько таких блоков:
 %
 \begin{equation}
 H = (\text{ConvBlock}\circ\text{ConvBlock}\circ\ldots\circ\text{ConvBlock})(X)
 \label{eq:convolutive_backbone}
 \end{equation}
 %
-This design has a large number of hyper-parameters: the output channels of each layer, the kernel size of each layer, etc. It is common to drastically reduce the search space for the design by making some simplifying assumptions. For example, the VGG design \cite{szegedy2015going} popularized the idea of maintaining the filter size constant in each layer (e.g., $k=3$), while keeping the number of channels constant in each block and doubling them in-between every block.
+Этот дизайн имеет большое количество гиперпараметров: выходные каналы каждого слоя, размер ядра каждого слоя и т.д. Обычно пространство поиска для дизайна резко сокращается путем введения некоторых упрощающих предположений. Например, дизайн VGG \cite{szegedy2015going} популяризировал идею сохранения постоянного размера фильтра в каждом слое (например, $k=3$), при сохранении постоянного количества каналов в каждом блоке и удвоении их между каждым блоком.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.6\textwidth]{images/CNN_blocks}
-    \caption{Abstracting away from “layers” to “blocks” to simplify the design of differentiable models.}
+    \caption{Абстрагирование от «слоев» к «блокам» для упрощения проектирования дифференцируемых моделей.}
     \label{fig:cnn_blocks}
 \end{SCfigure}
 
-An alternative way for reducing the dimensionality is to downsample the output of a convolutional layer: this is called the \textbf{stride} of the convolution. For example, a convolution with stride $1$ is a normal convolution, while a convolution with stride $2$ will compute only one output pixel every $2$, a convolution with stride $3$ will compute one output every $3$ pixels, and so on. Large strides and max-pooling can also be combined together depending on how the entire model is designed.
+Альтернативный способ уменьшения размерности — это уменьшение выборки выхода свёрточного слоя: это называется \textbf{шагом} свёртки. Например, свёртка с шагом $1$ — это обычная свёртка, в то время как свёртка с шагом $2$ будет вычислять только один выходной пиксель на каждые $2$, свёртка с шагом $3$ будет вычислять один выход на каждые $3$ пикселя и так далее. Большие шаги и макс-пулинг также можно комбинировать в зависимости от того, как спроектирована вся модель.
 
-\begin{supportbox}{Invariance and equivariance}
-Informally, if $T$ is a transformation on $x$ from some set (e.g., all possible shifts), we say a function $f$ is equivariant if $f(Tx)=Tf(x)$, and invariant if $f(Tx)=f(x)$. The space of all transformations form a group \cite{bronstein2017geometric}, and the matrix corresponding to a specific transformation is called a \textbf{representation} for that group. Convolutional layers are equivariant to translations by design, but other strategies can be found for more general forms of symmetries, such as averaging over the elements of the group (\textbf{frame averaging}, \cite{puny2021frame}). We will see other types of layers' equivariances in Chapter \ref{chap:gnns} and Chapter \ref{chap:transformers}.
+\begin{supportbox}{Инвариантность и эквивариантность}
+Неформально, если $T$ — это преобразование на $x$ из некоторого множества (например, все возможные сдвиги), мы говорим, что функция $f$ эквивариантна, если $f(Tx)=Tf(x)$, и инвариантна, если $f(Tx)=f(x)$. Пространство всех преобразований образует группу \cite{bronstein2017geometric}, и матрица, соответствующая конкретному преобразованию, называется \textbf{представлением} для этой группы. Свёртточные слои эквивариантны к трансляциям по своей конструкции, но можно найти и другие стратегии для более общих форм симметрий, такие как усреднение по элементам группы (\textbf{усреднение по фреймам}, \cite{puny2021frame}). Мы увидим другие типы эквивариантности слоев в Главе \ref{chap:gnns} и Главе \ref{chap:transformers}.
 \end{supportbox}
 
-\subsection{Designing the complete model}
+\subsection{Проектирование полной модели}
 
-We can now complete the design of our model. By stacking together multiple convolutional blocks as in \eqref{eq:convolutive_backbone}, the output $H$ will be of shape $(h^\prime, w^\prime, c^\prime)$, where $w^\prime$ and $h^\prime$ depend on the number of max-pooling operations (or on the stride of the convolutional layers), while $c^\prime$ will depend only on the hyper-parameters of the last convolutional layer in the sequence. Note that each element $H_{ij}$ will correspond to a “macro-region” in the original image, e.g., if $h^\prime, w^\prime = 2$, $H_{11}$ will correspond to the “top-left” quadrant in the original image. We can remove this spatial dependency by performing a final global pooling operation before classification. 
+Теперь мы можем завершить проектирование нашей модели. Объединив несколько свёрточных блоков, как в \eqref{eq:convolutive_backbone}, выход $H$ будет иметь форму $(h^\prime, w^\prime, c^\prime)$, где $w^\prime$ и $h^\prime$ зависят от количества операций макс-пулинга (или от шага свёрточных слоев), в то время как $c^\prime$ будет зависеть только от гиперпараметров последнего свёрточного слоя в последовательности. Обратите внимание, что каждый элемент $H_{ij}$ будет соответствовать «макро-области» на исходном изображении, например, если $h^\prime, w^\prime = 2$, $H_{11}$ будет соответствовать «верхнему левому» квадранту на исходном изображении. Мы можем устранить эту пространственную зависимость, выполнив заключительную операцию глобального пулинга перед классификацией. 
 
-The complete model, then, can be decomposed as three major components: a series of convolutional blocks, a global average pooling, and a final block for classification.
+Полная модель, таким образом, может быть разложена на три основных компонента: серия свёрточных блоков, глобальный средний пулинг и заключительный блок для классификации.
 %
 \begin{align} 
 H = (\text{ConvBlock}\circ\ldots\circ\text{ConvBlock})(X) \label{eq:conv_blocks} \\
-\mathbf{h}= \frac{1}{h^\prime w^\prime}\sum_{i,j}H_{ij}  \label{eq:global_avg_pooling} \\ 
+\mathbf{h}= \frac{1}{h^\prime w^\prime}\sum_{i,j}H_{ij}  \label{eq:global_avg_pooling} \\
 y=\text{MLP}(\mathbf{h}) \label{eq:classification_head}
 \end{align}
 %
-where $\text{MLP}(\mathbf{h})$ is a generic sequence of fully-connected layers (a flattening operation can also be used in place of the global pooling). This is a prototypical example of a CNN. See Figure \ref{fig:cnn_architecture} for a worked-out example.
+где $\text{MLP}(\mathbf{h})$ — это общая последовательность полносвязных слоев (вместо глобального пулинга можно также использовать операцию сплющивания). Это прототипический пример СНС. См. Рисунок \ref{fig:cnn_architecture} для проработанного примера.
 
 \begin{figure}
     \centering
     \includegraphics[width=0.9\textwidth]{images/CNN_architecture}
-    \caption{Worked-out design of a very simple CNN for image classification (assuming 10 output classes). We show the output shape for each layer on the bottom. The global pooling operation can be replaced with a flattening operation. The last (\textbf{latent}) representation before the classification head is very useful when fine-tuning large-scale pre-trained models -- it is an \textbf{embedding} of the image in the sense of Section \ref{subsec:variants_supervised_learning}.}
+    \caption{Проработанный дизайн очень простой СНС для классификации изображений (предполагая 10 выходных классов). Мы показываем форму выхода для каждого слоя внизу. Операцию глобального пулинга можно заменить операцией сплющивания. Последнее (\textbf{скрытое}) представление перед классификационной головой очень полезно при дообучении крупномасштабных предварительно обученных моделей — это \textbf{вложение} изображения в смысле Раздела \ref{subsec:variants_supervised_learning}.}
     \label{fig:cnn_architecture}
 \end{figure}
 
-This design has a few interesting properties we list here:
+Этот дизайн имеет несколько интересных свойств, которые мы перечислим здесь:
 
 \begin{enumerate}
-\item It can be trained like the models described in Chapter \ref{chap:linear_models} and Chapter \ref{chap:fully_connected_models}. For example, for classification, we can wrap the output in a softmax and train by minimizing the cross-entropy. The same rules of back-propagation described in Chapter \ref{chap:automatic_differentiation} apply here.
-\item Because of the global pooling operation, it does not depend on a specific input resolution. However, it is customary to fix this during training and inference to simplify mini-batching (more on variable length inputs in the next chapter).
-\item \eqref{eq:global_avg_pooling} can be thought of as a “feature extraction” block, while \eqref{eq:classification_head} as the “classification block”. This interpretation will be very useful when we consider transfer learning in the next volume. We call the feature extraction block the \textbf{backbone} of the model, and the classification block the \textbf{head} of the model.
+\item Его можно обучать так же, как модели, описанные в Главе \ref{chap:linear_models} и Главе \ref{chap:fully_connected_models}. Например, для классификации мы можем обернуть выход в softmax и обучать, минимизируя кросс-энтропию. Те же правила обратного распространения ошибки, описанные в Главе \ref{chap:automatic_differentiation}, применяются и здесь.
+\item Из-за операции глобального пулинга он не зависит от конкретного разрешения входа. Однако принято фиксировать это во время обучения и вывода, чтобы упростить мини-пакетирование (подробнее о входах переменной длины в следующей главе).
+\item \eqref{eq:global_avg_pooling} можно рассматривать как блок «извлечения признаков», а \eqref{eq:classification_head} — как «классификационный блок». Эта интерпретация будет очень полезна, когда мы будем рассматривать трансферное обучение в следующем томе. Мы называем блок извлечения признаков \textbf{основой} модели, а классификационный блок — \textbf{головой} модели.
 \end{enumerate}
 
-\subsection*{Notable types of convolution}
+\subsection*{Известные типы свёрток}
 
-We close the chapter by mentioning two instances of convolutional layers that are common in practice. 
+Мы завершаем главу, упомянув два примера свёрточных слоев, которые часто встречаются на практике. 
 
-First, consider a convolutional layer with $k=0$, i.e., a so-called $1 \times 1$ convolution. This corresponds to updating each pixel’s embedding by a weighted sum of its channels, disregarding all other pixels:
+Во-первых, рассмотрим свёрточный слой с $k=0$, т.е. так называемую свёртку $1 \times 1$. Это соответствует обновлению вложения каждого пикселя взвешенной суммой его каналов, без учета всех остальных пикселей:
 %
 $$
 H_{{\color{drawred}ij}z} = \sum_{t=1}^c W_{zt}X_{{\color{drawred}ij}t}
 $$
 %
-It is a useful operation for, e.g., modifying the channel dimension (we will see an example when dealing with residual connections in Chapter \ref{chap:deep_cnns}). In this case, the parameters can be compactly represented by a matrix $\mathbf{W} \sim (c^\prime, c)$. This is equivalent to a fully-connected layer applied on each pixel independently.
+Это полезная операция, например, для изменения размерности канала (мы увидим пример, когда будем иметь дело с остаточными соединениями в Главе \ref{chap:deep_cnns}). В этом случае параметры можно компактно представить матрицей $\mathbf{W} \sim (c^\prime, c)$. Это эквивалентно полносвязному слою, применяемому к каждому пикселю независимо.
 
-Second, consider an “orthogonal” variant to $1 \times 1$ convolutions, in which we combine pixels in a small neighborhood, but disregarding all channels except one:
+Во-вторых, рассмотрим «ортогональный» вариант свёрток $1 \times 1$, в котором мы комбинируем пиксели в небольшом соседстве, но без учета всех каналов, кроме одного:
 %
 $$
 H_{ij{\color{drawred}c}} = \sum_{i^\prime=1}^{2k+1}\sum_{j^\prime = 1}^{2k+1} W_{i^\prime, j^\prime,{\color{drawred}c}}X_{i^\prime +t(i),j^\prime+t(j),{\color{drawred}c}}
 $$
 %
-where $t(\bullet)$ is the offset defined in \eqref{eq:convolutive_offset}. In this case we have a rank-$3$ weight matrix $W$ of shape $(s, s, c)$, and each output channel $H_{:,:,c}$ is updated by considering only the corresponding input channel $X_{:,:,c}$. This is called a \textbf{depthwise convolution}, and it can be generalized by considering groups of channels, in which case it is called a \textbf{groupwise convolution} (with the depthwise convolution being the extreme case of a group size equal to $1$).
+где $t(\bullet)$ — это смещение, определенное в \eqref{eq:convolutive_offset}. В этом случае у нас есть весовая матрица 3-го ранга $W$ формы $(s, s, c)$, и каждый выходной канал $H_{:,:,c}$ обновляется, рассматривая только соответствующий входной канал $X_{:,:,c}$. Это называется \textbf{глубинной свёрткой}, и ее можно обобщить, рассматривая группы каналов, и в этом случае она называется \textbf{групповой свёрткой} (причем глубинная свёртка является крайним случаем размера группы, равного $1$).
 
-We can also combine the two ideas and have a convolution block made of alternating $1 \times 1$ convolutions (to mix the channels) and depthwise convolutions (to mix the pixels). This is called a \textbf{depthwise separable} convolution and it is common in CNNs targeted for low-power devices \cite{howard2017mobilenets}. Note that in this case, the number of parameters for a single block (compared to a standard convolution) is reduced from $sscc^\prime$ to $ssc + cc^\prime$. We will see later how these decompositions, where the input is processed alternatively across separate axes, are fundamental for other types of architectures, such as transformers, in Chapter \ref{chap:transformers}.
+Мы также можем комбинировать эти две идеи и иметь свёрточный блок, состоящий из чередующихся свёрток $1 \times 1$ (для смешивания каналов) и глубинных свёрток (для смешивания пикселей). Это называется \textbf{глубинно-разделимой} свёрткой и часто встречается в СНС, предназначенных для маломощных устройств \cite{howard2017mobilenets}. Обратите внимание, что в этом случае количество параметров для одного блока (по сравнению со стандартной свёрткой) уменьшается с $sscc^\prime$ до $ssc + cc^\prime$. Позже мы увидим, как эти разложения, где вход обрабатывается попеременно по отдельным осям, являются фундаментальными для других типов архитектур, таких как трансформеры, в Главе \ref{chap:transformers}.
 
-\section*{From theory to practice}
+\section*{От теории к практике}
 
 \begin{wrapfigure}{r}{3.0cm}
 \vspace{-3em}\includegraphics[width=3.0cm]{images/shutterstock_2075221579.jpg}
 \vspace{-2em}
 \end{wrapfigure}
 
-All the layers introduced in this chapter (convolution, max-pooling) are implemented in the \mintinline{python}{torch.nn} module. The torchvision library provides datasets and functions to load images, as long as an interface to apply transformations to the images that will be very useful in the next chapter.\footnote{\url{https://pytorch.org/vision/stable/transforms.html}} 
+Все слои, представленные в этой главе (свёртка, макс-пулинг), реализованы в модуле \mintinline{python}{torch.nn}. Библиотека torchvision предоставляет наборы данных и функции для загрузки изображений, а также интерфейс для применения преобразований к изображениям, который будет очень полезен в следующей главе.\footnote{\url{https://pytorch.org/vision/stable/transforms.html}} 
 
-Before proceeding, I suggest you follow and re-implement one of the many online tutorials on image classification in torchvision, which should now be relatively easy to follow.\footnote{As an example from the official documentation: \url{https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html}} Toy image datasets abound, including MNIST (digit classification) and CIFAR-10 (general image classification). Combining the torchvision loader with the layers in Equinox allows you to replicate the same tutorial in JAX, e.g., \url{https://docs.kidger.site/equinox/examples/mnist/}.
+Прежде чем продолжить, я предлагаю вам проследить и перереализовать одно из многих онлайн-руководств по классификации изображений в torchvision, которое теперь должно быть относительно легко понять.\footnote{В качестве примера из официальной документации: \url{https://pytorch.org/tutorials/beginner/blitz/cifar10_tutorial.html}} Игрушечных наборов данных изображений предостаточно, включая MNIST (классификация цифр) и CIFAR-10 (общая классификация изображений). Сочетание загрузчика torchvision со слоями в Equinox позволяет воспроизвести то же руководство в JAX, например, \url{https://docs.kidger.site/equinox/examples/mnist/}.
 
-Implementing a convolution from scratch is also an interesting exercise, whose complexity depends on the level of abstraction. One possibility is to use the \texttt{fold}/\texttt{unfold} operations from PyTorch to extract the patches.\footnote{See for example: \url{https://github.com/loeweX/Custom-ConvLayers-Pytorch}} Premade kernels for convolutions will always be significantly faster, making this a purely didactic exercise.
+Реализация свёртки с нуля также является интересным упражнением, сложность которого зависит от уровня абстракции. Одна из возможностей — использовать операции \texttt{fold}/\texttt{unfold} из PyTorch для извлечения патчей.\footnote{См., например: \url{https://github.com/loeweX/Custom-ConvLayers-Pytorch}} Готовые ядра для свёрток всегда будут значительно быстрее, что делает это чисто дидактическим упражнением.
 
-If you have some signal processing background, you may know that convolution can also be implemented as multiplication by moving to the frequency domain. This is impractical for the small kernels used we tend to use, but it can be useful for very large (also known as \textit{long}) convolutions, e.g., \url{https://github.com/fkodom/fft-conv-pytorch}. PyTorch also provides a differentiable Fast Fourier transform that you can use as a starting point.
+Если у вас есть некоторый опыт в обработке сигналов, вы можете знать, что свёртку также можно реализовать как умножение, перейдя в частотную область. Это непрактично для маленьких ядер, которые мы обычно используем, но может быть полезно для очень больших (также известных как \textit{длинных}) свёрток, например, \url{https://github.com/fkodom/fft-conv-pytorch}. PyTorch также предоставляет дифференцируемое быстрое преобразование Фурье, которое вы можете использовать в качестве отправной точки.

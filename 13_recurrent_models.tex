@@ -1,329 +1,332 @@
-\chapter{Recurrent models}
+\chapter{Рекуррентные модели}
 \label{chap:rnns}
 
-\begin{supportbox}{About this chapter}
-Transformer models are very effective at processing sequences, but they are hindered by their quadratic complexity in the sequence length. One possibility is to replace them with recurrent layers, having only constant-time for processing each element of a sequence, irrespective of its length. In this final chapter we provide an overview of several recurrent models and their characteristics. The field has been moving very rapidly in the last two years, and we provide a wide overview at the expense of precision -- see \cite{tiezzi2024state} for a recent survey.
+\begin{supportbox}{Об этой главе}
+Трансформерные модели очень эффективны при обработке последовательностей, но их сдерживает квадратичная сложность по длине последовательности. Одна из возможностей — заменить их рекуррентными слоями, имеющими только постоянное время для обработки каждого элемента последовательности, независимо от ее длины. В этой заключительной главе мы предоставляем широкий обзор за счет точности — см. \cite{tiezzi2024state} для недавнего обзора.
 \end{supportbox}
 
-\section{Linearized attention models}
-\subsection{Replacing the dot product}
+\section{Линеаризованные модели внимания}
+\subsection{Замена скалярного произведения}
 \label{sec:linearized_transformer_model}
 
-To provide some intuition on why recurrent neural networks (RNNs) can be useful, we begin with a generalization of the attention layer (called the \textbf{linearized attention layer} \cite{katharopoulos2020transformers}) that can be written in a recurrent form. We start by rewriting the SA layer in an abstract form with a generic scalar-valued attention function $\alpha(\cdot, \cdot)$ instead of the dot product:
+Чтобы дать некоторое представление о том, почему рекуррентные нейронные сети (РНС) могут быть полезны, мы начнем с обобщения слоя внимания (называемого \textbf{линеаризованным слоем внимания} \cite{katharopoulos2020transformers}), который можно записать в рекуррентной форме. Мы начнем с переписывания слоя SA в абстрактной форме с общей скалярной функцией внимания $\alpha(\cdot, \cdot)$ вместо скалярного произведения:
 %
 \begin{equation}
 \mathbf{h}_i=\frac{\sum_{j=1}^n\alpha\left(\mathbf{q}_i, \mathbf{k}_j\right)\mathbf{v}_j}{\sum_{j=1}^n \alpha\left(\mathbf{q}_i, \mathbf{k}_j\right)}
 \label{eq:generalized_attention}
 \end{equation}
 %
-where for the standard SA, $\alpha(\mathbf{x}, \mathbf{y})=\exp(\mathbf{x}^\top\mathbf{y})$. If the elements of the sequence must be processed in order (as in autoregressive generation), \eqref{eq:generalized_attention} is inconvenient because its cost grows quadratically in the sequence length. Even if a KV cache is used, memory still grows linearly. By comparison, a convolutional layer has fixed time and memory cost for each element to be processed, but information is lost if a token is outside the receptive field. What we would like, instead, is a mechanism to compress all the information of the sequence into a fixed-size input (which we will call a \textbf{memory} or \textbf{state} tensor), so that the cost of running the model on our current input token plus the memory is constant. We call models of this form \textbf{recurrent}.
+где для стандартного SA, $\alpha(\mathbf{x}, \mathbf{y})=\exp(\mathbf{x}^\top\mathbf{y})$. Если элементы последовательности должны обрабатываться по порядку (как при авторегрессионной генерации), \eqref{eq:generalized_attention} неудобно, потому что его стоимость растет квадратично с длиной последовательности. Даже если используется кэш KV, память все равно растет линейно. Для сравнения, свёрточный слой имеет фиксированную временную и пространственную стоимость для каждого обрабатываемого элемента, но информация теряется, если токен находится за пределами рецептивного поля. Вместо этого мы хотели бы иметь механизм для сжатия всей информации последовательности в вход фиксированного размера (который мы будем называть тензором \textbf{памяти} или \textbf{состояния}), чтобы стоимость запуска модели на нашем текущем входном токене плюс память была постоянной. Мы называем модели такой формы \textbf{рекуррентными}.
 
-To begin, note that any non-negative $\alpha$ is a valid similarity function. In machine learning, this requirement is equivalent to $\alpha$ being what is called a \textbf{kernel function} \cite{hofmann2008kernel}. Many such kernel functions can be written as a generalized dot product:
+Для начала отметим, что любая неотрицательная $\alpha$ является допустимой функцией сходства. В машинном обучении это требование эквивалентно тому, что $\alpha$ является так называемой \textbf{ядерной функцией} \cite{hofmann2008kernel}. Многие такие ядерные функции можно записать как обобщенное скалярное произведение:
 %
 \begin{equation}
 \alpha(\mathbf{x}, \mathbf{y})=\phi(\mathbf{x})^\top \phi(\mathbf{y})
 \label{eq:kernel}
 \end{equation}
 %
-for some function $\phi: \mathbb{R}^c \rightarrow \mathbb{R}^e$ that performs a feature expansion. 
+для некоторой функции $\phi: \mathbb{R}^c \rightarrow \mathbb{R}^e$, которая выполняет расширение признаков. 
 
-\begin{supportbox}{Kernel functions}
-As an example, the \textbf{polynomial kernel function} $\alpha(\mathbf{x}, \mathbf{y})=(1 + \mathbf{x}^\top\mathbf{y})^d$ can be rewritten as \eqref{eq:kernel} if $\phi(\bullet)$ explicitly computes all polynomials of its input up to order $d$ \cite{hofmann2008kernel}. Some kernel functions correspond to infinite-dimensional expansions (e.g., the Gaussian kernel), in which case (2) can still be recovered in terms of an approximated kernel expansion, such as working with random Fourier features \cite{scardapane2017randomness}.
+\begin{supportbox}{Ядерные функции}
+В качестве примера, \textbf{полиномиальная ядерная функция} $\alpha(\mathbf{x}, \mathbf{y})=(1 + \mathbf{x}^\top\mathbf{y})^d$ может быть переписана как \eqref{eq:kernel}, если $\phi(\bullet)$ явно вычисляет все полиномы своего входа до порядка $d$ \cite{hofmann2008kernel}. Некоторые ядерные функции соответствуют бесконечномерным расширениям (например, гауссово ядро), и в этом случае (2) все еще можно восстановить в терминах приближенного расширения ядра, например, работая со случайными признаками Фурье \cite{scardapane2017randomness}.
 \end{supportbox}
 %
-Based on \eqref{eq:kernel} we can rewrite \eqref{eq:generalized_attention} as:
+На основе \eqref{eq:kernel} мы можем переписать \eqref{eq:generalized_attention} как:
 %
 $$
 \mathbf{h}_i=\frac{\sum_{j=1}^n \phi(\mathbf{q}_i)^\top\phi(\mathbf{k}_j)\mathbf{v}_j^\top}{\sum_{j=1}^n \phi(\mathbf{q}_i)^\top\phi(\mathbf{k}_j)}
 $$
 %
-where we have added a transpose operation on $\mathbf{v}_j$ to be consistent with the dimensions. Because $\phi(\mathbf{q}_i)$ does not depend on $j$ we can bring it outside the sum to obtain:
+где мы добавили операцию транспонирования к $\mathbf{v}_j$, чтобы соответствовать размерностям. Поскольку $\phi(\mathbf{q}_i)$ не зависит от $j$, мы можем вынести его за знак суммы, чтобы получить:
 %
 \begin{equation}
 \mathbf{h}_i=\frac{{\color{drawred}\phi(\mathbf{q}_i)^\top}\sum_{j=1}^n \phi(\mathbf{k}_j)\mathbf{v}_j^\top}{{\color{drawred}\phi(\mathbf{q}_i)^\top}\sum_{j=1}^n \phi(\mathbf{k}_j)}
 \label{eq:linearized_attention}
 \end{equation}
 %
-This is called a \textbf{linearized attention} model \cite{katharopoulos2020transformers}. Computing \eqref{eq:linearized_attention} for all tokens has complexity $\mathcal{O}(n(e^2 + ev))$, which is linear in the sequence length and advantageous whenever $n <e^2$. $\phi$ can be chosen freely, e.g., in \cite{katharopoulos2020transformers} they consider a quadratic feature expansion or even a simpler $\phi(\mathbf{x})=\text{ELU}(\mathbf{x})+1$ for short sequences.
+Это называется \textbf{линеаризованной моделью внимания} \cite{katharopoulos2020transformers}. Вычисление \eqref{eq:linearized_attention} для всех токенов имеет сложность $\mathcal{O}(n(e^2 + ev))$, что является линейным по длине последовательности и выгодно, когда $n <e^2$. $\phi$ можно выбирать свободно, например, в \cite{katharopoulos2020transformers} они рассматривают квадратичное расширение признаков или даже более простое $\phi(\mathbf{x})=\text{ELU}(\mathbf{x})+1$ для коротких последовательностей.
 
-\subsection{A recurrent formulation}
+\subsection{Рекуррентная формулировка}
 
-We now rewrite the linearized attention model in a recurrent form, by considering what happens for a causal variant of the layer. First, we modify \eqref{eq:linearized_attention} by constraining the sum only on past input elements to make it causal:
+Теперь мы перепишем линеаризованную модель внимания в рекуррентной форме, рассмотрев, что происходит для причинного варианта слоя. Во-первых, мы изменим \eqref{eq:linearized_attention}, ограничив сумму только прошлыми входными элементами, чтобы сделать ее причинной:
 
 \begin{equation}
 \mathbf{h}_i=\frac{\phi(\mathbf{q}_i)^\top\eqnmarkbox[drawred]{node}{\sum_{j=1}^{\color{drawred}i} \phi(\mathbf{k}_j)\mathbf{v}_j^\top}}{\phi(\mathbf{q}_i)^\top\eqnmarkbox[drawgreen]{node2}{\sum_{j=1}^{\color{drawred}i} \phi(\mathbf{k}_j)}}
 \label{eq:atf}
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{Attention memory $\mathbf{S}_i$}
-\annotate[yshift=-1em]{below,right}{node2}{Normalizer memory $\mathbf{z}_i$}
+\annotate[yshift=1em]{above,right}{node}{Память внимания $\mathbf{S}_i$}
+\annotate[yshift=-1em]{below,right}{node2}{Память нормализатора $\mathbf{z}_i$}
 
 \vspace{1em}
-This is our first example of a \textbf{recurrent layer}. To understand the name, we note that the attention and normalizer memories can be written recursively as:
+Это наш первый пример \textbf{рекуррентного слоя}. Чтобы понять название, мы отмечаем, что память внимания и нормализатора можно записать рекурсивно как:
 %
 \begin{gather}
-\mathbf{S}_i =\mathbf{S}_{i-1} + \phi(\mathbf{k}_i)\mathbf{v}_i^\top \label{eq:atf_recurrent_1} \\ 
+\mathbf{S}_i =\mathbf{S}_{i-1} + \phi(\mathbf{k}_i)\mathbf{v}_i^\top \label{eq:atf_recurrent_1} \\
 \mathbf{z}_i = \mathbf{z}_{i-1}+\phi(\mathbf{k}_i) \label{eq:atf_recurrent_2}
 \end{gather}
 %
-where the base case of the recurrence is given by their initialization:
+где базовый случай рекурсии задается их инициализацией:
 %
 \begin{gather}
 \mathbf{S}_0=\mathbf{0} \\ \mathbf{z}_0=\mathbf{0}
 \label{eq:atf_recurrent_init}
 \end{gather}
 %
-The output is then given by:
+Выход тогда задается как:
 %
 \begin{gather}
 \mathbf{h}_i=\frac{\phi(\mathbf{q}_i)^\top\mathbf{S}_i}{\phi(\mathbf{q}_i)^\top\mathbf{z}_i} \label{eq:atf_recurrent_3}
 \end{gather}
 %
-Equations \eqref{eq:atf_recurrent_1}-\eqref{eq:atf_recurrent_3} are particularly interesting for an autoregressive scenario: for any new token to be generated, we update the two memory states (equations \eqref{eq:atf_recurrent_1} and \eqref{eq:atf_recurrent_2}), and we use these updated states to compute the output for the $i$-th element. Importantly, the total computation for generating a new token is constant, and the cost in memory is also fixed since the previous memories $\mathbf{S}_{i-1}$ and $\mathbf{z}_{i-1}$ can be discarded. We can alternate between the two formulations of the layer: we can use a vectorized variant for training (for efficient implementation on GPUs) and the recurrent formulation for inference. 
+Уравнения \eqref{eq:atf_recurrent_1}-\eqref{eq:atf_recurrent_3} особенно интересны для авторегрессионного сценария: для каждого нового генерируемого токена мы обновляем два состояния памяти (уравнения \eqref{eq:atf_recurrent_1} и \eqref{eq:atf_recurrent_2}) и используем эти обновленные состояния для вычисления выхода для $i$-го элемента. Важно, что общие вычисления для генерации нового токена постоянны, и стоимость памяти также фиксирована, поскольку предыдущие памяти $\mathbf{S}_{i-1}$ и $\mathbf{z}_{i-1}$ можно отбросить. Мы можем чередовать две формулировки слоя: мы можем использовать векторизованный вариант для обучения (для эффективной реализации на GPU) и рекуррентную формулировку для вывода. 
 
-\section{Classical recurrent layers}
-\subsection{General formulation}
+\section{Классические рекуррентные слои}
+\subsection{Общая формулировка}
 
 \begin{SCfigure}
     \centering
     \hspace{2em}\includegraphics[width=0.5\textwidth]{images/recurrence}
-    \caption{Overview of a recurrent layer: past tokens are shown in gray, current input token in blue, the memory state in yellow.}
+    \caption{Обзор рекуррентного слоя: прошлые токены показаны серым, текущий входной токен — синим, состояние памяти — желтым.}
     \label{fig:recurrence}
 \end{SCfigure}
 
-Let us now abstract away the key components of a recurrent layer, using the previous section as reference. First, we need a \textbf{state} of fixed size, which is used to compress all useful information up to the $i$-th element of the sequence. We denote it generically as $\mathbf{s}_i$, and without lack of generality we assume it is a single vector from now on. Second, we need a \textbf{transition function} (recurrence) that updates the state vector based on the previous value and the value of the current token, which we denote as $f(\mathbf{s}_{i-1}, \mathbf{x}_i)$. Third, we need what we call a \textbf{readout function} that provides an output for the $i$-th element of the sequence. We denote it as $g(\mathbf{s}_i, \mathbf{x}_i)$. See also Figure \ref{fig:recurrence} for a visualization. 
+Теперь давайте абстрагируемся от ключевых компонентов рекуррентного слоя, используя предыдущий раздел в качестве ориентира. Во-первых, нам нужно \textbf{состояние} фиксированного размера, которое используется для сжатия всей полезной информации до $i$-го элемента последовательности. Мы обозначаем его в общем виде как $\mathbf{s}_i$, и без потери общности мы будем предполагать, что это один вектор. Во-вторых, нам нужна \textbf{функция перехода} (рекурренция), которая обновляет вектор состояния на основе предыдущего значения и значения текущего токена, которую мы обозначаем как $f(\mathbf{s}_{i-1}, \mathbf{x}_i)$. В-третьих, нам нужна то, что мы называем \textbf{функцией считывания}, которая предоставляет выход для $i$-го элемента последовательности. Мы обозначаем ее как $g(\mathbf{s}_i, \mathbf{x}_i)$. См. также Рисунок \ref{fig:recurrence} для визуализации. 
 
-\begin{definition}[Recurrent layer] \addbottle
+\begin{definition}[Рекуррентный слой] \addbottle
 %
-Given a sequence of tokens $\mathbf{x}_1, \mathbf{x}_2, \ldots$, a generic recurrent layer can be written as: 
+Для последовательности токенов $\mathbf{x}_1, \mathbf{x}_2, \ldots$, общий рекуррентный слой можно записать как: 
 %
 \begin{gather}
-\mathbf{s}_i = f(\mathbf{s}_{i-1},\mathbf{x}_i) \label{eq:recurrent_layer_state_update} \\ 
+\mathbf{s}_i = f(\mathbf{s}_{i-1},\mathbf{x}_i) \label{eq:recurrent_layer_state_update} \\
 \mathbf{h}_i = g(\mathbf{s}_i, \mathbf{x}_i) \label{eq:recurrent_layer_readout}
 \end{gather}
 %
-where the \textbf{state vector} $\mathbf{s}_i \sim (e)$ is initialized as zero by convention, $\mathbf{s}_0 = \mathbf{0}$. The size of the state vector, $e$, and the size of the output vector $\mathbf{h}_i \sim (o)$ are hyper-parameters. We call $f$ the \textbf{state transition} function and $g$ the \textbf{readout} function.
+где \textbf{вектор состояния} $\mathbf{s}_i \sim (e)$ по соглашению инициализируется нулем, $\mathbf{s}_0 = \mathbf{0}$. Размер вектора состояния, $e$, и размер выходного вектора $\mathbf{h}_i \sim (o)$ являются гиперпараметрами. Мы называем $f$ функцией \textbf{перехода состояния}, а $g$ — функцией \textbf{считывания}.
 %
 \end{definition}
 
 %
-In this format, a recurrent layer represents a discrete-time, input-driven dynamical system, and it is a causal layer by definition. In control engineering, this is also known as a \textbf{state-space model}. For tasks in which causality is unnecessary, \textbf{bidirectional layers} \cite{schuster1997bidirectional} can also be defined. In a bidirectional layer we initialize two recurrent layers (with separate parameters), one of which processes the sequence left-to-right, and the second one right-to-left. Their output states are then concatenated to provide the final output. 
+В этом формате рекуррентный слой представляет собой дискретную по времени, управляемую входом динамическую систему, и по определению является причинным слоем. В инженерии управления это также известно как \textbf{модель в пространстве состояний}. Для задач, в которых причинность не нужна, также можно определить \textbf{двунаправленные слои} \cite{schuster1997bidirectional}. В двунаправленном слое мы инициализируем два рекуррентных слоя (с отдельными параметрами), один из которых обрабатывает последовательность слева направо, а второй — справа налево. Их выходные состояния затем объединяются для получения окончательного выхода. 
 
-Recurrent neural networks (RNNs) can be built by stacking multiple recurrent layers on the updated sequence $\mathbf{h}_1, \mathbf{h}_2, \ldots, \mathbf{h}_n$ \cite{pascanu2013construct}. Interestingly, a recurrent layer has no requirement on the length of the sequence, which can (in principle) be unbounded. For this reason, RNNs with unbounded precision or growing architectures can be shown to be Turing-complete \cite{chung2021turing}.
+Рекуррентные нейронные сети (РНС) можно строить, объединяя несколько рекуррентных слоев на обновленной последовательности $\mathbf{h}_1, \mathbf{h}_2, \ldots, \mathbf{h}_n$ \cite{pascanu2013construct}. Интересно, что рекуррентный слой не имеет требований к длине последовательности, которая (в принципе) может быть неограниченной. По этой причине можно показать, что РНС с неограниченной точностью или растущими архитектурами являются Тьюринг-полными \cite{chung2021turing}.
 
-\begin{supportbox}{Implicit layers}
+\begin{supportbox}{Неявные слои}
 %
-What happens if we apply a recurrent layers to a \textit{single} token $\mathbf{x}$?
+Что произойдет, если мы применим рекуррентный слой к \textit{одному} токену $\mathbf{x}$?
 %
 \begin{equation}
 \mathbf{s}_i = f(\mathbf{s}_{i-1}, \mathbf{x})
 \label{eq:recurrent_layer_single_token}
 \end{equation}
 %
-If we run the state transition several time starting from a known initialization $\mathbf{s}_0$, this is similar to a model with several layers (one per transition) sharing the same parameters. Suppose we run \eqref{eq:recurrent_layer_single_token} an \textit{infinite} number of times. If the dynamic system has a stable attractor, the output will be defined by the fixed-point equation:
+Если мы запустим переход состояния несколько раз, начиная с известной инициализации $\mathbf{s}_0$, это будет похоже на модель с несколькими слоями (по одному на переход), разделяющими одни и те же параметры. Предположим, мы запускаем \eqref{eq:recurrent_layer_single_token} \textit{бесконечное} количество раз. Если динамическая система имеет стабильный аттрактор, выход будет определяться уравнением неподвижной точки:
 %
 \begin{equation}
 \mathbf{s} = f(\mathbf{s}, \mathbf{x})
 \label{eq:fixed_point_layer}
 \end{equation}
 %
-If we take \eqref{eq:fixed_point_layer} as the definition of a layer, we obtain what is called an \textbf{implicit layer} \cite{bai2019deep}. The implementation of implicit layers can be made feasible by using fast solvers for the fixed-point equation and computing the backward pass with the use of the \textbf{implicit function theorem} \cite{bai2019deep}. Implicit graph layers can also be defined by running each diffusion operation to a stable state \cite{gori2005new,scarselli2008graph}. 
+Если мы возьмем \eqref{eq:fixed_point_layer} в качестве определения слоя, мы получим то, что называется \textbf{неявным слоем} \cite{bai2019deep}. Реализацию неявных слоев можно сделать возможной, используя быстрые решатели для уравнения неподвижной точки и вычисляя обратный проход с использованием \textbf{теоремы о неявной функции} \cite{bai2019deep}. Неявные графовые слои также можно определить, запуская каждую операцию диффузии до стабильного состояния \cite{gori2005new,scarselli2008graph}. 
 %
 \end{supportbox}
 
 \vspace{-0.5em}
-\subsection{“Vanilla” recurrent layers} \addclock
+\subsection{«Ванильные» рекуррентные слои} \addclock
 
-Historically, recurrent layers were instantiated by considering two fully-connected layers as transition and readout functions:
+Исторически рекуррентные слои инстанцировались путем рассмотрения двух полносвязных слоев в качестве функций перехода и считывания:
 %
 \begin{gather}
 f(\mathbf{s}_{i-1},\mathbf{x}_i)= \phi(\mathbf{A}\mathbf{s}_{i-1}+\mathbf{B}\mathbf{x}_i)\\g(\mathbf{s}_i,\mathbf{x}_i)=\mathbf{C}\mathbf{s}_i+\mathbf{D}\mathbf{x}_i
 \end{gather}
 %
-where as always we ignore biases for simplicity, and we have four trainable matrices $\mathbf{A} \sim (e,e)$, $\mathbf{B} \sim (e,c)$, $\mathbf{C} \sim (o,e)$, and $\mathbf{D} \sim (o,c)$, where $c$ is the input dimensionality (the size of each token). A layer in this form is sometimes referred to generically as a “\textit{recurrent layer}”, a “\textit{vanilla recurrent layer}”, or an \textbf{Elman} recurrent layer. When the two matrices $\mathbf{A}$ and $\mathbf{B}$ are left untrained and we only have a single layer, these models are called \textbf{echo state networks} (ESNs) or \textbf{reservoir computers} \cite{lukovsevivcius2009reservoir}. ESNs can be a powerful baseline for time series forecasting, especially when the untrained matrices (the reservoir) are initialized in a proper way \cite{gauthier2021next}.
+где, как всегда, мы игнорируем смещения для простоты, и у нас есть четыре обучаемые матрицы $\mathbf{A} \sim (e,e)$, $\mathbf{B} \sim (e,c)$, $\mathbf{C} \sim (o,e)$ и $\mathbf{D} \sim (o,c)$, где $c$ — размерность входа (размер каждого токена). Слой в этой форме иногда называют в общем «\textit{рекуррентным слоем}», «\textit{ванильным рекуррентным слоем}» или рекуррентным слоем \textbf{Элмана}. Когда две матрицы $\mathbf{A}$ и $\mathbf{B}$ остаются необученными, и у нас есть только один слой, эти модели называются \textbf{сетями эхо-состояний} (ESN) или \textbf{резервуарными компьютерами} \cite{lukovsevivcius2009reservoir}. ESN могут быть мощной базовой линией для прогнозирования временных рядов, особенно когда необученные матрицы (резервуар) инициализируются должным образом \cite{gauthier2021next}.
 
-Despite their historical significance, layers of this form are extremely inefficient (and hard) to train. To see this, note that by its design the computation across elements of the sequence cannot be parallelized efficiently, as shown in Box \ref{code:recurrence}. Hence, we need to resort to iterative (for-loops) implementations, and even highly customized CUDA implementations\footnote{\url{https://docs.nvidia.com/deeplearning/performance/dl-performance-recurrent/index.html}} are slower than most alternative sequence layers. 
+Несмотря на их историческое значение, слои такой формы чрезвычайно неэффективны (и трудны) для обучения. Чтобы убедиться в этом, обратите внимание, что по своей конструкции вычисления по элементам последовательности не могут быть эффективно распараллелены, как показано в Листинге \ref{code:recurrence}. Следовательно, нам нужно прибегать к итерационным (for-циклам) реализациям, и даже высокоспециализированные реализации CUDA\footnote{\url{https://docs.nvidia.com/deeplearning/performance/dl-performance-recurrent/index.html}} медленнее, чем большинство альтернативных слоев последовательностей. 
 
-\begin{mypy}{Vanilla recurrence in PyTorch. It is impossible to parallelize the for-loop with linear algebra because of the dependencies in the recurrence. In PyTorch, the state update is called a \textbf{recurrent cell}, while the recurrent layers, such as {\footnotesize\mintinline{python}{torch.nn.RNN}}, wrap a cell and perform the complete for-loop.}{code:recurrence}
-# Input tensor
+\begin{mypy}{Ванильная рекурренция в PyTorch. Невозможно распараллелить for-цикл с помощью линейной алгебры из-за зависимостей в рекурренции. В PyTorch обновление состояния называется \textbf{рекуррентной ячейкой}, в то время как рекуррентные слои, такие как {\footnotesize\mintinline{python}{torch.nn.RNN}}, оборачивают ячейку и выполняют полный for-цикл.}{code:recurrence}
+# Входной тензор
 x = torch.randn(batch_size, sequence_length, features)
 
-# State tensor
+# Тензор состояния
 s = torch.zeros(batch_size, state_size)
 
-# State update
+# Обновление состояния
 state_update = nn.RNNCell(features, state_size)
 for i in range(x.shape[1]):
   s = state_update(x[:, i, :], s)
 \end{mypy}
 
-Another issue stems from the gradients involved in the layer’s computations. Consider a simplified case having only the transition function. We can unroll the full computation as:
+Другая проблема связана с градиентами, участвующими в вычислениях слоя. Рассмотрим упрощенный случай, имеющий только функцию перехода. Мы можем развернуть полное вычисление как:
 %$
 \begin{gather*}\mathbf{s}_1=f(\mathbf{s}_0,\mathbf{x}_1) \\ \mathbf{s}_2=f(\mathbf{s}_1,\mathbf{x}_2) \\ \vdots \\ \mathbf{s}_n=f(\mathbf{s}_{n-1},\mathbf{x}_n)\end{gather*}
 %
-This is similar to a model with $n$ layers, except that the parameters are shared (the same) across the layers. Below we focus on the quantity $\partial_{\mathbf{A}} \mathbf{s}_n$ (the weight Jacobian with respect to $\mathbf{A}$), but similar considerations apply to all gradients. Let us define the following cumulative product:
+Это похоже на модель с $n$ слоями, за исключением того, что параметры разделяются (одинаковы) между слоями. Ниже мы сосредоточимся на величине $\partial_{\mathbf{A}} \mathbf{s}_n$ (весовой Якобиан по отношению к $\mathbf{A}$), но аналогичные соображения применимы ко всем градиентам. Давайте определим следующее кумулятивное произведение:
 %
 \begin{equation}\widetilde{\mathbf{s}}_i = \prod_{j={i+1}}^{n}\partial_{\mathbf{s}_{j-1} }f(\mathbf{s}_{j-1},\mathbf{x}_j)\end{equation}
 %
-This represents the gradient of the transition function from the end of the sequence backwards to element $i$, as shown in Figure \ref{fig:recurrence_backward}. Because of weight sharing, the gradient we are looking for has a separate term for each element in the sequence which involves these cumulative products:
+Это представляет собой градиент функции перехода от конца последовательности назад к элементу $i$, как показано на Рисунке \ref{fig:recurrence_backward}. Из-за разделения весов искомый градиент имеет отдельный член для каждого элемента в последовательности, который включает эти кумулятивные произведения:
 %
 \begin{equation} 
 \partial_{\mathbf{A}} \mathbf{s}_n = \eqnmarkbox[drawred]{node}{\partial_{\mathbf{A}} f(\mathbf{s}_{n-1}, \mathbf{x}_n)} + \sum_{i=1}^{n-1}  \eqnmarkbox[drawgreen]{node2}{\widetilde{\mathbf{s}}_i \bigl[ \partial_{\mathbf{A}} f(\mathbf{s}_{i-1}, \mathbf{x}_i)\bigr]}
 \label{eq:backpropagation_through_time}
 \end{equation}
-\annotate[yshift=-1em]{below,left}{node}{Gradient from element $n$}
-\annotate[yshift=-1em]{below,right}{node2}{Gradient from element $i$}
+\annotate[yshift=-1em]{below,left}{node}{Градиент от элемента $n$}
+\annotate[yshift=-1em]{below,right}{node2}{Градиент от элемента $i$}
 
 \begin{SCfigure}
     \centering
     \hspace{2em}\includegraphics[width=0.5\textwidth]{images/recurrence-Pagina-2}
-    \caption{Backward pass for a recurrent layer: the adjoint values have to be propagated through all the transition steps. Each state then contributes a single term to the full gradient of the parameters.}
+    \caption{Обратный проход для рекуррентного слоя: сопряженные значения должны распространяться через все шаги перехода. Каждое состояние затем вносит один член в полный градиент параметров.}
     \label{fig:recurrence_backward}
 \end{SCfigure}
 
-The first term corresponds to a “standard” weight Jacobian, describing the influence of $\mathbf{A}$ on the last element of the sequence. The terms in the summation are the additional contributions, one for each element of the sequence, which are weighted by the chained input Jacobian computed over the sequence itself. 
+Первый член соответствует «стандартному» весовому Якобиану, описывающему влияние $\mathbf{A}$ на последний элемент последовательности. Члены в сумме — это дополнительные вклады, по одному для каждого элемента последовательности, которые взвешиваются цепным входным Якобианом, вычисленным по самой последовательности. 
 
-Written in this form, reverse mode automatic differentiation is also called \textbf{backpropagation through time} (BPTT), and it can be a strong source of instability or gradient problems during gradient descent. To see this, note that each input Jacobian in the inner product in \eqref{eq:backpropagation_through_time} involves a multiplication by the derivative of the activation function $\phi$. Some of the earliest analyses of vanishing and exploding gradients were done in this context \cite{hochreiter1998recurrent}. For long sequences, stability of the layer is guaranteed only when the eigenvalues of the transition matrix are properly constrained \cite{gallicchio2017echo}. Layer normalization was also originally developed to stabilize training in RNNs, by computing statistics over the states’ sequence \cite{ba2016layer}.
+Записанное в этой форме, автоматическое дифференцирование в обратном режиме также называется \textbf{обратным распространением ошибки во времени} (BPTT) и может быть сильным источником нестабильности или проблем с градиентами во время градиентного спуска. Чтобы убедиться в этом, обратите внимание, что каждый входной Якобиан во внутреннем произведении в \eqref{eq:backpropagation_through_time} включает умножение на производную функции активации $\phi$. Некоторые из самых ранних анализов исчезающих и взрывающихся градиентов были сделаны в этом контексте \cite{hochreiter1998recurrent}. Для длинных последовательностей стабильность слоя гарантируется только тогда, когда собственные значения матрицы перехода должным образом ограничены \cite{gallicchio2017echo}. Послойная нормализация также изначально была разработана для стабилизации обучения в РНС путем вычисления статистик по последовательности состояний \cite{ba2016layer}.
 
-Several techniques have been developed to partially solve these instabilities in the context of recurrent layers. For example, the sum in \eqref{eq:backpropagation_through_time} can be truncated to a given interval (\textbf{truncated BPTT}), or the gradients can be thresholded if they exceed a pre-defined upper bound (\textbf{clipped gradients}).
+Было разработано несколько техник для частичного решения этих нестабильностей в контексте рекуррентных слоев. Например, сумму в \eqref{eq:backpropagation_through_time} можно усечь до заданного интервала (\textbf{усеченная BPTT}), или градиенты можно ограничить порогом, если они превышают заранее определенную верхнюю границу (\textbf{обрезанные градиенты}).
 
-\subsection{Gated recurrent networks}
+\subsection{Вентильные рекуррентные сети}
 
-Over the years, several variants of the vanilla layer were proposed to improve its performance. In this section we focus on a popular class of such models, called \textbf{gated} RNNs. One issue of RNNs is that the entire state gets overwritten at each transition, which is reflected in the partial products in \eqref{eq:backpropagation_through_time}. However, we can assume that, for many sequences, only a few elements of these transitions are important: as an example, in an audio signal, empty regions or regions with no information are typical. In these cases, we may be interested in \textit{sparsifying} the transition (similarly to how most attention weights tend to be close to zero) and, consequently, setting most elements in $\widetilde{\mathbf{s}}_i$ to $1$. This can be achieved with the addition of specialized gating layers.
+На протяжении многих лет было предложено несколько вариантов ванильного слоя для улучшения его производительности. В этом разделе мы сосредоточимся на популярном классе таких моделей, называемых \textbf{вентильными} РНС. Одна из проблем РНС заключается в том, что все состояние перезаписывается на каждом переходе, что отражается в частичных произведениях в \eqref{eq:backpropagation_through_time}. Однако мы можем предположить, что для многих последовательностей важны лишь немногие элементы этих переходов: например, в аудиосигнале типичны пустые области или области без информации. В этих случаях мы можем быть заинтересованы в \textit{разреживании} перехода (аналогично тому, как большинство весов внимания стремятся к нулю) и, следовательно, в установке большинства элементов в $\widetilde{\mathbf{s}}_i$ в $1$. Этого можно достичь с помощью добавления специализированных вентильных слоев.
 
-We consider the simplest form of gated RNN, called \textbf{light gated recurrent unit} (Li-GRU, \cite{ravanelli2018light}), having a single gate. For our purposes, a gating function is simply a layer that outputs values in the range $[0,1]$ that can be used to “mask” the input. As an example, a gate over the state can be obtained by a fully-connected layer with a sigmoid activation function:
+Мы рассмотрим простейшую форму вентильной РНС, называемую \textbf{легким вентильным рекуррентным блоком} (Li-GRU, \cite{ravanelli2018light}), имеющую один вентиль. Для наших целей вентильная функция — это просто слой, который выводит значения в диапазоне $[0,1]$ которые можно использовать для «маскирования» входа. В качестве примера, вентиль над состоянием можно получить с помощью полносвязного слоя с сигмоидальной функцией активации:
 %
 $$
 \gamma(\mathbf{s}_{i-1}, \mathbf{x}_i)=\sigma\left(\mathbf{V}\mathbf{s}_{i-1}+\mathbf{U}\mathbf{x}_i\right)
 $$
 %
-where $\mathbf{V}$ and $\mathbf{U}$ have similar shapes to $\mathbf{A}$ and $\mathbf{B}$. We can interpret this as follows: if $\gamma_i \approx 0$, the $i$-th feature of the state should be kept untouched, while if $\gamma_1 \approx 1$, we should propagate its updated value as output. Hence, we can rewrite the transition function by properly masking the new and old values as:
+где $\mathbf{V}$ и $\mathbf{U}$ имеют схожие формы с $\mathbf{A}$ и $\mathbf{B}$. Мы можем интерпретировать это следующим образом: если $\gamma_i \approx 0$, $i$-й признак состояния должен оставаться неизменным, в то время как если $\gamma_1 \approx 1$, мы должны распространять его обновленное значение как выход. Следовательно, мы можем переписать функцию перехода, правильно маскируя новые и старые значения как:
 %
 $$
-f(\mathbf{s}_{i-1}, \mathbf{x}_i) = \overbrace{\gamma(\mathbf{s}_{i-1}, \mathbf{x}_i)\odot\left(\mathbf{A}\mathbf{s}_{i-1}+\mathbf{B}\mathbf{x}_i\right)}^{\text{New values}} + \underbrace{(1-\gamma(\mathbf{s}_{i-1}, \mathbf{x}_i))\odot\mathbf{s}_{i-1}}_{\text{Old values}}
+f(\mathbf{s}_{i-1}, \mathbf{x}_i) = \overbrace{\gamma(\mathbf{s}_{i-1}, \mathbf{x}_i)\odot\left(\mathbf{A}\mathbf{s}_{i-1}+\mathbf{B}\mathbf{x}_i\right)}^{\text{Новые значения}} + \underbrace{(1-\gamma(\mathbf{s}_{i-1}, \mathbf{x}_i))\odot\mathbf{s}_{i-1}}_{\text{Старые значения}}
 $$
 %
-This can be seen as a soft (differentiable) approximation to a “real” gate having only binary values, or as a convex combination of the original layer and a skip connection. We can theoretically control the goodness of this approximation by adding an additional regularizer to the loss that constrains the outputs of the gate to lie as close as possible to $0$ or $1$. 
+Это можно рассматривать как мягкую (дифференцируемую) аппроксимацию «настоящего» вентиля, имеющего только двоичные значения, или как выпуклую комбинацию исходного слоя и пропускающего соединения. Мы можем теоретически контролировать качество этой аппроксимации, добавляя дополнительный регуляризатор к потерям, который ограничивает выходы вентиля лежать как можно ближе к $0$ или $1$. 
 
-Other gated recurrent layers can be obtained by adding additional gates to this design: the original  \textbf{gated recurrent unit} (GRU) adds a so-called “reset gate” to the layer \cite{cho2014learning}, while \textbf{long-short term memory} units (LSTMs) have a third “forget gate” \cite{hochreiter1997long}. LSTMs were the first gated variant to be introduced in the literature, and for a long time they have been the most successful deep architecture for processing sequences \cite{schmidhuber2015deep}. Because of this, research on LSTM models is still very active \cite{beck2024xlstm}.
+Другие вентильные рекуррентные слои можно получить, добавляя дополнительные вентили к этому дизайну: оригинальный \textbf{вентильный рекуррентный блок} (GRU) добавляет так называемый «вентиль сброса» к слою \cite{cho2014learning}, в то время как блоки \textbf{долгой краткосрочной памяти} (LSTM) имеют третий «вентиль забывания» \cite{hochreiter1997long}. LSTM были первым вентильным вариантом, представленным в литературе, и долгое время они были самой успешной глубокой архитектурой для обработки последовательностей \cite{schmidhuber2015deep}. Из-за этого исследования моделей LSTM все еще очень активны \cite{beck2024xlstm}.
 
-\section{Structured state space models}
-\subsection{Linear recurrent layers}
+\section{Структурированные модели в пространстве состояний}
+\subsection{Линейные рекуррентные слои}
 
-We now consider a simplified class of recurrent layers, in which we remove the intermediate nonlinearity in the transition function:
+Теперь мы рассмотрим упрощенный класс рекуррентных слоев, в котором мы удаляем промежуточную нелинейность в функции перехода:
 %
 \begin{align}
 f(\mathbf{s}_{i-1},\mathbf{x}_i)= \mathbf{A}\mathbf{s}_{i-1}+\mathbf{B}\mathbf{x}_i \label{eq:s4_1} \\
 g(\mathbf{s}_i,\mathbf{x}_i)=\mathbf{C}\mathbf{s}_i+\mathbf{D}\mathbf{x}_i \label{eq:s4_2}
 \end{align}
 %
-Written in this form, \eqref{eq:s4_1}-\eqref{eq:s4_2} are called \textbf{state space models} (SSM).\footnote{Confusingly, any recurrent layer in the form \eqref{eq:recurrent_layer_state_update}-\eqref{eq:recurrent_layer_readout} is an SSM, but in the neural network's literature the term SSM has come to be associated only with the linear variant. Sometimes we refer to them as \textbf{structured} SSMs because, as we will see, we need to properly constrain the transition matrix to make them effective.}  Intuitively, an SSM layer is “less expressive” than a standard recurrent layer (because of the lack of non-linearities). However, this can be recovered by adding activation functions after the output, or by interleaving these layers with token-wise MLPs \cite{orvieto2023universality}.
+Записанные в этой форме, \eqref{eq:s4_1}-\eqref{eq:s4_2} называются \textbf{моделями в пространстве состояний} (SSM).\footnote{К сожалению, любой рекуррентный слой в форме \eqref{eq:recurrent_layer_state_update}-\eqref{eq:recurrent_layer_readout} является SSM, но в литературе по нейронным сетям термин SSM стал ассоциироваться только с линейным вариантом. Иногда мы называем их \textbf{структурированными} SSM, потому что, как мы увидим, нам нужно правильно ограничить матрицу перехода, чтобы сделать их эффективными.}  Интуитивно, слой SSM «менее выразителен», чем стандартный рекуррентный слой (из-за отсутствия нелинейностей). Однако это можно восстановить, добавив функции активации после выхода или чередуя эти слои с токен-ориентированными МЛП \cite{orvieto2023universality}.
 
-Interest in this class of models (re)-started in 2020, when \cite{gu2020hippo} analyzed a theoretical construction for the matrix $\mathbf{A}$ in \eqref{eq:s4_1} that could efficiently compress one-dimensional input sequences according to some pre-defined reconstruction criterion. The result was called the HiPPO (\textbf{High-Order Polynomial Projection Operator}) matrix. A family of neural networks built by a stack of SSM layers based on the HiPPO theory soon followed, leading to the \textbf{Structured State Space for Sequence Modeling} (S4) layer in 2021 \cite{gu2021efficiently} and the simplified S4 model (S5) in 2022 \cite{smith2022simplified}. 
+Интерес к этому классу моделей (вновь) возник в 2020 году, когда \cite{gu2020hippo} проанализировали теоретическую конструкцию для матрицы $\mathbf{A}$ в \eqref{eq:s4_1}, которая могла бы эффективно сжимать одномерные входные последовательности в соответствии с некоторым заранее определенным критерием реконструкции. Результат был назван матрицей HiPPO (\textbf{High-Order Polynomial Projection Operator}). Вскоре последовало семейство нейронных сетей, построенных на основе слоев SSM на основе теории HiPPO, что привело к слою \textbf{Structured State Space for Sequence Modeling} (S4) в 2021 году \cite{gu2021efficiently} и упрощенной модели S4 (S5) в 2022 году \cite{smith2022simplified}. 
 
-Because of their roots in HiPPO theory, the proposed SSM layers up to S4 considered a stack of 1D models, one for each channel of the input, with transition matrices initialized as HiPPO matrices. By contrast, S5 introduced a standard multi-input, multi-output model of the form in \eqref{eq:s4_1}-\eqref{eq:s4_2}, which is the one we describe here. In particular, we focus our analysis on a simplified variant known as the \textbf{linear recurrent unit} (LRU) \cite{orvieto2023resurrecting}.
+Из-за своих корней в теории HiPPO, предложенные слои SSM до S4 рассматривали стек 1D-моделей, по одной для каждого канала входа, с матрицами перехода, инициализированными как матрицы HiPPO. Напротив, S5 представила стандартную модель с несколькими входами и несколькими выходами вида \eqref{eq:s4_1}-\eqref{eq:s4_2}, которую мы здесь и описываем. В частности, мы сосредоточим наш анализ на упрощенном варианте, известном как \textbf{линейный рекуррентный блок} (LRU) \cite{orvieto2023resurrecting}.
 
-This formulation has a number of interesting properties, mostly stemming from the associativity of the linear transition function. To see this, we start by noting that the recurrence has a closed form solution:
+Эта формулировка имеет ряд интересных свойств, в основном вытекающих из ассоциативности линейной функции перехода. Чтобы убедиться в этом, мы начнем с того, что отметим, что рекурренция имеет решение в замкнутой форме:
 %
 \begin{equation}
 \mathbf{s}_i =\sum_{j=1}^i\mathbf{A}^{i-j}\mathbf{B}\mathbf{x}_j
 \end{equation}
 %
-We can view this summation from two different points of view. First, we can aggregate all coefficients with respect to the input sequence into a rank-3 tensor:
+Мы можем рассматривать эту сумму с двух разных точек зрения. Во-первых, мы можем агрегировать все коэффициенты по отношению к входной последовательности в тензор 3-го ранга:
 %
 $$
 K=\text{stack}\left( \mathbf{A}^{n-1}\mathbf{B}, \mathbf{A}^{n-2}\mathbf{B},\ldots,\mathbf{A}\mathbf{B},\mathbf{B}\right)
 $$
 %
-We can compute all outputs via a single 1D convolution of filter size equal to the length of the sequence (a \textit{long} convolution) between the input sequence stacked into a single matrix $\mathbf{X} \sim (n,c)$ and the pre-computed kernel $K$:
+Мы можем вычислить все выходы с помощью одной 1D-свёртки с размером фильтра, равным длине последовательности (\textit{длинная} свёртка), между входной последовательностью, объединенной в одну матрицу $\mathbf{X} \sim (n,c)$, и предварительно вычисленным ядром $K$:
 %
 $$
 \mathbf{S}=\text{Conv1D}(\mathbf{X},K)
 $$
 %
-Hence, the SSM layer can be interpreted as a convolution \cite{gu2021combining}. If the transition matrix is applied on a single channel, this can be exploited to speed-up computations by operating in a frequency domain, e.g., in the FlashConv implementation.\footnote{\url{https://www.together.ai/blog/h3}} However, a more efficient solution can be found by exploiting a family of algorithms known as \textbf{associative (parallel) scans} (or \textbf{all-prefix-sums}).
+Следовательно, слой SSM можно интерпретировать как свёртку \cite{gu2021combining}. Если матрица перехода применяется к одному каналу, это можно использовать для ускорения вычислений, работая в частотной области, например, в реализации FlashConv.\footnote{\url{https://www.together.ai/blog/h3}} Однако более эффективное решение можно найти, используя семейство алгоритмов, известных как \textbf{ассоциативные (параллельные) сканирования} (или \textbf{все-префиксные-суммы}).
 
-\subsection{An interlude: associative scans}
+\subsection{Интерлюдия: ассоциативные сканирования}
 
-We introduce parallel scans in their general formulation before seeing their application to linear SSMs. Consider a sequence of elements $(x_1, x_2, \ldots, x_n)$, and an operation $\star$ which is assumed binary (it acts on any two elements of the sequence) and associative. We want to compute all partial applications of this operator to the sequence (using separate colors for readability):
+Мы вводим параллельные сканирования в их общей формулировке, прежде чем увидеть их применение к линейным SSM. Рассмотрим последовательность элементов $(x_1, x_2, \ldots, x_n)$ и операцию $\star$, которая предполагается бинарной (она действует на любые два элемента последовательности) и ассоциативной. Мы хотим вычислить все частичные применения этого оператора к последовательности (используя разные цвета для удобочитаемости):
 %
 $$
 {\color{drawred_l}x_1}, \;\; {\color{drawgreen}x_1\star x_2}, \;\; {\color{drawblue}x_1\star x_2 \star x_3}, \;\; \ldots, \;\; x_1\star x_2 \star \cdots\star x_n
 $$
 %
-This can be done trivially by an iterative algorithm which computes the elements one-by-one, adding one element at every iteration (this corresponds to how a standard recurrent layer would be computed). However, we can devise an efficient \textit{parallel} algorithm by exploiting the associativity of the operator $\star$ \cite{blelloch1990prefix}. The key intuition is that multiple pairs of elements can be computed in parallel and then aggregated recursively.
+Это можно тривиально сделать с помощью итерационного алгоритма, который вычисляет элементы один за другим, добавляя по одному элементу на каждой итерации (это соответствует тому, как вычислялся бы стандартный рекуррентный слой). Однако мы можем разработать эффективный \textit{параллельный} алгоритм, используя ассоциативность оператора $\star$ \cite{blelloch1990prefix}. Ключевая интуиция заключается в том, что несколько пар элементов можно вычислять параллельно, а затем рекурсивно агрегировать.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.45\textwidth]{images/associative_scan}
-    \caption{Parallel scan on a sequence of six elements: circles of the same color can be computed in parallel; dashed circles are the outputs of the parallel scan.}
+    \caption{Параллельное сканирование на последовательности из шести элементов: круги одного цвета можно вычислять параллельно; пунктирные круги — это выходы параллельного сканирования.}
     \label{fig:associative_scan}
 \end{SCfigure}
 
-As a simple example, consider a sequence of 6 elements $x_1,x_2,x_3, x_4, x_5, x_6$ (an in-depth example applied to SSMs can be found in \cite{smith2022simplified}). We will denote by $\hat{x}_i$ the $i$-th prefix we want to compute. The overall procedure is shown schematically in Figure \ref{fig:associative_scan}. We first aggregate pairs of adjacent values as:
+В качестве простого примера рассмотрим последовательность из 6 элементов $x_1,x_2,x_3, x_4, x_5, x_6$ (подробный пример, примененный к SSM, можно найти в \cite{smith2022simplified}). Мы будем обозначать через $\hat{x}_i$ $i$-й префикс, который мы хотим вычислить. Общая процедура схематически показана на Рисунке \ref{fig:associative_scan}. Сначала мы агрегируем пары соседних значений как:
 %
 \begin{align*}
 s_1 = x_1 \star x_2  & \rightarrow\hat{x}_2 \\s_2 = x_3 \star x_4 &\\ s_3 = x_5 \star x_6 &
 \end{align*}
 %
-where we use arrows to denote output values of the algorithm. We now perform a second level of aggregations:
+где мы используем стрелки для обозначения выходных значений алгоритма. Теперь мы выполняем второй уровень агрегаций:
 %
 \begin{align*}
 s_1 \star x_3 & \rightarrow \hat{x}_3 \\o_1 = s_1 \star s_2 & \rightarrow \hat{x}_4
 \end{align*}
 %
-And finally:
+И наконец:
 %
 \begin{align*} 
-o_1 \star x_5 & \rightarrow \hat{x}_5 \\ o_1 \star s_3 & \rightarrow \hat{x}_6
+oalign{
+}
+oalign{
+}o_1 \star x_5 & \rightarrow \hat{x}_5 \\ o_1 \star s_3 & \rightarrow \hat{x}_6
 \end{align*}
 %
-While this looks strange (we made 7 steps instead of 5), the three blocks of computations can be trivially parallelized if we have access to 3 separate threads. In general, by organizing the set of computations in a balanced fashion, we are able to compute the parallel scan in $\mathcal{O}(T \log n)$, where $T$ is the cost of the binary operator $\star$. An example of implementation is the associative scan function in JAX.\footnote{\url{https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.associative_scan.html}}
+Хотя это выглядит странно (мы сделали 7 шагов вместо 5), три блока вычислений можно тривиально распараллелить, если у нас есть доступ к 3 отдельным потокам. В общем, организуя набор вычислений сбалансированным образом, мы можем вычислить параллельное сканирование за $\mathcal{O}(T \log n)$, где $T$ — стоимость бинарного оператора $\star$. Примером реализации является функция ассоциативного сканирования в JAX.\footnote{\url{https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.associative_scan.html}}
 
-It is easy to show that the transition function in a linear SSM is an example of an all-prefix-sums problem. We define the elements of our sequence as pairs $x_i = (\mathbf{A}, \mathbf{B}\mathbf{x}_i)$, and the binary operator as:
+Легко показать, что функция перехода в линейном SSM является примером задачи все-префиксных-сумм. Мы определяем элементы нашей последовательности как пары $x_i = (\mathbf{A}, \mathbf{B}\mathbf{x}_i)$, а бинарный оператор как:
 %
 $$
 (\mathbf{Z}, \mathbf{z})\star (\mathbf{V}, \mathbf{v})=(\mathbf{V}\mathbf{Z}, \mathbf{V}\mathbf{z}+\mathbf{v})
 $$
 %
-The prefixes of $\star$ are then given by \cite{smith2022simplified}:
+Префиксы $\star$ тогда задаются как \cite{smith2022simplified}:
 %
 $$
 x_1 \star x_2 \star \ldots \star x_i=(\mathbf{A}^i, \mathbf{s}_i)
 $$
 %
-Hence, running a parallel scan gives us the powers of $\mathbf{A}$ as the first elements of the output, and all the states of the layer as the second element of the output. The complexity of this operation is upper bounded by the complexity of $\mathbf{A}^{i-1}\mathbf{A}$, which scales as $\mathcal{O}(n^3)$. To make the entire procedure viable, we can constrain $\mathbf{A}$ so that its powers can be computed more efficiently. This is the topic of the next section.
+Следовательно, запуск параллельного сканирования дает нам степени $\mathbf{A}$ в качестве первых элементов выхода и все состояния слоя в качестве второго элемента выхода. Сложность этой операции ограничена сверху сложностью $\mathbf{A}^{i-1}\mathbf{A}$, которая масштабируется как $\mathcal{O}(n^3)$. Чтобы сделать всю процедуру жизнеспособной, мы можем ограничить $\mathbf{A}$ так, чтобы ее степени можно было вычислять более эффективно. Это тема следующего раздела.
 
-\subsection{Diagonal SSMs}
+\subsection{Диагональные SSM}
 
-A common strategy to make the previous ideas feasible is to work with diagonal transition matrices (or diagonal matrices plus a low-rank term \cite{gu2021efficiently}). In this case, powers of $\mathbf{A}$ can be computed easily by taking powers of the diagonal entries in linear time. In addition, as we will see, working with diagonal matrices allows us to control the dynamics of the transition function to avoid numerical instabilities.
+Распространенной стратегией, чтобы сделать предыдущие идеи осуществимыми, является работа с диагональными матрицами перехода (или диагональными матрицами плюс низкоранговый член \cite{gu2021efficiently}). В этом случае степени $\mathbf{A}$ можно легко вычислить, взяв степени диагональных элементов за линейное время. Кроме того, как мы увидим, работа с диагональными матрицами позволяет нам контролировать динамику функции перехода, чтобы избежать численной нестабильности.
 
-In particular, a square matrix $\mathbf{A}$ is said to be \textbf{diagonalizable} if we can find another square (invertible) matrix $\mathbf{P}$ and a diagonal matrix $\mathbf{\Lambda}$ such that:
+В частности, квадратная матрица $\mathbf{A}$ называется \textbf{диагонализируемой}, если мы можем найти другую квадратную (обратимую) матрицу $\mathbf{P}$ и диагональную матрицу $\mathbf{\Lambda}$, такие что:
 %$
 \begin{equation}
 \mathbf{A} = \mathbf{P}\mathbf{\Lambda}\mathbf{P}^{-1}
 \label{eq:diagonalizable_A}
 \end{equation}
 %
-Diagonalizable matrices are (in a sense) “simpler” that generic matrices, For example, if such a decomposition exists, it is easy to show that powers can also be computed efficiently as:
+Диагонализируемые матрицы (в некотором смысле) «проще», чем общие матрицы. Например, если такое разложение существует, легко показать, что степени также можно эффективно вычислить как:
 %
 $$
 \mathbf{A}^i =\mathbf{P}\mathbf{\Lambda}^i\mathbf{P}^{-1}
 $$
 %
-Suppose that the transition matrix is diagonalizable. Then, we can re-write the SSM in an equivalent form having a diagonal transition matrix. We begin by substituting \eqref{eq:diagonalizable_A} into the definition of the SSM and multiplying on both sides by $\mathbf{P}^{-1}$:
+Предположим, что матрица перехода диагонализируема. Тогда мы можем переписать SSM в эквивалентной форме, имеющей диагональную матрицу перехода. Мы начнем с подстановки \eqref{eq:diagonalizable_A} в определение SSM и умножения с обеих сторон на $\mathbf{P}^{-1}$:
 %
 $$
 \eqnmarkbox[drawred]{node}{\mathbf{P}^{-1}\mathbf{s}_i} =\sum_{j=1}^i\mathbf{\Lambda}^{i-j}\eqnmarkbox[drawgreen]{node2}{\mathbf{P}\mathbf{B}}\mathbf{x}_j
 $$
-\annotate[yshift=-1em]{below,left}{node}{New state vector $\bar{\mathbf{s}}_i$}
-\annotate[yshift=-1em]{below,right}{node2}{New input-state matrix $\bar{\mathbf{B}}$}
+\annotate[yshift=-1em]{below,left}{node}{Новый вектор состояния $\bar{\mathbf{s}}_i$}
+\annotate[yshift=-1em]{below,right}{node2}{Новая матрица вход-состояние $\bar{\mathbf{B}}$}
 
-We now rewrite the readout function in terms of the new variable $\bar{\mathbf{s}}$:
+Теперь мы перепишем функцию считывания в терминах новой переменной $\bar{\mathbf{s}}$:
 %
 $$
 \mathbf{y}_i = \eqnmarkbox[drawred]{node}{\mathbf{C}\mathbf{P}}\bar{\mathbf{s}}_i + \mathbf{D}\mathbf{x}_i
 $$
-\annotate[yshift=-1em]{below,right}{node}{New readout matrix $\bar{\mathbf{C}}$}
+\annotate[yshift=-1em]{below,right}{node}{Новая матрица считывания $\bar{\mathbf{C}}$}
 
 \vspace{-0.5em}
 Putting everything together:
@@ -332,82 +335,83 @@ Putting everything together:
 \bar{\mathbf{s}}_i=\mathbf{\Lambda}\bar{\mathbf{s}}_{i-1}+\bar{\mathbf{B}}\mathbf{x}_i \\ \mathbf{y}_i=\bar{\mathbf{C}}\bar{\mathbf{s}}_i+ \mathbf{D}\mathbf{x}_i
 \end{gather}
 %
-Hence, whenever a diagonalization of $\mathbf{A}$ exists, we can always rewrite the SSM into an equivalent form having a diagonal transition matrix. In this case, we can directly train the four matrices $\mathbf{\Lambda} = \text{diag}(\lambda), \lambda \sim (e)$, $\bar{\mathbf{B}} \sim (e,c)$, $\bar{\mathbf{C}} \sim (o,e)$ and $\mathbf{D} \sim (o,c)$, with the diagonal matrix being parameterized by a single vector of dimension $e$.
+Следовательно, всякий раз, когда существует диагонализация $\mathbf{A}$, мы всегда можем переписать SSM в эквивалентной форме, имеющей диагональную матрицу перехода. В этом случае мы можем напрямую обучать четыре матрицы $\mathbf{\Lambda} = \text{diag}(\lambda), \lambda \sim (e)$, $\bar{\mathbf{B}} \sim (e,c)$, $\bar{\mathbf{C}} \sim (o,e)$ и $\mathbf{D} \sim (o,c)$, причем диагональная матрица параметризуется одним вектором размерности $e$.
 
-Not all matrices can be diagonalized. However, an approximate diagonalization can always be found if one allows for matrices $\mathbf{P}$ and $\mathbf{\Lambda}$ to have complex-valued entries \cite{orvieto2023resurrecting}. Care must be taken to parameterize the values over the diagonal so that the eigenvalues of the transition matrix stay $< 1$ in absolute value, to avoid diverging dynamics. We refer to \cite{orvieto2023resurrecting} for a description of both points and for a complete analysis of the resulting LRU layer.
+Не все матрицы можно диагонализировать. Однако приближенную диагонализацию всегда можно найти, если разрешить матрицам $\mathbf{P}$ и $\mathbf{\Lambda}$ иметь комплекснозначные элементы \cite{orvieto2023resurrecting}. Необходимо соблюдать осторожность при параметризации значений на диагонали, чтобы собственные значения матрицы перехода оставались $< 1$ по абсолютному значению, чтобы избежать расходящейся динамики. Мы отсылаем к \cite{orvieto2023resurrecting} для описания обоих моментов и для полного анализа результирующего слоя LRU.
 
 \vspace{-1em}
-\section{Additional variants}
+\section{Дополнительные варианты}
 %
-Balancing the different strengths of convolutions, recurrence, and attention is an active research topic. To close the book, we list some recurrent layers (or layers that can be interpreted as recurrent) that have been introduced very recently in the literature.
+Балансировка различных сильных сторон свёрток, рекурренции и внимания является активной областью исследований. В заключение книги мы перечислим несколько рекуррентных слоев (или слоев, которые можно интерпретировать как рекуррентные), которые были введены в литературе совсем недавно.
 %
-\subsection{Attention-free transformers}
+\subsection{Трансформеры без внимания}
 %
-One issue of the linearized transformer model (Section \ref{sec:linearized_transformer_model}) is the quadratic complexity in the feature dimension $e$. The attention-free transformer (ATF) was introduced as a variant of the basic attention layer that is instead linear in both sequence length and in the number of features \cite{zhai2021attention}.
+Одна из проблем линеаризованной модели трансформера (Раздел \ref{sec:linearized_transformer_model}) — это квадратичная сложность по размерности признаков $e$. Трансформер без внимания (ATF) был введен как вариант базового слоя внимания, который вместо этого является линейным как по длине последовательности, так и по количеству признаков \cite{zhai2021attention}.
 
-The core idea is to replace the dot product interactions between keys, query, and values with a simpler \textit{multiplicative interaction} (element-wise):
+Основная идея заключается в замене взаимодействий скалярного произведения между ключами, запросом и значениями более простым \textit{мультипликативным взаимодействием} (поэлементным):
 %
 \begin{equation}
 \mathbf{h}_i=\sigma(\mathbf{q}_i) \odot\frac{\sum_j \exp\left(\mathbf{k}_j \right) \odot \mathbf{v}_j}{\sum_j\exp\left(\mathbf{k}_j \right)}
 \label{eq:atf_new}
 \end{equation}
 %
-This is similar to the self-attention layer, except that we replace all dot products with element-wise (Hadamard) multiplications. It is also inspired by the linearized attention layer in that the query is only used as a global modulation factor, in this case after normalizing it with a sigmoid operation. In fact, we can recover a standard attention formulation by rewriting \eqref{eq:atf_new} for a single dimension $z$ (exploiting the fact that we only perform element-wise operations):
+Это похоже на слой самовнимания, за исключением того, что мы заменяем все скалярные произведения поэлементными (Адамара) умножениями. Это также вдохновлено линеаризованным слоем внимания в том, что запрос используется только как глобальный модулирующий фактор, в данном случае после его нормализации с помощью операции сигмоида. Фактически, мы можем восстановить стандартную формулировку внимания, переписав \eqref{eq:atf_new} для одной размерности $z$ (используя тот факт, что мы выполняем только поэлементные операции):
 %
 $$
 h_{iz}=\frac{\sigma(q_{iz})\sum_{j}\exp(k_{jz})}{\sum_j \exp(k_{jz})}v_{jz}
 $$
 %
-Hence, the ATF layer can be re-interpreted as a channel-wise variant of attention, in the sense that for every channel we can rewrite it as an attention operation over the elements of the sequence. To increase flexibility, \cite{zhai2021attention} also considered adding relative embeddings $\mathbf{W} \sim (m, m)$ (where $m$ is the maximum allowed length of the sequences):
+Следовательно, слой ATF можно переинтерпретировать как поканальный вариант внимания, в том смысле, что для каждого канала мы можем переписать его как операцию внимания над элементами последовательности. Чтобы повысить гибкость, \cite{zhai2021attention} также рассмотрели добавление относительных вложений $\mathbf{W} \sim (m, m)$ (где $m$ — максимальная допустимая длина последовательностей):
 %
 \begin{equation}\mathbf{h}_i=\sigma(\mathbf{q}_i) \odot\frac{\sum_j \exp\left(\mathbf{k}_j +W_{ij}\right) \odot \mathbf{v}_j}{\sum_j\exp\left(\mathbf{k}_j +W_{ij}\right)}\end{equation}
 
-The relative embeddings can also be trained via a low-rank factorization to reduce the number of parameters. See \cite{zhai2021attention} for this and for additional variants of the basic ATF layer (e.g., hybridizing it with convolutional operations). We can also convert \eqref{eq:atf_new} to a causal (recurrent) variant by properly restricting the summation.
+Относительные вложения также можно обучать с помощью низкоранговой факторизации для уменьшения количества параметров. См. \cite{zhai2021attention} для этого и для дополнительных вариантов базового слоя ATF (например, гибридизации его со свёрточными операциями). Мы также можем преобразовать \eqref{eq:atf_new} в причинный (рекуррентный) вариант, правильно ограничив суммирование.
 
-\subsection{The Receptance Weighted Key Value (RWKV) model}
+\subsection{Модель Receptance Weighted Key Value (RWKV)}
 
-The RWKV model \cite{peng2023rwkv} extends the ATF layer by incorporating a few additional architectural modifications. At the time of writing, this is one of the only pre-trained RNNs matching transformers at the largest scale, so we describe it in more detail. First, the relative embeddings are simplified by considering a single vector $\mathbf{w} \sim (e)$ which is scaled for each offset:
+Модель RWKV \cite{peng2023rwkv} расширяет слой ATF, включая несколько дополнительных архитектурных модификаций. На момент написания это одна из немногих предварительно обученных РНС, сопоставимых с трансформерами в самом большом масштабе, поэтому мы опишем ее более подробно. Во-первых, относительные вложения упрощаются путем рассмотрения одного вектора $\mathbf{w} \sim (e)$, который масштабируется для каждого смещения:
 %
 $$
 w_{ij}=-(i-j)\mathbf{w}
 $$
 %
-In addition, experiments showed that having a separate offset $\mathbf{u}$ (in place of $\mathbf{w})$ for the current element is beneficial. Written in causal form, this gives:
+Кроме того, эксперименты показали, что наличие отдельного смещения $\mathbf{u}$ (вместо $\mathbf{w})$ для текущего элемента полезно. Записанное в причинной форме, это дает:
 
 \begin{equation}
 \mathbf{h}_i={\color{drawred}\mathbf{W}_o\Biggl(\Bigr.}\sigma(\mathbf{q}_i) \odot\frac{{\color{drawred}\sum_{j=1}^{i-1}}\exp\left(\mathbf{k}_j +w_{ij}\right) \odot \mathbf{v}_j{\color{drawred}+\exp\left(\mathbf{k}_i+\mathbf{u}\right) \odot \mathbf{v}_i}}{{\color{drawred}\sum_{j=1}^{i-1}}\exp\left(\mathbf{k}_j +w_{ij}\right){\color{drawred}+\exp\left(\mathbf{k}_i+\mathbf{u}\right)}}{\color{drawred}\Bigl.\Biggr)}
 \label{eq:rwkv}
 \end{equation}
 
-where we highlight the differences from the basic ATF layer in red. The query is called the \textbf{receptance} in \cite{peng2023rwkv}, and an additional output projection $\mathbf{W}_o$ is added at the end. Second, the RWKV model modifies the standard MLP in the transformer block with a differently \textit{gated} token-wise block. For a given input token $\mathbf{x}$ this can be written as:
+где мы выделяем красным цветом отличия от базового слоя ATF. Запрос называется \textbf{рецептансом} в \cite{peng2023rwkv}, и в конце добавляется дополнительная выходная проекция $\mathbf{W}_o$. Во-вторых, модель RWKV изменяет стандартный МЛП в блоке трансформера на по-другому \textit{вентильный} токен-ориентированный блок. Для данного входного токена $\mathbf{x}$ это можно записать как:
 %
 \begin{equation}\mathbf{y}=\sigma(\mathbf{W}_1\mathbf{x})\odot \mathbf{W}_2\max(0, \mathbf{W}_3\mathbf{x})^2\end{equation}
 
-where $\mathbf{W}_1$, $\mathbf{W}_2$, and $\mathbf{W}_3$ are trainable parameters. This is a standard MLP except for the left-most gate and the use of the squared ReLU. As a final modification, all three projections in the first block (and also the two appearances of $\mathbf{x}$ in \eqref{eq:rwkv}) are replaced with convex combinations of $\mathbf{x}_i$ and $\mathbf{x}_{i-1}$ to improve performance, which is called \textit{token shift}.
+где $\mathbf{W}_1$, $\mathbf{W}_2$ и $\mathbf{W}_3$ — обучаемые параметры. Это стандартный МЛП, за исключением левого вентиля и использования квадрата ReLU. В качестве последней модификации все три проекции в первом блоке (а также два появления $\mathbf{x}$ в \eqref{eq:rwkv}) заменяются выпуклыми комбинациями $\mathbf{x}_i$ и $\mathbf{x}_{i-1}$ для улучшения производительности, что называется \textit{сдвигом токенов}.
 
-\subsection{Selective state space models}
+\subsection{Селективные модели в пространстве состояний}
 
-We have seen three classes of recurrent models: standard recurrent layers (and their gated versions), linearized attention layers, and structured state space models. Although they look different, it is relatively easy to move from one class of models to the other. To see this, let us consider a linearized attention layer where we ignore the denominator:
+Мы рассмотрели три класса рекуррентных моделей: стандартные рекуррентные слои (и их вентильные версии), линеаризованные слои внимания и структурированные модели в пространстве состояний. Хотя они выглядят по-разному, относительно легко перейти от одного класса моделей к другому. Чтобы убедиться в этом, давайте рассмотрим линеаризованный слой внимания, где мы игнорируем знаменатель:
 %
 \begin{align}
-\mathbf{S}_i=\mathbf{S}_{i-1}+\phi(\mathbf{k}_i)\mathbf{v}_i^\top \label{eq:lin_att_simplified_1} \\ \mathbf{h}_i=\phi(\mathbf{q}_i)^\top\mathbf{S}_i
+\mathbf{S}_i=\mathbf{S}_{i-1}+\phi(\mathbf{k}_i)\mathbf{v}_i^\top \label{eq:lin_att_simplified_1} \\
+\mathbf{h}_i=\phi(\mathbf{q}_i)^\top\mathbf{S}_i
 \label{eq:lin_att_simplified_2}\end{align}
 %
-Apart from the matrix-valued state, we see this has the form of a SSM layer, except that some matrices (e.g., $\mathbf{C} = \phi(\mathbf{q}_i)^\top$) are not fixed but they depend on the specific input token. From the point of view of dynamic systems, we say that standard SSMs describe \textit{time-invariant} systems, while \eqref{eq:lin_att_simplified_1}-\eqref{eq:lin_att_simplified_2} describe a \textit{time-varying} system. This has inspired another class of SSM layers whose matrices are not constrained to be time-invariant, which have been called \textbf{selective} SSMs. Most of these models leverage the idea of attention layers of projecting the input multiple times before the layer’s computations.
+Помимо матричнозначного состояния, мы видим, что это имеет форму слоя SSM, за исключением того, что некоторые матрицы (например, $\mathbf{C} = \phi(\mathbf{q}_i)^\top$) не фиксированы, а зависят от конкретного входного токена. С точки зрения динамических систем, мы говорим, что стандартные SSM описывают \textit{инвариантные во времени} системы, в то время как \eqref{eq:lin_att_simplified_1}-\eqref{eq:lin_att_simplified_2} описывают \textit{изменяющуюся во времени} систему. Это вдохновило другой класс слоев SSM, чьи матрицы не ограничены быть инвариантными во времени, которые были названы \textbf{селективными} SSM. Большинство этих моделей используют идею слоев внимания о многократном проецировании входа перед вычислениями слоя.
 
 \begin{SCfigure}
     \centering
     \hspace{2em}\includegraphics[width=0.4\textwidth]{images/mamba}
-    \caption{Mamba block (residual connections around the block and normalization are not shown). $\sigma$ is the sigmoid function. Adapted from \cite{gu2023mamba}.}
+    \caption{Блок Mamba (остаточные соединения вокруг блока и нормализация не показаны). $\sigma$ — это функция сигмоида. Адаптировано из \cite{gu2023mamba}.}
     \label{fig:mamba}
 \end{SCfigure}
 
-As an example, we focus here on the so-called Mamba layer \cite{gu2023mamba} which, at the time of writing, is one of the few SSM layers that was scaled to match the performance of transformer models at very large contexts and parameters’ counts. First, in order to make the SSM layer time-varying, a subset of its matrices are made input-dependent:\footnote{The matrix $\mathbf{D}$ can be seen as a simple residual connection and it is left untouched. The original layer has a slightly different parameterization where $\mathbf{A} = \exp(\Delta \bar{\mathbf{A}})$, for some trainable $\bar{\mathbf{A}}$ and input-dependent scalar value $\Delta$. This does not change our discussion.}
+В качестве примера мы сосредоточимся здесь на так называемом слое Mamba \cite{gu2023mamba}, который на момент написания является одним из немногих слоев SSM, который был масштабирован до соответствия производительности моделей-трансформеров при очень больших контекстах и количестве параметров. Во-первых, чтобы сделать слой SSM изменяющимся во времени, подмножество его матриц делается зависимым от входа:\footnote{Матрица $\mathbf{D}$ может рассматриваться как простое остаточное соединение и остается неизменной. Оригинальный слой имеет немного другую параметризацию, где $\mathbf{A} = \exp(\Delta \bar{\mathbf{A}})$, для некоторого обучаемого $\bar{\mathbf{A}}$ и зависящего от входа скалярного значения $\Delta$. Это не меняет нашего обсуждения.}
 %
 \begin{gather}
 \mathbf{s}_i = A(\mathbf{x}_i)\mathbf{s}_{i-1} + B(\mathbf{x}_i)\mathbf{x}_i \\ \mathbf{h}_i = C(\mathbf{x}_i)\mathbf{s}_i + \mathbf{D}\mathbf{x}_i 
 \end{gather}
 %
-where $A(\bullet)$, $B(\bullet)$, and $C(\bullet)$ are linear projections of their input tokens. To make this feasible, the layer is applied to each channel of the input independently, and the transition  matrix is selected as diagonal, so that all matrices of the SSM can be represented with a single vector of values. This layer looses a simple parallel scan implementation and requires a customized hardware-aware implementation \cite{gu2023mamba}. It can be shown that the Mamba SSM variant and several other SSM layers are degenerate case of a gated recurrent layer \cite{gu2021combining,gu2023mamba}.
+где $A(\bullet)$, $B(\bullet)$ и $C(\bullet)$ — это линейные проекции их входных токенов. Чтобы сделать это возможным, слой применяется к каждому каналу входа независимо, а матрица перехода выбирается диагональной, так что все матрицы SSM могут быть представлены одним вектором значений. Этот слой теряет простую реализацию параллельного сканирования и требует индивидуальной реализации, учитывающей аппаратное обеспечение \cite{gu2023mamba}. Можно показать, что вариант Mamba SSM и несколько других слоев SSM являются вырожденным случаем вентильного рекуррентного слоя \cite{gu2021combining,gu2023mamba}.
 
-To make the overall architecture simpler, Mamba avoids alternating MLPs and SSMs, in favour of a gated archicture (similar to the gated attention unit from Section \ref{subsec:mha_variants}) where an MLP is used to weight the outputs from the SSM. An additional depthwise convolution is added for improved flexibility - see Figure \ref{fig:mamba}.
+Чтобы сделать общую архитектуру проще, Mamba избегает чередования МЛП и SSM в пользу вентильной архитектуры (похожей на вентильный блок внимания из Раздела \ref{subsec:mha_variants}), где МЛП используется для взвешивания выходов из SSM. Добавляется дополнительная глубинная свёртка для повышения гибкости - см. Рисунок \ref{fig:mamba}.

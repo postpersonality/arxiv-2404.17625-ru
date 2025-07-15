@@ -1,108 +1,108 @@
-\chapter{Transformers in practice}
+\chapter{Трансформеры на практике}
 \label{chap:transformers_in_practice}
 
-\begin{supportbox}{About this chapter}
-We now consider a few variations of the basic transformer model, including encoder-decoder architectures, causal MHA layers, and applications to the image and audio domains.
+\begin{supportbox}{Об этой главе}
+Теперь мы рассмотрим несколько вариаций базовой модели трансформера, включая архитектуры кодер-декодер, причинные слои MHA и приложения к областям изображений и аудио.
 \end{supportbox}
 
-\section{Encoder-decoder transformers}
+\section{Трансформеры кодер-декодер}
 
-The model we described in Chapter \ref{chap:transformers} can be used to perform regression or classification of a given sequence. However, the original transformer \cite{vaswani2017attention} was a more complex model, designed for what are called \textbf{sequence-to-sequence} (seq2seq) tasks. In a seq2seq task, both input and output are sequences, and there is no trivial correspondence between their tokens. A notable example is \textbf{machine translation}, in which the output is the translation of the input sequence in a different language.
+Модель, которую мы описали в Главе \ref{chap:transformers}, может использоваться для выполнения регрессии или классификации заданной последовательности. Однако оригинальный трансформер \cite{vaswani2017attention} был более сложной моделью, разработанной для так называемых \textbf{последовательность-в-последовательность} (seq2seq) задач. В задаче seq2seq и вход, и выход являются последовательностями, и между их токенами нет тривиального соответствия. Ярким примером является \textbf{машинный перевод}, в котором выход является переводом входной последовательности на другой язык.
 
-One possibility to build a differentiable model for seq2seq tasks is an \textbf{encoder-decoder} (ED) design \cite{sutskever2014sequence}. An ED model is composed of two blocks: an encoder that processes the input sequence to a transformed representation (possibly of a fixed dimensionality), and a decoder that autoregressively generates the output sequence conditioned on the output of the encoder. The transformer model we described before can be used to build the encoder: transformers of this type for classification are called \textbf{encoder-only} transformers. In order to build the decoder we need two additional components: a way to make the model causal (to perform autoregression), and a way to condition its computation to a separate input (the output of the encoder).
+Одна из возможностей построения дифференцируемой модели для задач seq2seq — это дизайн \textbf{кодер-декодер} (ED) \cite{sutskever2014sequence}. Модель ED состоит из двух блоков: кодера, который обрабатывает входную последовательность в преобразованное представление (возможно, фиксированной размерности), и декодера, который авторегрессионно генерирует выходную последовательность, обусловленную выходом кодера. Модель трансформера, которую мы описали ранее, может использоваться для построения кодера: трансформеры этого типа для классификации называются \textbf{только-кодерными} трансформерами. Чтобы построить декодер, нам нужны два дополнительных компонента: способ сделать модель причинной (для выполнения авторегрессии) и способ обусловить ее вычисление отдельным входом (выходом кодера).
 
-\subsection{Causal multi-head attention} \addclock
+\subsection{Причинное многоголовочное внимание} \addclock
 
-Let us consider first the problem of making the transformer block causal. The only component in which tokens interact is the MHA block. Hence, having a causal variant of MHA is enough to make the entire model causal. Remember that, for convolutions, we designed a causal variant by appropriately masking the weights in the convolutional filter. For MHA, we can mask instead all interactions between tokens that do not satisfy the causality property:
+Давайте сначала рассмотрим проблему создания причинного блока трансформера. Единственный компонент, в котором взаимодействуют токены, — это блок MHA. Следовательно, наличие причинного варианта MHA достаточно, чтобы сделать всю модель причинной. Помните, что для свёрток мы разработали причинный вариант, соответствующим образом маскируя веса в свёрточном фильтре. Для MHA мы можем вместо этого маскировать все взаимодействия между токенами, которые не удовлетворяют свойству причинности:
 %
 $$
 \text{Masked-SA}(\mathbf{X})=\text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top {\color{drawred_l}\odot \,\mathbf{M}}}{\sqrt{k}}\right)\mathbf{V}
 $$
 %
-It is essential to perform the masking inside the softmax. Consider the following (wrong) variant:
+Важно выполнять маскирование внутри softmax. Рассмотрим следующий (неправильный) вариант:
 %
 $$
-\text{\color{red}\textbf{Wrong}:} \;\;\left(\text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top }{\sqrt{k}}\right){\color{drawred_l}\odot \,\mathbf{M}}\right)\mathbf{V}
+\text{\color{red}\textbf{Неправильно}:} \;\;\left(\text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top }{\sqrt{k}}\right){\color{drawred_l}\odot \,\mathbf{M}}\right)\mathbf{V}
 $$
 %
-Because of the denominator in the softmax, all tokens participate in the computation of each token, irrespective of the later masking. Also note that setting $M_{ij}=0$ for non-causal links does not work, because $\exp(0)=1$. Hence, the correct implementation of a masked variant of MHA is to select an upper triangular matrix with $-\infty$ on the upper part, since $\exp(-\infty)=0$ as desired:
+Из-за знаменателя в softmax все токены участвуют в вычислении каждого токена, независимо от последующего маскирования. Также обратите внимание, что установка $M_{ij}=0$ для непричинных связей не работает, потому что $\exp(0)=1$. Следовательно, правильная реализация замаскированного варианта MHA заключается в выборе верхнетреугольной матрицы с $-\infty$ в верхней части, поскольку $\exp(-\infty)=0$, как и требовалось:
 %
 $$
-M_{ij} =\begin{cases} -\infty & \text{ if } i > j \\ 0 & \text{ otherwise } \end{cases}
+M_{ij} =\begin{cases} -\infty & \text{ если } i > j \\ 0 & \text{ иначе } \end{cases}
 $$
 %
-Practically, the values can be set to a very large, negative number instead (e.g., $-10^9$).
+Практически, значения можно установить на очень большое отрицательное число (например, $-10^9$).
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.7\textwidth]{images/attention_masked}
-    \caption{Visual depiction of causal attention implemented with attention masking.}
+    \caption{Визуальное изображение причинного внимания, реализованного с помощью маскирования внимания.}
     \label{fig:masked_attention}
 \end{SCfigure}
 
-\subsection{Cross-attention}
+\subsection{Перекрестное внимание}
 
-Second, let us consider the problem of making the output of the MHA layer depend on a separate block of inputs. To this end, let us rewrite the MHA operation by explicitly separating the three appearances of the input matrix:
+Во-вторых, давайте рассмотрим проблему зависимости выхода слоя MHA от отдельного блока входов. Для этого перепишем операцию MHA, явно разделив три появления входной матрицы:
 %
 $$
 \text{SA}({\color{drawred}\mathbf{X}_1}, {\color{drawgreen}\mathbf{X}_2}, {\color{drawblue}\mathbf{X}_3})=\text{softmax}\left(\frac{{\color{drawred}\mathbf{X}_1}\mathbf{W}_q\mathbf{W}_k^\top{\color{drawgreen}\mathbf{X}_2^\top}}{\sqrt{k}}\right){\color{drawblue}\mathbf{X}_3}\mathbf{W}_v
 $$
 %
-The SA layer corresponds to $\mathbf{X}_1 = \mathbf{X}_2 = \mathbf{X}_3 = \mathbf{X}$ (which, coincidentally, explains the name we gave to it). However, the formulation also works if we consider keys, values, and queries belonging to separate sets. One important case is \textbf{cross-attention} (CA), in which we assume that the keys and values are computed from a second matrix $\mathbf{Z} \sim (m,e)$:
+Слой SA соответствует $\mathbf{X}_1 = \mathbf{X}_2 = \mathbf{X}_3 = \mathbf{X}$ (что, по совпадению, объясняет данное ему название). Однако формулировка также работает, если мы рассматриваем ключи, значения и запросы, принадлежащие разным множествам. Одним из важных случаев является \textbf{перекрестное внимание} (CA), в котором мы предполагаем, что ключи и значения вычисляются из второй матрицы $\mathbf{Z} \sim (m,e)$:
 
 \begin{equation}
 \text{CA}(\mathbf{X}, \mathbf{Z}) = \text{SA}(\mathbf{X}, \mathbf{Z}, \mathbf{Z}) = \text{softmax}\left(\frac{\eqnmarkbox[drawred]{node}{\mathbf{X}\mathbf{W}_q\mathbf{W}_k^\top\mathbf{Z}^\top}}{\sqrt{k}}\right)\mathbf{Z}\mathbf{W}_v
 \label{eq:ca}
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{Cross-attention between $\mathbf{X}$ and $\mathbf{Z}$}
+\annotate[yshift=1em]{above,right}{node}{Перекрестное внимание между $\mathbf{X}$ и $\mathbf{Z}$}
 
-The interpretation is that the embeddings of $\mathbf{X}$ are updated based on their similarity with a set of external (key, values) pairs provided by $\mathbf{Z}$: we say that $\mathbf{X}$ is \textit{cross-attending} on $\mathbf{Z}$. Note that this formulation is very similar to a concatenation of the two set of input tokens followed by an appropriate masking of the attention matrix.
+Интерпретация заключается в том, что вложения $\mathbf{X}$ обновляются на основе их сходства с набором внешних пар (ключ, значение), предоставляемых $\mathbf{Z}$: мы говорим, что $\mathbf{X}$ \textit{перекрестно-внимает} на $\mathbf{Z}$. Обратите внимание, что эта формулировка очень похожа на конкатенацию двух наборов входных токенов с последующим соответствующим маскированием матрицы внимания.
 
-\subsection*{Comparison with feedforward layers} \addteacup
+\subsection*{Сравнение с полносвязными слоями} \addteacup
 \label{subsec:comparison_ca_mlp}
 
-Consider a simplified variant of the cross-attention operation in \eqref{eq:ca}, in which we parameterize explicitly the keys and values matrices:\footnote{See also the discussion on the perceiver network in Section \ref{subsec:time_complexity_mha}.}
+Рассмотрим упрощенный вариант операции перекрестного внимания в \eqref{eq:ca}, в котором мы явно параметризуем матрицы ключей и значений:\footnote{См. также обсуждение сети перцептрона в Разделе \ref{subsec:time_complexity_mha}.}
 %
 \begin{equation}
 \text{NeuralMemory}(\mathbf{X}) = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_q {\color{drawred}\mathbf{K}}}{\sqrt{k}}\right){\color{drawgreen}\mathbf{V}}
 \label{eq:memory_layer}
 \end{equation}
 %
-The layer is now parameterized by a query projection matrix $\mathbf{W}_q$ and by the two matrices ${\color{drawred}\mathbf{K}}$ and ${\color{drawgreen}\mathbf{V}}$. \eqref{eq:memory_layer} is called a \textbf{memory layer} \cite{sukhbaatar2015end}, in the sense that rows of the key and value matrices are used by the model to store interesting patterns to be retrieved dynamically by an attention-like operation. If we further simplify the layer by setting $\mathbf{W}_q = \mathbf{I}$, ignoring the normalization by $\sqrt{k}$, and replacing the softmax with a generic activation function $\phi$, we obtain a two-layer MLP:
+Слой теперь параметризован матрицей проекции запроса $\mathbf{W}_q$ и двумя матрицами ${\color{drawred}\mathbf{K}}$ и ${\color{drawgreen}\mathbf{V}}$. \eqref{eq:memory_layer} называется \textbf{слоем памяти} \cite{sukhbaatar2015end}, в том смысле, что строки матриц ключей и значений используются моделью для хранения интересных паттернов, которые динамически извлекаются с помощью операции, подобной вниманию. Если мы еще больше упростим слой, установив $\mathbf{W}_q = \mathbf{I}$, игнорируя нормализацию на $\sqrt{k}$ и заменяя softmax на общую функцию активации $\phi$, мы получим двухслойный МЛП:
 %
 \begin{equation}
 \text{MLP}(\mathbf{X}) = \phi\left(\mathbf{X}\mathbf{K}\right)\mathbf{V}
 \end{equation}
 %
-Hence, MLPs in transformer networks can be seen as approximating an attention operation over trainable keys and values. Visualizing the closest tokens in the training data shows human-understandable patterns \cite{geva2020transformer}.
+Следовательно, МЛП в сетях-трансформерах можно рассматривать как аппроксимацию операции внимания над обучаемыми ключами и значениями. Визуализация ближайших токенов в обучающих данных показывает понятные человеку паттерны \cite{geva2020transformer}.
 
-\subsection{The complete encoder-decoder transformer}
+\subsection{Полный трансформер кодер-декодер}
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.8\textwidth]{images/transformer_architecture}
-    \caption{Encoder-decoder architecture, adapted from \cite{vaswani2017attention}. Padded tokens in the decoder are greyed out.}
+    \caption{Архитектура кодер-декодер, адаптированная из \cite{vaswani2017attention}. Дополненные токены в декодере затенены.}
     \label{fig:transformer_model}
 \end{figure}
 
-With these two components in hand, we are ready to discuss the original transformer model, shown in Figure \ref{fig:transformer_model}.\footnote{A pedantic note: technically, Transformer (upper-cased) is a proper noun in \cite{vaswani2017attention}. In the book, I use transformer (lower-cased) to refer to any model composed primarily of attention layers.} First, the input sequence $\mathbf{X}$ is processed by a standard transformer model (called the \textbf{encoder}), providing an updated embedding sequence $\mathbf{H}$. Next, the output sequence is predicted autoregressively by another transformer model (called the \textbf{decoder}). Differently from the encoder, the decoder has three components for each block:
+С этими двумя компонентами в руках мы готовы обсудить оригинальную модель трансформера, показанную на Рисунке \ref{fig:transformer_model}.\footnote{Педантичное примечание: технически, Transformer (с заглавной буквы) — это имя собственное в \cite{vaswani2017attention}. В книге я использую трансформер (со строчной буквы) для обозначения любой модели, состоящей в основном из слоев внимания.} Во-первых, входная последовательность $\mathbf{X}$ обрабатывается стандартной моделью трансформера (называемой \textbf{кодером}), предоставляя обновленную последовательность вложений $\mathbf{H}$. Затем выходная последовательность предсказывается авторегрессионно другой моделью трансформера (называемой \textbf{декодером}). В отличие от кодера, декодер имеет три компонента для каждого блока:
 %
 \begin{enumerate}
-\item A masked variant of the MHA layer (to ensure autoregression is possible).
-\item A cross-attention layer where the queries are given by the input sequence embedding $\mathbf{H}$.
-\item A standard token-wise MLP.
+\item Замаскированный вариант слоя MHA (чтобы обеспечить возможность авторегрессии).
+\item Слой перекрестного внимания, где запросы задаются вложением входной последовательности $\mathbf{H}$.
+\item Стандартный токен-ориентированный МЛП.
 \end{enumerate}
 %
-\textbf{Decoder-only} models are also possible, in which case the second block of the decoder is removed and only masked MHA and MLPs are used. Most modern LLMs are built by decoder-only models trained to autoregressively generate text tokens \cite{radford2019language}, as discussed below. In fact, encoder-decoder models have become less common with the realization that many seq2seq tasks can be solved directly with decoder-only models by concatenating the input sequence to the generated output sequence, as described in Section \ref{subsec:conditional_modelling}.
+Также возможны модели \textbf{только-декодеры}, и в этом случае второй блок декодера удаляется, и используются только замаскированные MHA и МЛП. Большинство современных БЯМ построены на моделях только-декодерах, обученных авторегрессионно генерировать текстовые токены \cite{radford2019language}, как обсуждалось ниже. Фактически, модели кодер-декодер стали менее распространены с осознанием того, что многие задачи seq2seq можно решать непосредственно с помощью моделей только-декодеров, объединяя входную последовательность с генерируемой выходной последовательностью, как описано в Разделе \ref{subsec:conditional_modelling}.
 
-\section{Computational considerations}
+\section{Вычислительные соображения}
 
-\subsection{Time complexity and linear-time transformers}
+\subsection{Временная сложность и линейно-временные трансформеры}
 \label{subsec:time_complexity_mha}
 
-The MHA performance does not come without a cost: since every token must attend to all other tokens, its complexity is higher than a simpler convolutional operation. To understand this, we look at its complexity from two points of view: memory and time. We use a naive implementation of the SA layer for reference, shown in Box \ref{code:sa}.
+Производительность MHA не обходится без затрат: поскольку каждый токен должен обращать внимание на все остальные токены, его сложность выше, чем у более простой свёрточной операции. Чтобы понять это, мы рассмотрим его сложность с двух точек зрения: памяти и времени. Мы используем наивную реализацию слоя SA для справки, показанную в Листинге \ref{code:sa}.
 
-\begin{mypy}{Simple implementation of the SA layer, explicitly parameterized in terms of the query, key, and value matrices.}{code:sa}
+\begin{mypy}{Простая реализация слоя SA, явно параметризованная в терминах матриц запроса, ключа и значения.}{code:sa}
 def self_attention(Q: Float[Array, "n k"], 
                    K: Float[Array, "n k"], 
                    V: Float[Array, "n v"]
@@ -110,171 +110,166 @@ def self_attention(Q: Float[Array, "n k"],
 	return nn.softmax(Q @ K.T) @ V
 \end{mypy}
 
-Let us look first at the time complexity. The operation inside the softmax scales as $\mathcal{O}(n^2k)$ because it needs to compute $n^2$ dot products (one for each pair of tokens). Compare this to a 1D convolutional layer, which scales only linearly in the sequence length. \textit{Theoretically}, this quadratic growth in complexity can be problematic for very large sequences, which are common in, e.g., LLMs. 
+Давайте сначала посмотрим на временную сложность. Операция внутри softmax масштабируется как $\mathcal{O}(n^2k)$, потому что ей нужно вычислить $n^2$ скалярных произведений (по одному для каждой пары токенов). Сравните это с 1D-свёрточным слоем, который масштабируется только линейно по длине последовательности. \textit{Теоретически}, этот квадратичный рост сложности может быть проблематичным для очень больших последовательностей, которые распространены, например, в БЯМ. 
 
-This has led to the development of several strategies for speeding up autoregressive generation (e.g., speculative decoding \cite{leviathan2023fast}), as long as linear or sub-quadratic variants of transformers. As an example, we can replace the SA layer with a cross-attention layer having a \textit{trainable} set of tokens $\mathbf{Z}$, where the number of tokens can be chosen as hyper-parameter and controlled by the user. This strategy was popularized by the Perceiver architecture \cite{jaegle2021perceiver} to distill the original set of tokens into smaller latent bottlenecks. There are many alternative strategies for designing linearized transformers: we discuss a few  variants in Section \ref{subsec:mha_variants} and Chapter \ref{chap:rnns}.
+Это привело к разработке нескольких стратегий для ускорения авторегрессионной генерации (например, спекулятивное декодирование \cite{leviathan2023fast}), а также линейных или субквадратичных вариантов трансформеров. В качестве примера, мы можем заменить слой SA на слой перекрестного внимания с \textit{обучаемым} набором токенов $\mathbf{Z}$, где количество токенов можно выбрать как гиперпараметр и контролировать пользователем. Эта стратегия была популяризирована архитектурой Perceiver \cite{jaegle2021perceiver} для дистилляции исходного набора токенов в меньшие скрытые узкие места. Существует много альтернативных стратегий для проектирования линеаризованных трансформеров: мы обсудим несколько вариантов в Разделе \ref{subsec:mha_variants} и Главе \ref{chap:rnns}.
 
-Importantly, an implementation such as the one in Box \ref{code:sa} can be shown to be heavily memory-bound on modern hardware \cite{dao2022flashattention}, meaning that its compute cost is dominated by memory and I/O operations. Hence, the theoretical gains of linear-time attention variants are not correlated with actual speedup on hardware. Combined with a possible reduction in performance, this makes them less attractive than a strongly-optimized implementation of MHA, such as the one described next.
+Важно, что реализация, подобная той, что в Листинге \ref{code:sa}, может быть сильно ограничена памятью на современном оборудовании \cite{dao2022flashattention}, что означает, что ее вычислительная стоимость определяется операциями с памятью и вводом-выводом. Следовательно, теоретические выгоды от линейно-временных вариантов внимания не коррелируют с фактическим ускорением на оборудовании. В сочетании с возможным снижением производительности это делает их менее привлекательными, чем сильно оптимизированная реализация MHA, такая как описанная далее.
 
-\subsection{Memory complexity and the online softmax}
+\subsection{Сложность по памяти и онлайн-softmax}
 
-In terms of memory, the implementation in Box \ref{code:sa} has also a quadratic $n^2$ complexity factor because the attention matrix $\mathbf{Q}\mathbf{K}^\top$ is fully materialized during computation. However, this is unnecessary and this complexity can be drastically reduced to a linear factor by chunking the computation in blocks and only performing the softmax normalization at the end \cite{rabe2021self}. 
+С точки зрения памяти, реализация в Листинге \ref{code:sa} также имеет квадратичный фактор сложности $n^2$, потому что матрица внимания $\mathbf{Q}\mathbf{K}^\top$ полностью материализуется во время вычисления. Однако это необязательно, и эту сложность можно значительно уменьшить до линейного фактора, разбив вычисление на блоки и выполняя нормализацию softmax только в конце \cite{rabe2021self}. 
 
-To understand this, consider a single query vector $\mathbf{q}$, and suppose we split our keys and values into two blocks, which are loaded in turn in memory:
+Чтобы понять это, рассмотрим один вектор запроса $\mathbf{q}$ и предположим, что мы разбиваем наши ключи и значения на два блока, которые по очереди загружаются в память:
 
 \begin{equation}
-\mathbf{K} = \begin{bmatrix}\mathbf{K}_1 \\ \mathbf{K}_2 \end{bmatrix} \;,\;\;\; \mathbf{V} = \begin{bmatrix}\mathbf{V}_1 \\ \mathbf{V}_2 \end{bmatrix}
+\mathbf{K} = \begin{bmatrix}\mathbf{K}_1 \\ \mathbf{K}_2 \end{bmatrix} \;\;\; \mathbf{V} = \begin{bmatrix}\mathbf{V}_1 \\ \mathbf{V}_2 \end{bmatrix}
 \end{equation}
 
-If we ignore the denominator in the softmax, we can decompose the SA operation, computing the output for each chunk in turn:
+Если мы проигнорируем знаменатель в softmax, мы можем разложить операцию SA, вычисляя выход для каждого блока по очереди:
 
 \begin{equation}
 \text{SA}(\mathbf{q}, \mathbf{K}, \mathbf{V}) = \frac{1}{L_1 + L_2} \left[ \mathbf{h}_1 + \mathbf{h}_2 \right]
 \label{eq:attention_two_chunks}
 \end{equation}
 
-where for the two chunks $i=1,2$ we have defined two auxiliary quantities:
+где для двух блоков $i=1,2$ мы определили две вспомогательные величины:
 %
 \begin{gather}
 \mathbf{h}_i = \exp\left( \mathbf{K}_i\mathbf{q} \right)\mathbf{V}_i  \\
 L_i = \sum_j \idx{\exp\left( \mathbf{K}_i\mathbf{q} \right)}{j}
 \end{gather}
 %
-Remember we are loading the chunks in memory separately, hence for chunk $1$ we compute $\mathbf{h}_1$ and $L_1$; then we offload the previous chunk and we compute $\mathbf{h}_2$ and $L_2$ for chunk 2. Note that the operation is not fully-decomposable unless we keep track of the additional statistics $L_i$ (which is needed to compute the normalization coefficients of the softmax operation). More in general, for multiple chunks $i=1, \ldots, m$ we will have:
+Помните, что мы загружаем блоки в память по отдельности, следовательно, для блока $1$ мы вычисляем $\mathbf{h}_1$ и $L_1$; затем мы выгружаем предыдущий блок и вычисляем $\mathbf{h}_2$ и $L_2$ для блока 2. Обратите внимание, что операция не является полностью разложимой, если мы не отслеживаем дополнительные статистики $L_i$ (которые необходимы для вычисления коэффициентов нормализации операции softmax). В более общем случае, для нескольких блоков $i=1, \ldots, m$ мы будем иметь:
 
 \begin{equation}
 \text{SA}(\mathbf{q}, \mathbf{K}, \mathbf{V}) = \frac{1}{\sum_{i=1}^m L_i} \left[ \sum_{i=1}^m \mathbf{h}_i\right]
 \label{eq:chunked_sa}
 \end{equation}
 
-Hence, we can design a simple iterative algorithm where for every block of keys and values loaded in memory, we update and store the cumulative sum of the numerator and denominator in \eqref{eq:chunked_sa}, only performing the normalization at the end. This trick (sometimes called \textit{online} softmax), combined with an IO-aware implementation and kernel fusion has led to highly memory- and compute- efficient implementations of attention such as FlashAttention-2.\footnote{\url{https://github.com/Dao-AILab/flash-attention}} Distributed implementations of attention (e.g., RingAttention \cite{liu2023ring}) can also be devised by assigning groups of queries to different devices and rotating chunks of keys and queries among the devices. Optimizing the operation for specific hardware can lead to some counter-intuitive behaviours, such as \textit{increased} speed for larger sequence lengths - see Figure \ref{fig:flash_attention}.
+Следовательно, мы можем разработать простой итерационный алгоритм, где для каждого блока ключей и значений, загруженных в память, мы обновляем и храним кумулятивную сумму числителя и знаменателя в \eqref{eq:chunked_sa}, выполняя нормализацию только в конце. Этот трюк (иногда называемый \textit{онлайн} softmax), в сочетании с IO-осведомленной реализацией и слиянием ядер, привел к высокоэффективным по памяти и вычислениям реализациям внимания, таким как FlashAttention-2.\footnote{\url{https://github.com/Dao-AILab/flash-attention}} Распределенные реализации внимания (например, RingAttention \cite{liu2023ring}) также могут быть разработаны путем назначения групп запросов разным устройствам и ротации блоков ключей и запросов между устройствами. Оптимизация операции для конкретного оборудования может привести к некоторым контринтуитивным поведениям, таким как \textit{увеличение} скорости при больших длинах последовательностей - см. Рисунок \ref{fig:flash_attention}.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.7\textwidth]{images/flash2_a100_fwd_bwd_benchmark.png}
-    \caption[Official benchmark of FlashAttention and FlashAttention-2 on an NVIDIA A100 GPU card.]{Official benchmark of FlashAttention and FlashAttention-2 on an NVIDIA A100 GPU card, reproduced from \url{https://github.com/Dao-AILab/flash-attention}.}
+    \caption[Официальный бенчмарк FlashAttention и FlashAttention-2 на видеокарте NVIDIA A100.]{Официальный бенчмарк FlashAttention и FlashAttention-2 на видеокарте NVIDIA A100, воспроизведенный из \url{https://github.com/Dao-AILab/flash-attention}.}
     \label{fig:flash_attention}
 \end{figure}
 
-\subsection{The KV cache}
+\subsection{Кэш KV}
 
-An important implementative aspect of MHA occurs when dealing with autoregressive generation in decoder-only models. For each new token to be generated, only a new row of the attention matrix and one value token must be computed, while the rest of the attention matrix and the remaining value tokens can be stored in memory, as shown in Figure \ref{fig:kv_cache}. This is called the \textbf{KV cache} and it is a standard in most optimized implementations of MHA.
+Важный аспект реализации MHA возникает при работе с авторегрессионной генерацией в моделях только-декодерах. Для каждого нового генерируемого токена необходимо вычислить только новую строку матрицы внимания и один токен-значение, в то время как остальная часть матрицы внимания и оставшиеся токены-значения могут быть сохранены в памяти, как показано на Рисунке \ref{fig:kv_cache}. Это называется \textbf{кэшем KV} и является стандартом в большинстве оптимизированных реализаций MHA.
 
 \begin{SCfigure}
     \centering
     \hspace{-0.5em}\includegraphics[width=0.6\textwidth]{images/kv_cache}
-    \caption{To compute masked self-attention on a new token, most of the previous computation can be reused (in gray). This is called the \textbf{KV cache}.}
+    \caption{Для вычисления замаскированного самовнимания для нового токена большую часть предыдущих вычислений можно повторно использовать (серым цветом). Это называется \textbf{кэшем KV}.}
     \label{fig:kv_cache}
 \end{SCfigure}
 
-The size of the KV cache is linearly increasing in the sequence length. Once again, you can compare this to an equivalent implementation of a causal convolutional layer, where memory is upper-bounded by the size of the receptive field. Designing expressive layers with a fixed memory cost in autoregressive generation is a motivating factor for Chapter \ref{chap:rnns}.
+Размер кэша KV линейно увеличивается с длиной последовательности. Еще раз, вы можете сравнить это с эквивалентной реализацией причинного свёрточного слоя, где память ограничена сверху размером рецептивного поля. Проектирование выразительных слоев с фиксированной стоимостью памяти при авторегрессионной генерации является мотивирующим фактором для Главы \ref{chap:rnns}.
 
-\subsection{Transformers for images and audio} \addteacup
+\subsection{Трансформеры для изображений и аудио} \addteacup
 \label{subsec:transformers_image_audio}
 
-Transformers were originally developed for text, and they soon became the default choice for language modeling. In particular, the popular GPT-2 model \cite{radford2019language} (and later variants) is a decoder-only architecture which is pre-trained by forecasting tokens in text sequences. Most open-source LLMs, such as LLaMa \cite{touvron2023llama}, follow a similar architecture. By constrast, BERT \cite{devlin2018bert} is another popular family of pre-trained word embeddings based on an encoder-only architecture trained to predict masked tokens (\textbf{masked language modeling}). Differently from GPT-like models, BERT-like models cannot be used to generate text but only to perform text embedding or as the first part of a fine-tuned architecture. Encoder-decoder models for language modeling also exist (e.g., the T5 family \cite{raffel2020exploring}), but they have become less popular.
+Трансформеры изначально были разработаны для текста и вскоре стали стандартным выбором для языкового моделирования. В частности, популярная модель GPT-2 \cite{radford2019language} (и более поздние варианты) — это архитектура только-декодера, которая предварительно обучается путем прогнозирования токенов в текстовых последовательностях. Большинство БЯМ с открытым исходным кодом, такие как LLaMa \cite{touvron2023llama}, следуют аналогичной архитектуре. Напротив, BERT \cite{devlin2018bert} — это другое популярное семейство предварительно обученных вложений слов, основанное на архитектуре только-кодера, обученной предсказывать замаскированные токены (\textbf{моделирование замаскированного языка}). В отличие от моделей типа GPT, модели типа BERT нельзя использовать для генерации текста, а только для выполнения вложения текста или в качестве первой части дообученной архитектуры. Также существуют модели кодер-декодер для языкового моделирования (например, семейство T5 \cite{raffel2020exploring}), но они стали менее популярными.
 
-From a high-level point of view, a transformer is composed of three components: a tokenization / embedding step, which converts the original input into a sequence of vectors; positional embeddings to encode information about the ordering of the original sequence; and the transformer blocks themselves. Hence, transformers for other types of data can be designed by defining the appropriate tokenization procedure and positional embeddings.
+С высоты птичьего полета, трансформер состоит из трех компонентов: этапа токенизации/вложения, который преобразует исходный вход в последовательность векторов; позиционных вложений для кодирования информации о порядке исходной последовательности; и самих блоков трансформера. Следовательно, трансформеры для других типов данных можно спроектировать, определив соответствующую процедуру токенизации и позиционные вложения.
 
-Let us consider first computer vision. Tokenizing an image at the pixel level is too expensive, because of the quadratic growth in complexity with respect to the sequence length. The core idea of Vision Transformers (ViTs, \cite{dosovitskiy2020image}) is to split the original input into non-overlapping \textbf{patches} of fixed length, which are then flattened and projected to an embedding of pre-defined size, as shown in Figure \ref{fig:image_tokenization}.
+Давайте сначала рассмотрим компьютерное зрение. Токенизация изображения на уровне пикселей слишком дорога из-за квадратичного роста сложности по отношению к длине последовательности. Основная идея Vision Transformers (ViT, \cite{dosovitskiy2020image}) заключается в том, чтобы разделить исходный вход на непересекающиеся \textbf{патчи} фиксированной длины, которые затем сплющиваются и проецируются во вложение заранее определенного размера, как показано на Рисунке \ref{fig:image_tokenization}.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\textwidth]{images/image_tokenization}
-    \caption{Image tokenization: the image is split into non-overlapping patches of shape $p \times p$ (with $p$ an hyper-parameter). Then, each patch is flattened and undergoes a further linear projection to a user-defined embedding size $e$. $c$ is the number of channels of the input image.}
+    \caption{Токенизация изображения: изображение делится на непересекающиеся патчи формы $p \times p$ (где $p$ — гиперпараметр). Затем каждый патч сплющивается и подвергается дальнейшей линейной проекции в заданный пользователем размер вложения $e$. $c$ — количество каналов входного изображения.}
     \label{fig:image_tokenization}
 \end{figure}
 
-The embedding step in Figure \ref{fig:image_tokenization} can be achieved with a convolutional layer, having stride equal to the kernel size. Alternatively, libraries like einops\footnote{\url{http://einops.rocks}} extend the einsum operation (Section \ref{sec:linear_algebra}) to allow for grouping of elements into blocks of pre-determined shape. An example is shown in Box \ref{code:einops}.
+Этап вложения на Рисунке \ref{fig:image_tokenization} можно достичь с помощью свёрточного слоя с шагом, равным размеру ядра. В качестве альтернативы, библиотеки, такие как einops\footnote{\url{http://einops.rocks}}, расширяют операцию einsum (Раздел \ref{sec:linear_algebra}), чтобы разрешить группировку элементов в блоки заранее определенной формы. Пример показан в Листинге \ref{code:einops}.
 
-The original ViT used trainable positional embeddings along with an additional class token to perform image classification. ViTs can also be used for image generation by predicting the patches in a row-major or column-major order. In this case, we can train a separate module that converts each patch into a discrete set of tokens using, e.g., a \textbf{vector-quantized variational autoencoder} \cite{chang2022maskgit}, or we can work directly with continuous outputs \cite{tschannen2023givt}. For image generation, however, other non-autoregressive approaches such as diffusion models and flow matching tend to be preferred; we cover them in the next volume.
+Оригинальный ViT использовал обучаемые позиционные вложения вместе с дополнительным классовым токеном для выполнения классификации изображений. ViT также можно использовать для генерации изображений, предсказывая патчи в порядке строк или столбцов. В этом случае мы можем обучить отдельный модуль, который преобразует каждый патч в дискретный набор токенов используя, например, \textbf{векторно-квантованный вариационный автоэнкодер} \cite{chang2022maskgit}, или мы можем работать непосредственно с непрерывными выходами \cite{tschannen2023givt}. Однако для генерации изображений предпочтительны другие неавторегрессионные подходы, такие как диффузионные модели и согласование потоков; мы рассмотрим их в следующем томе.
 
 
-\begin{mypy}{einops can be used to decompose an image into patches with a simple extension of the einsum syntax.}{code:einops}
-from einops import rearrange
-# A batch of images
-xb = torch.randn((32, 3, 64, 64)) 
-
-# Define the operation: differently from standard einsum,
-# we can split the output in blocks using brackets
-op = 'b c (h ph) (w pw) -> b (h w) (ph pw c)'
-
-# Run the operation with a given patch size
-patches = rearrange(xb, op, ph=8, pw=8)
-print(patches.shape) # [Out]: (32, 64, 192)
+\begin{mypy}{einops можно использовать для разложения изображения на патчи с помощью простого расширения синтаксиса einsum.}{code:einops}
+def self_attention(Q: Float[Array, "n k"], 
+                   K: Float[Array, "n k"], 
+                   V: Float[Array, "n v"]
+                 ) -> Float[Array, "n v"]:
+	return nn.softmax(Q @ K.T) @ V
 \end{mypy}
 
-By developing proper tokenization mechanisms and positional embeddings, transformers have also been developed for audio, in particular for speech recognition. In this case, it is common to have a small 1D convolutional model (with pooling) as the tokenization block \cite{baevski2020wav2vec,radford2023robust}. For example, Wav2Vec \cite{baevski2020wav2vec} is an encoder-only model whose output is trained with an extension of the cross-entropy loss, called \textbf{connectionist temporal classification} loss \cite{graves2012connectionist}, to align the output embeddings to the transcription. Because labeled data with precise alignments is scarce, Wav2Vec models are pre-trained on large amounts of unlabeled audio with a variant of a masked language modeling loss. By contrast, Whisper \cite{radford2023robust} is an encoder-decoder model where the decoder is trained to autoregressively generate the transcription. This provides more flexibility to the model and reduces the need for strongly labeled data, but at the cost of possible \textit{hallucinations} in the transcription phase. \textbf{Neural audio codecs} can also be trained to compress audio into a sequence of discrete tokens \cite{defossez2022high}, which in turn form the basis for generative applications such as text-to-speech generation \cite{wang2023neural}.
+Разработав правильные механизмы токенизации и позиционные вложения, трансформеры также были разработаны для аудио, в частности для распознавания речи. В этом случае обычно используется небольшая 1D-свёрточная модель (с пулингом) в качестве блока токенизации \cite{baevski2020wav2vec,radford2023robust}. Например, Wav2Vec \cite{baevski2020wav2vec} — это модель только-кодера, выход которой обучается с расширением кросс-энтропийной потери, называемой потерей \textbf{коннекционистской временной классификации} \cite{graves2012connectionction}, для выравнивания выходных вложений с транскрипцией. Поскольку размеченных данных с точными выравниваниями мало, модели Wav2Vec предварительно обучаются на больших объемах неразмеченного аудио с вариантом потери моделирования замаскированного языка. Напротив, Whisper \cite{radford2023robust} — это модель кодер-декодер, где декодер обучается авторегрессионно генерировать транскрипцию. Это обеспечивает большую гибкость модели и снижает потребность в сильно размеченных данных, но за счет возможных \textit{галлюцинаций} на этапе транскрипции. Также можно обучать \textbf{нейронные аудиокодеки} для сжатия аудио в последовательность дискретных токенов \cite{defossez2022high}, которые, в свою очередь, составляют основу для генеративных приложений, таких как генерация речи из текста \cite{wang2023neural}.
 
-Transformers can also be defined for time-series \cite{ansari2024chronos}, graphs (covered in the next chapter) and other types of data. The decoupling between data and architecture is also the basis for \textbf{multimodal} variants, which can take as input (or provide as output) different types of data. This is achieved by tokenizing each modality (image, audio, ...) with its appropriate tokenizer, and concatenating the different tokens together into a single sequence \cite{bordes2024introduction}. We show an example for an \textbf{image-text} model in Figure \ref{fig:multimodal_transformer}.
+Трансформеры также можно определить для временных рядов \cite{ansari2024chronos}, графов (рассматриваемых в следующей главе) и других типов данных. Разделение между данными и архитектурой также является основой для \textbf{мультимодальных} вариантов, которые могут принимать на вход (или предоставлять на выход) различные типы данных. Это достигается путем токенизации каждой модальности (изображение, аудио, ...) с помощью соответствующего токенизатора и объединения различных токенов в одну последовательность \cite{bordes2024introduction}. Мы показываем пример для \textbf{изображенческо-текстовой} модели на Рисунке \ref{fig:multimodal_transformer}.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.65\textwidth]{images/multimodal_transformer}
-    \caption{An example of a \textbf{bimodal} transformer that operates on both images and text: the outputs of the two tokenizers are concatenated and sent to the model.}
+    \caption{Пример \textbf{бимодального} трансформера, который работает как с изображениями, так и с текстом: выходы двух токенизаторов объединяются и отправляются в модель.}
     \label{fig:multimodal_transformer}
 \end{SCfigure}
 
-\section{Variants of the transformer block}
+\section{Варианты блока трансформера}
 \label{subsec:mha_variants}
 
-We close the chapter by discussing a few interesting variation on the basic transformer block. First, several variants have been devised for very large transformers to slightly reduce the computational time or parameter’s count. As an example, \textbf{parallel blocks} \cite{dehghani2023scaling} perform the MLP and MHA operation in parallel:
+Мы завершаем главу, обсуждая несколько интересных вариаций базового блока трансформера. Во-первых, было разработано несколько вариантов для очень больших трансформеров, чтобы немного сократить время вычислений или количество параметров. В качестве примера, \textbf{параллельные блоки} \cite{dehghani2023scaling} выполняют операции MLP и MHA параллельно:
 %
 $$
 \mathbf{H} = \mathbf{H}+\text{MLP}(\mathbf{H})+\text{MHA}(\mathbf{H})
 $$
 %
-In this way, the initial and final linear projections in the MLP and MHA layers can be fused for a more efficient implementation. As another example, \textbf{multi-query MHA} \cite{shazeer2019fast} shares the same key and value projection matrix for each head, varying only the queries.
+Таким образом, начальные и конечные линейные проекции в слоях MLP и MHA могут быть объединены для более эффективной реализации. В качестве другого примера, \textbf{многозапросное MHA} \cite{shazeer2019fast} разделяет одну и ту же матрицу проекции ключа и значения для каждой головы, изменяя только запросы.
 
-More in general, we can replace the MHA layer with a simpler (linear complexity in the sequence length) operation, while keeping the overall structure of the transformer block, i.e., alternating token and channel mixing with layer normalization and residual connections. As an example, suppose the sequence length is fixed (e.g., for computer vision, the number of patches can be fixed a priori). In this case, the MHA layer can be replaced by an MLP operating on a single input channel, corresponding to one dimension of the embedding. This type of model is called a \textbf{mixer} model \cite{tolstikhin2021mlp} - see Figure \ref{fig:mlp_mixer}.
-Ignoring the normalization operations, this can be written as alternating MLPs on transpositions of the input matrix:
+В более общем смысле, мы можем заменить слой MHA более простой (линейной по сложности по длине последовательности) операцией, сохраняя при этом общую структуру блока трансформера, т.е. чередуя смешивание токенов и каналов с послойной нормализацией и остаточными соединениями. В качестве примера, предположим, что длина последовательности фиксирована (например, для компьютерного зрения количество патчей можно зафиксировать априори). В этом случае слой MHA можно заменить на MLP, работающий с одним входным каналом, соответствующим одному измерению вложения. Этот тип модели называется моделью \textbf{микшера} \cite{tolstikhin2021mlp} - см. Рисунок \ref{fig:mlp_mixer}.
+Игнорируя операции нормализации, это можно записать как чередующиеся МЛП на транспонированных версиях входной матрицы:
 %
 \begin{gather}
-\mathbf{H}=\text{MLP}(\mathbf{H})+\mathbf{H} \\ \mathbf{H}= \left[\text{MLP}(\mathbf{H}^\top)+\mathbf{H}^\top\right]^\top
+\mathbf{H}=\text{MLP}(\mathbf{H})+\mathbf{H} \\
+\mathbf{H}= \left[\text{MLP}(\mathbf{H}^\top)+\mathbf{H}^\top\right]^\top
 \end{gather}
 %
-Other variants of the mixer model are also possible using, e.g., 1D convolutions, Fourier transforms, or pooling. In particular, in the S2-MLP \cite{yu2022s2}  model the token mixing operation is replaced by an even simpler MLP applied on a shifted version of its input. The general class of such models has been called \textbf{MetaFormers} by \cite{yu2022metaformer}.
+Возможны и другие варианты модели микшера, использующие, например, 1D-свёртки, преобразования Фурье или пулинг. В частности, в модели S2-MLP \cite{yu2022s2} операция смешивания токенов заменяется еще более простым МЛП, применяемым к сдвинутой версии своего входа. Общий класс таких моделей был назван \textbf{MetaFormers} в \cite{yu2022metaformer}.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.55\textwidth]{images/mixer}
-    \caption{Mixer block, composed of alternating MLPs on the rows and columns of the input matrix.}
+    \caption{Блок микшера, состоящий из чередующихся МЛП на строках и столбцах входной матрицы.}
     \label{fig:mlp_mixer}
 \end{SCfigure}
 
-Gated (multiplicative) interactions can also be used in the composition of the block. In this case, several blocks are executed in parallel but their output is combined via Hadamard multiplication. We can write a generic gated unit as:
+Вентильные (мультипликативные) взаимодействия также могут использоваться в композиции блока. В этом случае несколько блоков выполняются параллельно, но их выход комбинируется с помощью произведения Адамара. Мы можем записать общий вентильный блок как:
 %
 \begin{equation}
 f(\mathbf{X}) =\phi_1(\mathbf{X})\odot \phi_2(\mathbf{X})
 \label{eq:glu_again}
 \end{equation}
 %
-where $\phi_1$ and $\phi_2$ are trainable blocks. For example, with $\phi_1(\mathbf{X}) = \sigma(\mathbf{X}\mathbf{A})$ and $\phi_2(\mathbf{X})=\mathbf{X}\mathbf{B}$ we obtain the \textbf{gated linear unit} (GLU) described in Section \ref{sec:activation_functions}.
+где $\phi_1$ и $\phi_2$ — обучаемые блоки. Например, с $\phi_1(\mathbf{X}) = \sigma(\mathbf{X}\mathbf{A})$ и $\phi_2(\mathbf{X})=\mathbf{X}\mathbf{B}$ мы получаем \textbf{вентильный линейный блок} (GLU), описанный в Разделе \ref{sec:activation_functions}.
 
-As a few representative examples, the \textbf{gMLP} model \cite{liu2021pay} uses
-gated units instead of a channel mixing block in a mixer model; the \textbf{LLaMa} family of models \cite{touvron2023llama} uses GLU-like units instead of the standard MLP block; while the \textbf{gated attention unit} (GAU) \cite{hua2022transformer} uses a simpler attention-like model having a single head for $\phi_1$ and a linear projection for $\phi_2$. These designs are especially popular in some recent variants of recurrent models, discussed later on in Chapter \ref{chap:rnns}.
+В качестве нескольких характерных примеров, модель \textbf{gMLP} \cite{liu2021pay} использует
+вентильные блоки вместо блока смешивания каналов в модели микшера; семейство моделей \textbf{LLaMa} \cite{touvron2023llama} использует блоки, подобные GLU, вместо стандартного блока MLP; в то время как \textbf{вентильный блок внимания} (GAU) \cite{hua2022transformer} использует более простую модель, подобную вниманию, с одной головой для $\phi_1$ и линейной проекцией для $\phi_2$. Эти дизайны особенно популярны в некоторых недавних вариантах рекуррентных моделей, обсуждаемых позже в Главе \ref{chap:rnns}.
 
-To simplify the design even further, the multilinear operator network (MONet) removes all activation functions to define a block which is composed only of linear projections and element-wise multiplications \cite{cheng2024multilinear}:
+Чтобы еще больше упростить дизайн, сеть мультилинейных операторов (MONet) удаляет все функции активации, чтобы определить блок, состоящий только из линейных проекций и поэлементных умножений \cite{cheng2024multilinear}:
 %
 $$
 \mathbf{H}=\mathbf{E}(\mathbf{A}\mathbf{X}\odot\mathbf{B}\mathbf{X}+\mathbf{D}\mathbf{X})
 $$
 %
-where $\mathbf{E}$ is similar to the output projection in the transformer block, $\mathbf{D}\mathbf{X}$ acts as a residual connection, and $\mathbf{B}$ is implemented via a low-rank decomposition to reduce the number of parameters \cite{cheng2024multilinear}. In order to introduce token mixing, a token-shift operation is implemented in all odd-numbered blocks in the model.
+где $\mathbf{E}$ аналогично выходной проекции в блоке трансформера, $\mathbf{D}\mathbf{X}$ действует как остаточное соединение, а $\mathbf{B}$ реализуется с помощью низкорангового разложения для уменьшения количества параметров \cite{cheng2024multilinear}. Чтобы ввести смешивание токенов, во всех нечетных блоках модели реализована операция сдвига токенов.
 
 \newpage
-\section*{From theory to practice}
+\section*{От теории к практике}
 
 \begin{wrapfigure}{r}{3.0cm}
 \vspace{-6em}\includegraphics[width=3.0cm]{images/shutterstock_2075221579.jpg}
 \vspace{-2em}
 \end{wrapfigure}
 
-There are many interesting exercises that can be done at this point -- you are almost a master in designing differentiable models! To begin, using any image classification dataset, you can try implementing from scratch a Vision Transformer as described in Section \ref{subsec:transformers_image_audio}, following \cite{dosovitskiy2020image} for choosing the hyper-parameters. Training a ViT from scratch on a small dataset is quite challenging \cite{lee2021vision,steiner2021train}, so be ready for some disappointment unless you have sufficient computational power to consider million-size datasets. You can also try a simpler variant, such as the Mixer model described in Section \ref{subsec:mha_variants}. All these exercises should be relatively simple. 
+На этом этапе можно выполнить много интересных упражнений — вы почти мастер в проектировании дифференцируемых моделей! Для начала, используя любой набор данных для классификации изображений, вы можете попробовать реализовать с нуля Vision Transformer, как описано в Разделе \ref{subsec:transformers_image_audio}, следуя \cite{dosovitskiy2020image} для выбора гиперпараметров. Обучение ViT с нуля на небольшом наборе данных довольно сложно \cite{lee2021vision,steiner2021train}, так что будьте готовы к некоторому разочарованию, если у вас нет достаточной вычислительной мощности для рассмотрения наборов данных размером в миллионы. Вы также можете попробовать более простой вариант, такой как модель Mixer, описанная в Разделе \ref{subsec:mha_variants}. Все эти упражнения должны быть относительно простыми. 
 
 \begin{enumerate}
-\item For tokenizing the image you can use Einops as in Box \ref{code:einops} or other strategies (e.g., a convolution with large stride). For small images you can also try using each pixel as token.
-\item For positional embeddings, all strategies described in Section \ref{sec:positional_embeddings} are valid. The simplest one for a ViT is to initialize a matrix of \textit{trainable} embeddings, but I suggest you experiment with sinusoidal and relative embeddings as practice.
+\item Для токенизации изображения вы можете использовать Einops, как в Листинге \ref{code:einops}, или другие стратегии (например, свёртку с большим шагом). Для небольших изображений вы также можете попробовать использовать каждый пиксель в качестве токена.
+\item Для позиционных вложений все стратегии, описанные в Разделе \ref{sec:positional_embeddings}, действительны. Самая простая для ViT — это инициализировать матрицу \textit{обучаемых} вложений, но я предлагаю вам поэкспериментировать с синусоидальными и относительными вложениями в качестве практики.
 \end{enumerate}
 
-You can also try implementing a small GPT-like model. There are many sophistications in the tokenization of text data that we do  not cover. However, the minGPT repository\footnote{\url{https://github.com/karpathy/minGPT}} is a fantastic didactic implementation that you can use as starting point.
+Вы также можете попробовать реализовать небольшую модель типа GPT. В токенизации текстовых данных много тонкостей, которые мы не рассматриваем. Однако репозиторий minGPT\footnote{\url{https://github.com/karpathy/minGPT}} — это фантастическая дидактическая реализация, которую вы можете использовать в качестве отправной точки.

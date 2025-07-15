@@ -1,245 +1,245 @@
-\chapter{Mathematical preliminaries}
+\chapter{Математические предварительные сведения}
 \label{chap:preliminaries}
 
-\begin{supportbox}{About this chapter}
-We compress here the mathematical concepts required to follow the book. We assume prior knowledge on all these topics, focusing more on describing specific notation and giving a cohesive overview. When possible, we stress the relation between some of this material (e.g., tensors) and their implementation in practice. 
+\begin{supportbox}{Об этой главе}
+Здесь мы сжато излагаем математические концепции, необходимые для понимания книги. Мы предполагаем наличие предварительных знаний по всем этим темам, сосредотачиваясь больше на описании специфической нотации и предоставлении целостного обзора. По возможности мы подчеркиваем связь между некоторым из этого материала (например, тензорами) и их практической реализацией.
 \end{supportbox}
 
-The chapter is composed of three parts that follow sequentially from each other, starting from \textbf{linear algebra}, moving to the definition of \textbf{gradients} for $n$-dimensional objects, and finally how we can \textbf{optimize} functions by exploiting such gradients. A self-contained overview of \textbf{probability theory} is given in Appendix \ref{chap:probability_theory}, with a focus on the \textbf{maximum likelihood} principle. This chapter is full of content and definitions: bear with me for a while!
+Глава состоит из трех частей, последовательно вытекающих друг из друга: начиная с \textbf{линейной алгебры}, переходя к определению \textbf{градиентов} для $n$-мерных объектов и, наконец, к тому, как мы можем \textbf{оптимизировать} функции, используя эти градиенты. Самостоятельный обзор \textbf{теории вероятностей} представлен в Приложении \ref{chap:probability_theory}, с акцентом на принцип \textbf{максимального правдоподобия}. Эта глава насыщена содержанием и определениями: потерпите меня немного!
 
 
-\section{Linear algebra}
+\section{Линейная алгебра}
 \label{sec:linear_algebra}
 
-We recall here some basic concepts from linear algebra that will be useful in the following (and to agree on a shared notation). Most of the book revolves around the idea of a \textbf{tensor}.
+Здесь мы напомним некоторые основные концепции из линейной алгебры, которые будут полезны в дальнейшем (и для согласования общей нотации). Большая часть книги вращается вокруг идеи \textbf{тензора}.
 
-\begin{definition}[Tensors] \addbottle
-  A \textbf{tensor} $X$ is an $n$-dimensional array of elements of the same type. We use $X \sim (s_1, s_2, \ldots, s_n)$ to quickly denote the \textbf{shape} of the tensor.
+\begin{definition}[Тензоры] \addbottle
+  \textbf{Тензор} $X$ — это $n$-мерный массив элементов одного и того же типа. Мы используем $X \sim (s_1, s_2, \ldots, s_n)$ для краткого обозначения \textbf{формы} тензора.
 \end{definition}
 %
-For $n=0$ we obtain \textbf{scalars} (single values), while we have \textbf{vectors} for $n=1$, \textbf{matrices} for $n=2$, and higher-dimensional arrays otherwise. Recall that we use lowercase $x$ for scalars, lowercase bold $\mathbf{x}$ for vectors, uppercase bold $\mathbf{X}$ for matrices. Tensors in the sense described here are fundamental in deep learning because they are well suited to a massively-parallel implementation, such as using GPUs or more specialized hardware (e.g., TPUs, IPUs).
+При $n=0$ мы получаем \textbf{скаляры} (одиночные значения), при $n=1$ — \textbf{векторы}, при $n=2$ — \textbf{матрицы}, а в остальных случаях — многомерные массивы. Напомним, что мы используем строчную букву $x$ для скаляров, строчную жирную $\mathbf{x}$ для векторов и прописную жирную $\mathbf{X}$ для матриц. Тензоры в описанном здесь смысле являются фундаментальными в глубоком обучении, поскольку они хорошо подходят для массово-параллельной реализации, например, с использованием GPU или более специализированного оборудования (например, TPU, IPU).
 
-A tensor is described by the type of its elements and its \textit{shape}. Most of our discussion will be centered around tensors of floating-point values (the specific format of which we will consider later on), but they can also be defined for integers (e.g., in classification) or for strings (e.g., for text). Tensors can be \textbf{indexed} to get \textbf{slices} (subsets) of their values, and most conventions from NumPy indexing\footnote{See \url{https://numpy.org/doc/stable/user/basics.indexing.html} for a review. For readability in the book we index from $1$, not from $0$.} apply. For simple equations we use pedices: for example, for a 3-dimensional tensor $X \sim (a, b, c)$ we can write $X_i$ to denote a slice of size $(b,c)$ or $X_{ijk}$ for a single scalar. We use commas for more complex expressions, such as $X_{i, :, j:k}$ to denote a slice of size $(b, k-j)$. When necessary to avoid clutter, we use a light-gray notation:
-%
+Тензор описывается типом его элементов и его \textit{формой}. Большая часть нашего обсуждения будет сосредоточена на тензорах со значениями с плавающей запятой (конкретный формат которых мы рассмотрим позже), но они также могут быть определены для целых чисел (например, в классификации) или для строк (например, для текста). Тензоры можно \textbf{индексировать} для получения \textbf{срезов} (подмножеств) их значений, и здесь применяются большинство соглашений из индексации NumPy\footnote{См. обзор на \url{https://numpy.org/doc/stable/user/basics.indexing.html}. Для удобочитаемости в книге мы индексируем с $1$, а не с $0$.}. Для простых уравнений мы используем нижние индексы: например, для 3-мерного тензора $X \sim (a, b, c)$ мы можем написать $X_i$ для обозначения среза размером $(b,c)$ или $X_{ijk}$ для одного скаляра. Мы используем запятые для более сложных выражений, таких как $X_{i, :, j:k}$ для обозначения среза размером $(b, k-j)$. Когда необходимо избежать загромождения, мы используем светло-серую нотацию:
+
 \begin{equation*}
     \idx{X}{ijk}
 \end{equation*}
 %
-to visually split the indexing part from the rest, where the argument of $\idx{\bullet}{}$ can also be an expression.
+чтобы визуально отделить часть с индексацией от остального, где аргумент $\idx{\bullet}{}$ также может быть выражением.
 
-\subsection{Common vector operations}
+\subsection{Основные операции с векторами}
 \label{subsec:common_vector_operations}
 
-We are mostly concerned with models that can be written as composition of differentiable operations. In fact, the majority of our models will consist of basic compositions of sums, multiplications, and some additional non-linearities such as the exponential $\exp(x)$, sines and cosines, and square roots.
+Мы в основном занимаемся моделями, которые можно записать как композицию дифференцируемых операций. Фактически, большинство наших моделей будут состоять из базовых композиций сумм, умножений и некоторых дополнительных нелинейностей, таких как экспонента $\exp(x)$, синусы и косинусы, и квадратные корни.
 
-Vectors $\mathbf{x} \sim (d)$ are examples of 1-dimensional tensors. Linear algebra books are concerned with distinguishing between column vectors $\mathbf{x}$ and row vectors $\mathbf{x}^\top$, and we will try to adhere to this convention as much as possible. In code this is trickier, because row and column vectors correspond to $2$-dimensional tensors of shape $(1,d)$ or $(d,1)$, which are different from $1$-dimensional tensors of shape $(d)$. This is important to keep in mind because most frameworks implement broadcasting rules\footnote{See: \url{https://numpy.org/doc/stable/user/basics.broadcasting.html}. In a nutshell, broadcasting aligns the tensors' shape from the right, and repeats a tensor whenever possible to match the two shapes.} inspired by NumPy, giving rise to non-intuitive behaviors. See Box \ref{code:broadcasting} for an example of a very common error arising in implicit broadcasting of tensors' shapes.
+Векторы $\mathbf{x} \sim (d)$ являются примерами 1-мерных тензоров. В книгах по линейной алгебре уделяется внимание различению векторов-столбцов $\mathbf{x}$ и векторов-строк $\mathbf{x}^\top$, и мы постараемся придерживаться этого соглашения как можно точнее. В коде это сложнее, потому что векторы-строки и векторы-столбцы соответствуют 2-мерным тензорам формы $(1,d)$ или $(d,1)$, которые отличаются от 1-мерных тензоров формы $(d)$. Это важно помнить, потому что большинство фреймворков реализуют правила трансляции (broadcasting)\footnote{См.: \url{https://numpy.org/doc/stable/user/basics.broadcasting.html}. Вкратце, трансляция выравнивает формы тензоров справа и повторяет тензор, когда это возможно, чтобы согласовать две формы.} вдохновленные NumPy, что приводит к неинтуитивному поведению. См. Листинг \ref{code:broadcasting} для примера очень распространенной ошибки, возникающей при неявной трансляции форм тензоров.
 
-\begin{mypy}{An example of (probably incorrect) broadcasting, resulting in a matrix output from an elementwise operation on two vectors due to their shapes. The same result can be obtained in practically any framework (NumPy, TensorFlow, JAX, ...).}{code:broadcasting}
+\begin{mypy}{Пример (вероятно, некорректной) трансляции, приводящей к матричному выводу из поэлементной операции над двумя векторами из-за их форм. Тот же результат можно получить практически в любом фреймворке (NumPy, TensorFlow, JAX, ...).}{code:broadcasting}
 import torch
-x = torch.randn((4, 1))  # "Column" vector
-y = torch.randn((4,))    # 1-dimensional tensor
+x = torch.randn((4, 1))  # Вектор-"столбец"
+y = torch.randn((4,))    # 1-мерный тензор
 print((x + y).shape)        
-# [Out]: (4,4) (because of broadcasting!)
+# [Out]: (4,4) (из-за трансляции!)
 \end{mypy}
 
-Vectors possess their own algebra (which we call a \textbf{vector space}), in the sense that any two vectors $\mathbf{x}$ and $\mathbf{y}$ of the same shape can be linearly combined $\mathbf{z} = a\mathbf{x} + b\mathbf{y}$ to provide a third vector:
+Векторы обладают собственной алгеброй (которую мы называем \textbf{векторным пространством}), в том смысле, что любые два вектора $\mathbf{x}$ и $\mathbf{y}$ одинаковой формы могут быть линейно скомбинированы $\mathbf{z} = a\mathbf{x} + b\mathbf{y}$ для получения третьего вектора:
 %
 $$
 z_i=ax_i+by_i
 $$
 %
-If we understand a vector as a point in $d$-dimensional Euclidean space, the sum is interpreted by forming a parallelogram, while the distance of a vector from the origin is given by the Euclidean ($\ell_2$) norm:
+Если мы понимаем вектор как точку в $d$-мерном евклидовом пространстве, сумма интерпретируется как построение параллелограмма, а расстояние вектора от начала координат задается евклидовой ($\ell_2$) нормой:
 %
 $$
 \lVert \mathbf{x} \rVert=\sqrt{\sum_i x_i^2}
 $$
 %
-The squared norm $\lVert \mathbf{x} \rVert^2$ is of particular interest, as it corresponds to the sum of the elements squared. The fundamental vector operation we are interested in is the \textbf{inner product} (or \textbf{dot product}), which is given by multiplying the two vectors element-wise, and summing the resulting values.
+Квадрат нормы $\lVert \mathbf{x} \rVert^2$ представляет особый интерес, поскольку он соответствует сумме квадратов элементов. Основная векторная операция, которая нас интересует, — это \textbf{скалярное произведение}, которое получается путем поэлементного умножения двух векторов и суммирования полученных значений.
 
 
-\begin{definition}[Inner product]   \addbottle
-    The inner product between two vectors $\mathbf{x}, \mathbf{y} \sim (d)$ is given by:
+\begin{definition}[Скалярное произведение]   \addbottle
+    Скалярное произведение двух векторов $\mathbf{x}, \mathbf{y} \sim (d)$ задается как:
     \begin{equation}
             \langle \mathbf{x},\mathbf{y}\rangle=\mathbf{x}^\top\mathbf{y}=\sum_ix_iy_i
     \end{equation}
 \end{definition}
 %
-The notation $\langle \bullet, \bullet \rangle$ is common in physics, and we use it sometimes for clarity. Importantly, the dot product between two vectors is a scalar. For example, if $\mathbf{x} = [0.1, 0, -0.3]$ and $\mathbf{y}=[-4.0, 0.05, 0.1]$:
+Обозначение $\langle \bullet, \bullet \rangle$ распространено в физике, и мы иногда используем его для ясности. Важно отметить, что скалярное произведение двух векторов является скаляром. Например, если $\mathbf{x} = [0.1, 0, -0.3]$ и $\mathbf{y}=[-4.0, 0.05, 0.1]$:
 %
 \begin{equation*}
     \langle \mathbf{x}, \mathbf{y} \rangle = - 0.4 + 0 - 0.03 = - 0.43
 \end{equation*}
 %
-A simple geometric interpretation of the dot product is given by its relation with the angle $\alpha$ between the two vectors:
+Простая геометрическая интерпретация скалярного произведения дается его связью с углом $\alpha$ между двумя векторами:
 %
 \begin{equation}
     \mathbf{x}^\top\mathbf{y}=\lVert\mathbf{x}\rVert \lVert\mathbf{y}\rVert\cos(\alpha)
      \label{eq:dot_product_cosine}
 \end{equation}
 %
-Hence, for two normalized vectors such that $\lVert \cdot \rVert = 1$, the dot product is equivalent to the cosine of their angle, in which case we call the dot product the \textbf{cosine similarity}. The cosine similarity $\cos(\alpha)$ oscillates between $1$ (two vectors pointing in the same direction) and $-1$ (two vectors pointing in opposite directions), with the special case of $\langle \mathbf{x}, \mathbf{y} \rangle=0$ giving rise to \textbf{orthogonal} vectors pointing in perpendicular directions. Looking at this from another direction, for two normalized vectors (having unitary norm), if we fix $\mathbf{x}$, then:
+Следовательно, для двух нормированных векторов, таких что $\lVert \cdot \rVert = 1$, скалярное произведение эквивалентно косинусу угла между ними, и в этом случае мы называем скалярное произведение \textbf{косинусным сходством}. Косинусное сходство $\cos(\alpha)$ колеблется между $1$ (два вектора, направленные в одну сторону) и $-1$ (два вектора, направленные в противоположные стороны), с особым случаем $\langle \mathbf{x}, \mathbf{y} \rangle=0$, который соответствует \textbf{ортогональным} векторам, направленным перпендикулярно. Глядя на это с другой стороны, для двух нормированных векторов (имеющих единичную норму), если мы зафиксируем $\mathbf{x}$, то:
 %
 \begin{equation}
     \mathbf{y}^* = \argmax \;\; \langle \mathbf{x}, \mathbf{y} \rangle = \mathbf{x}
     \label{eq:maximize_dot_product}
 \end{equation}
 %
-where $\argmax$ denotes the operation of finding the value of $\mathbf{x}$ corresponding to the highest possible value of its argument. From \eqref{eq:maximize_dot_product} we see that, to maximize the dot product, the second vector must equal the first one. This is important, because in the following chapters $\mathbf{x}$ will represent an input, while $\mathbf{w}$ will represent (adaptable) parameters, so that the dot product is maximized whenever $\mathbf{x}$ `resonates' with $\mathbf{w}$ (\textbf{template matching}).
+где $\argmax$ обозначает операцию нахождения значения $\mathbf{x}$, соответствующего максимально возможному значению его аргумента. Из \eqref{eq:maximize_dot_product} мы видим, что для максимизации скалярного произведения второй вектор должен быть равен первому. Это важно, потому что в следующих главах $\mathbf{x}$ будет представлять вход, а $\mathbf{w}$ — (адаптируемые) параметры, так что скалярное произведение максимизируется, когда $\mathbf{x}$ «резонирует» с $\mathbf{w}$ (\textbf{сопоставление с шаблоном}).
 
-We close with two additional observations that will be useful. First, we can write the sum of the elements of a vector as its dot product with a vector $\mathbf{1}$ composed entirely of ones:
+В заключение сделаем два дополнительных полезных замечания. Во-первых, мы можем записать сумму элементов вектора как его скалярное произведение с вектором $\mathbf{1}$, состоящим полностью из единиц:
 %
 $$
 \langle\mathbf{x},\mathbf{1}\rangle=\sum_{i=1}^d x_i
 $$
 %
-Second, the distance between two vectors can also be written in terms of their dot products:
+Во-вторых, расстояние между двумя векторами также можно записать через их скалярные произведения:
 %
 $$
 \lVert \mathbf{x} -\mathbf{y}\rVert^2 = \langle \mathbf{x},\mathbf{x}\rangle + \langle \mathbf{y},\mathbf{y}\rangle - 2 \langle \mathbf{x},\mathbf{y}\rangle
 $$
 
-The case $\mathbf{y}=\mathbf{0}$ gives us $\lVert \mathbf{x} \rVert^2 = \langle \mathbf{x}, \mathbf{x} \rangle$. Both equations can be useful when writing equations or in the code.
+Случай $\mathbf{y}=\mathbf{0}$ дает нам $\lVert \mathbf{x} \rVert^2 = \langle \mathbf{x}, \mathbf{x} \rangle$. Оба уравнения могут быть полезны при написании уравнений или в коде.
 
-\subsection{Common matrix operations}
+\subsection{Основные операции с матрицами}
 
-In the $2$-dimensional case we have matrices:
+В 2-мерном случае мы имеем матрицы:
 %
 $$
 \mathbf{X}=\begin{bmatrix} X_{11} & \cdots & X_{1d} \\ \vdots & \ddots & \vdots \\ X_{n1} & \cdots & X_{nd}\end{bmatrix} \sim (n,d)
 $$
 %
-In this case we can talk about a matrix with $n$ rows and $d$ columns. Of particular importance for the following, a matrix can be understood as a \textbf{stack} of $n$ vectors $(\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_n)$, where the stack is organized in a row-wise fashion:
+В этом случае мы можем говорить о матрице с $n$ строками и $d$ столбцами. Особенно важно для дальнейшего, что матрицу можно понимать как \textbf{стек} из $n$ векторов ($\mathbf{x}_1, \mathbf{x}_2, \ldots, \mathbf{x}_n$), где стек организован построчно:
 %
 $$
 \mathbf{X} = \begin{bmatrix} \mathbf{x}_1^\top \\ \vdots \\ \mathbf{x}_n^\top \end{bmatrix}
 $$
 %
-We say that $\mathbf{X}$ represents a \textbf{batch} of data vectors. As we will see, it is customary to define models (both mathematically and in code) to work on batched data of this kind. A fundamental operation for matrices is multiplication:
+Мы говорим, что $\mathbf{X}$ представляет собой \textbf{пакет} векторов данных. Как мы увидим, принято определять модели (как математически, так и в коде) для работы с такими пакетными данными. Фундаментальной операцией для матриц является умножение:
 
-\begin{definition}[Matrix multiplication] \addbottle
-Given two matrices $\mathbf{X}\sim $(a,b) and $\mathbf{Y}\sim (b,c)$, matrix multiplication $\mathbf{Z} = \mathbf{X}\mathbf{Y}$, with $\mathbf{Z} \sim (a,c)$ is defined element-wise as:
+\begin{definition}[Умножение матриц] \addbottle
+Для двух матриц $\mathbf{X}\sim $(a,b) и $\mathbf{Y}\sim (b,c)$ умножение матриц $\mathbf{Z} = \mathbf{X}\mathbf{Y}$, где $\mathbf{Z} \sim (a,c)$, определяется поэлементно как:
 %
 \begin{equation}
     Z_{ij} = \langle \mathbf{X}_i, \mathbf{Y}^\top_j \rangle
     \label{eq:matrix_multiplication}
 \end{equation}
 %
-\noindent i.e., the element $(i,j)$ of the product is the dot product between the $i$-th row of $\mathbf{X}$ and the $j$-th column of $\mathbf{Y}$.
+\noindent т.е. элемент $(i,j)$ произведения является скалярным произведением $i$-й строки $\mathbf{X}$ и $j$-го столбца $\mathbf{Y}$.
 \end{definition}
 %
- As a special case, if the second term is a vector we have a matrix-vector product:
+ В частном случае, если второй член — вектор, мы имеем произведение матрицы на вектор:
 %
 \begin{equation}
 \mathbf{z} = \mathbf{W}\mathbf{x}
 \label{eq:matrix_vector_product}
 \end{equation}
 %
-If we interpret $\mathbf{X}$ as a batch of vectors, matrix multiplication $\mathbf{X}\mathbf{W}^\top$ is a simple \textbf{vectorized} way of computing $n$ dot products as in \eqref{eq:matrix_vector_product}, one for each row of $\mathbf{X}$, with a single linear algebra operation. As another example, matrix multiplication of a matrix by its transpose, $\mathbf{X}\mathbf{X}^\top \sim(n,n)$, is a vectorized way to compute all possible dot products of pairs of rows of $\mathbf{X}$ simultaneously.
+Если мы интерпретируем $\mathbf{X}$ как пакет векторов, умножение матриц $\mathbf{X}\mathbf{W}^\top$ является простым \textbf{векторизованным} способом вычисления $n$ скалярных произведений, как в \eqref{eq:matrix_vector_product}, по одному для каждой строки $\mathbf{X}$, с помощью одной операции линейной алгебры. В качестве другого примера, умножение матрицы на ее транспонированную, $\mathbf{X}\mathbf{X}^\top \sim(n,n)$, является векторизованным способом одновременного вычисления всех возможных скалярных произведений пар строк $\mathbf{X}$.
 
-We close by mentioning a few additional operations on matrices that will be important. 
+В заключение упомянем несколько дополнительных важных операций над матрицами.
 
-\begin{definition}[Hadamard multiplication]
-The \textbf{Hadamard multiplication} of two matrices of the same shape is done element-wise:
+\begin{definition}[Умножение Адамара]
+\textbf{Умножение Адамара} двух матриц одинаковой формы выполняется поэлементно:
 %
 \begin{equation*}
 \idx{\mathbf{X}\odot \mathbf{Y}}{ij} = {X}_{ij}{Y}_{ij}    
 \end{equation*}
 \end{definition}
 %
-While Hadamard multiplication does not have all the interesting algebraic properties of standard matrix multiplication, it is commonly used in differentiable models for performing \textit{masking} operations (e.g., setting some elements to zero) or scaling operations. Multiplicative interactions have also become popular in some recent families of models, as we will see next.
+Хотя умножение Адамара не обладает всеми интересными алгебраическими свойствами стандартного умножения матриц, оно часто используется в дифференцируемых моделях для выполнения операций \textit{маскирования} (например, обнуления некоторых элементов) или масштабирования. Мультипликативные взаимодействия также стали популярны в некоторых недавних семействах моделей, как мы увидим далее.
 
-\begin{supportbox}{On the definition of matrix multiplication}
-    Why is matrix multiplication defined as \eqref{eq:matrix_multiplication} and not as Hadamard multiplication? Consider a vector $\mathbf{x}$ and some generic function $f$ defined on it. The function is said to be \textbf{linear} if $f(\alpha \mathbf{x}_1 + \beta\mathbf{x}_2) =\alpha f(\mathbf{x}_1)+\beta f(\mathbf{x}_2)$. Any such function can be represented as a matrix $\mathbf{A}$ (this can be seen by extending the two vectors in a basis representation). Then, the matrix-vector product $\mathbf{A}\mathbf{x}$ corresponds to function application, $f(\mathbf{x})=\mathbf{A}\mathbf{x}$, and matrix multiplication $\mathbf{A}\mathbf{B}$ corresponds to function composition $f \circ g$, where $(f \circ g)(\mathbf{x}) = f(g(\mathbf{x}))$ and $g(\mathbf{x})=\mathbf{B}\mathbf{x}$.
+\begin{supportbox}{Об определении умножения матриц}
+    Почему умножение матриц определяется как \eqref{eq:matrix_multiplication}, а не как умножение Адамара? Рассмотрим вектор $\mathbf{x}$ и некоторую общую функцию $f$, определенную на нем. Функция называется \textbf{линейной}, если $f(\alpha \mathbf{x}_1 + \beta\mathbf{x}_2) =\alpha f(\mathbf{x}_1)+\beta f(\mathbf{x}_2)$. Любая такая функция может быть представлена матрицей $\mathbf{A}$ (это можно увидеть, разложив два вектора по базису). Тогда произведение матрицы на вектор $\mathbf{A}\mathbf{x}$ соответствует применению функции, $f(\mathbf{x})=\mathbf{A}\mathbf{x}$, а умножение матриц $\mathbf{A}\mathbf{B}$ соответствует композиции функций $f \circ g$, где $(f \circ g)(\mathbf{x}) = f(g(\mathbf{x}))$ и $g(\mathbf{x})=\mathbf{B}\mathbf{x}$.
 \end{supportbox}
 %
-Sometimes we write expressions such as $\exp(\mathbf{X})$, which are to be interpreted as \textit{element-wise} applications of the operation:
+Иногда мы пишем выражения вида $\exp(\mathbf{X})$, которые следует интерпретировать как \textit{поэлементное} применение операции:
 %
 \begin{equation}
 \idx{\exp(\mathbf{X})}{ij} = \exp({X}_{ij})
 \label{eq:elementwise_matrix_exp}
 \end{equation}
 %
-By comparison, “true” matrix exponentiation is defined for a squared matrix as:
+Для сравнения, «настоящее» матричное экспоненцирование определяется для квадратной матрицы как:
 
 \begin{equation}
 \text{mat-exp}(\mathbf{X})=\sum_{k=0}^\infty \frac{1}{k!}\mathbf{X}^k
 \label{eq:true_matrix_exp}
 \end{equation}
 %
-Importantly, \eqref{eq:elementwise_matrix_exp} can be defined for tensors of any shape, while \eqref{eq:true_matrix_exp} is only valid for (squared) matrices. This is why all frameworks, like PyTorch, have specialized modules that collect all matrix-specific operations, such as inverses and determinants. See Box \ref{code:exp} for an example.
+Важно, что \eqref{eq:elementwise_matrix_exp} может быть определено для тензоров любой формы, в то время как \eqref{eq:true_matrix_exp} справедливо только для (квадратных) матриц. Вот почему все фреймворки, такие как PyTorch, имеют специализированные модули, которые собирают все специфичные для матриц операции, такие как обращение и вычисление определителя. См. Листинг \ref{code:exp} для примера.
 
-\begin{mypy}{Difference between the element-wise exponential of a matrix and the matrix exponential as defined in linear algebra textbooks. Specialized linear algebra operations are generally encapsulated in their own sub-package.}{code:exp}
+\begin{mypy}{Разница между поэлементной экспонентой матрицы и матричной экспонентой, как она определена в учебниках по линейной алгебре. Специализированные операции линейной алгебры обычно инкапсулированы в свой собственный подпакет.}{code:exp}
 X = torch.randn((5, 5))
-X = torch.exp(X)               # Element-wise exponential
-X = torch.linalg.matrix_exp(X) # Matrix exponential
+X = torch.exp(X)               # Поэлементная экспонента
+X = torch.linalg.matrix_exp(X) # Матричная экспонента
 \end{mypy}
 %
-Finally, we can write \textit{reduction} operations (sum, mean, ...) across axes without specifying lower and upper indices, in which case we assume that  the summation runs along the full axis:
+Наконец, мы можем записывать операции \textit{редукции} (сумма, среднее, ...) по осям, не указывая нижние и верхние индексы, и в этом случае мы предполагаем, что суммирование выполняется по всей оси:
 %
 $$
 \sum_i {\mathbf{X}}_{i} = \sum_{{\color{drawred}i=1}}^{{\color{drawred}n}} {\mathbf{X}}_{i}
 $$
 %
-In PyTorch and other frameworks, reduction operations correspond to methods having an \verb+axis+ argument:
+В PyTorch и других фреймворках операции редукции соответствуют методам, имеющим аргумент \verb+axis+:
 
 {\small
 \begin{center}\mintinline{python}{r = X.sum(axis=1)}\end{center}
 }
 
-\subsection*{Computational complexity and matrix multiplication \addteacup} 
+\subsection*{Вычислительная сложность и умножение матриц \addteacup} 
 
-I will use matrix multiplication to introduce the topic of \textit{complexity} of an operation.  Looking at \eqref{eq:matrix_multiplication}, we see that computing the matrix $\mathbf{Z} \sim (a,c)$ from the input arguments $\mathbf{X} \sim (a,b)$ and $\mathbf{Y} \sim (b,c)$ requires $ac$ inner products of dimension $b$ if we directly apply the definition (what we call the \textit{time} complexity), while the memory requirement for a sequential implementation is simply the size of the output matrix (what we call instead the \textit{space} complexity).
+Я буду использовать умножение матриц, чтобы представить тему \textit{сложности} операции. Глядя на \eqref{eq:matrix_multiplication}, мы видим, что вычисление матрицы $\mathbf{Z} \sim (a,c)$ из входных аргументов $\mathbf{X} \sim (a,b)$ и $\mathbf{Y} \sim (b,c)$ требует $ac$ скалярных произведений размерности $b$, если мы напрямую применяем определение (что мы называем \textit{временной} сложностью), в то время как требование к памяти для последовательной реализации — это просто размер выходной матрицы (что мы называем \textit{пространственной} сложностью).
 
-To abstract away from the specific hardware details, computer science focuses on the so-called big-$\mathcal{O}$ notation, from the German \textit{ordnung} (which stands for \textit{order} of approximation). A function $f(x)$ is said to be $\mathcal{O}(g(x))$, where we assume both inputs and outputs are non-negative, if we can find a constant $c$ and a value $x_0$ such that:
+Чтобы абстрагироваться от конкретных деталей оборудования, информатика фокусируется на так называемой нотации «О-большое» (big-$\mathcal{O}$), от немецкого \textit{ordnung} (что означает \textit{порядок} аппроксимации). Говорят, что функция $f(x)$ есть $\mathcal{O}(g(x))$, где мы предполагаем, что и входы, и выходы неотрицательны, если мы можем найти константу $c$ и значение $x_0$ такие, что:
 %
 \begin{equation}
 f(x) \le cg(x) \;\; \text{ for any } x \ge x_0
 \end{equation}
 %
-meaning that as soon as $x$ grows sufficiently large, we can ignore all factors in our analysis outside of $g(x)$. This is called an \textbf{asymptotic} analysis. Hence, we can say that a naive implementation of matrix multiplication is $\mathcal{O}(abc)$, growing linearly with respect to all three input parameters. For two square matrices of size $(n,n)$ we say matrix multiplication is \textit{cubic} in the input dimension.
+означает, что как только $x$ становится достаточно большим, мы можем игнорировать все факторы в нашем анализе, кроме $g(x)$. Это называется \textbf{асимптотическим} анализом. Следовательно, мы можем сказать, что наивная реализация умножения матриц имеет сложность $\mathcal{O}(abc)$, линейно растущую по отношению ко всем трем входным параметрам. Для двух квадратных матриц размера $(n,n)$ мы говорим, что умножение матриц является \textit{кубическим} по входной размерности.
 
-Reasoning in terms of asymptotic complexity is important (and elegant), but choosing an algorithm only in terms of big-$\mathcal{O}$ complexity does not necessarily translate to practical performance gains, which depends on many details such as what hardware is used, what parallelism is supported, and so on.\footnote{When you call a specific primitive in a linear algebra framework, such as matrix multiplication \mintinline{python}{A @ B} in PyTorch, the specific low-level implementation that is executed (the \textbf{kernel}) depends on the run-time hardware, through a process known as \textbf{dispatching}. Hence, the same code can run via a GPU kernel, a CPU kernel, a TPU kernel, etc. This is made even more complex by compilers such as XLA (\url{https://openxla.org/xla}), which can optimize code by fusing and optimizing operations with a specific target hardware in mind.} As an example, it is known that the best asymptotic algorithm for multiplying two square matrices of size $(n,n)$ scales as $\mathcal{O}(n^c)$ for a constant $c < 2.4$ \cite{coppersmith1982asymptotic}, which is much better than the cubic $\mathcal{O}(n^3)$ requirement of a naive implementation. However, these algorithms are much harder to parallelize efficiently on highly-parallel hardware such as GPUs, making them uncommon in practice.
+Рассуждения в терминах асимптотической сложности важны (и элегантны), но выбор алгоритма только на основе сложности «О-большое» не обязательно приводит к практическому выигрышу в производительности, который зависит от многих деталей, таких как используемое оборудование, поддерживаемый параллелизм и так далее.\footnote{Когда вы вызываете определенный примитив в фреймворке линейной алгебры, например, умножение матриц \mintinline{python}{A @ B} в PyTorch, конкретная низкоуровневая реализация, которая выполняется (\textbf{ядро}), зависит от оборудования во время выполнения через процесс, известный как \textbf{диспетчеризация}. Следовательно, один и тот же код может выполняться через ядро GPU, ядро CPU, ядро TPU и т.д. Это еще больше усложняется компиляторами, такими как XLA (\url{https://openxla.org/xla}), которые могут оптимизировать код путем слияния и оптимизации операций с учетом конкретного целевого оборудования.} В качестве примера, известно, что лучший асимптотический алгоритм для умножения двух квадратных матриц размера $(n,n)$ масштабируется как $\mathcal{O}(n^c)$ для константы $c < 2.4$ \cite{coppersmith1982asymptotic}, что намного лучше, чем кубическое требование $\mathcal{O}(n^3)$ наивной реализации. Однако эти алгоритмы гораздо сложнее эффективно распараллелить на высокопараллельном оборудовании, таком как GPU, что делает их редкими на практике.
 
-Note that from the point of view of asymptotic complexity, having access to a parallel environment with $k$ processors has no impact, since it can only provide (at best) a constant $\frac{1}{k}$ speedup over a non-parallel implementation. In addition, asymptotic complexity does not take into consideration the time it takes to move data from one location to the other, which can become the major bottleneck in many situations.\footnote{\url{https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html}} In these cases, we say the implementation is \textit{memory-bound} as opposed to \textit{compute-bound}. Practically, this can only be checked by running a profiler over the code. We will see that analyzing the complexity of an algorithm is far from trivial due to the interplay of asymptotic complexity and observed complexity.
+Отметим, что с точки зрения асимптотической сложности наличие параллельной среды с $k$ процессорами не имеет значения, поскольку она может обеспечить (в лучшем случае) лишь постоянное ускорение в $\frac{1}{k}$ раза по сравнению с непараллельной реализацией. Кроме того, асимптотическая сложность не учитывает время, необходимое для перемещения данных из одного места в другое, что может стать основным узким местом во многих ситуациях.\footnote{\url{https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html}} В этих случаях мы говорим, что реализация \textit{ограничена памятью}, а не \textit{ограничена вычислениями}. Практически это можно проверить только с помощью профилировщика кода. Мы увидим, что анализ сложности алгоритма далеко не тривиален из-за взаимодействия асимптотической и наблюдаемой сложности.
 
-\subsection{Higher-order tensor operations}
+\subsection{Операции с тензорами высших порядков}
 
-Vectors and matrices are interesting because they allow us to define a large number of operations which are undefined or complex in higher dimensions (e.g., matrix exponentials, matrix multiplication, determinants, ...). When moving to higher dimensions, most of the operations we are interested into are either batched variants of matrix operations, or specific combinations of matrix operations and reduction operations. 
+Векторы и матрицы интересны тем, что они позволяют нам определять большое количество операций, которые не определены или сложны в более высоких измерениях (например, матричные экспоненты, умножение матриц, определители, ...). При переходе к более высоким измерениям большинство интересующих нас операций являются либо пакетными вариантами матричных операций, либо специфическими комбинациями матричных операций и операций редукции.
 
-As an example of the former, consider two tensors $X \sim (n,a,b)$ and $Y\sim (n,b,c)$. \textbf{Batched matrix multiplication} (BMM) is defined as:
+В качестве примера первого, рассмотрим два тензора $X \sim (n,a,b)$ и $Y\sim (n,b,c)$. \textbf{Пакетное умножение матриц} (BMM) определяется как:
 %
 \begin{equation}
 \idx{\text{BMM}(X,Y)}{i} = {\mathbf{X}}_{i}{\mathbf{Y}}_{i} \sim (n, a, c)
 \label{eq:bmm}
 \end{equation}
 %
-Operations in most frameworks operate transparently on batched versions of their arguments, which are assumed like in this case to be \textit{leading dimensions} (the first dimensions). For example, batched matrix multiplication in PyTorch is the same as standard matrix multiplication, see Box \ref{code:bmm}.
+Операции в большинстве фреймворков прозрачно работают с пакетными версиями своих аргументов, которые, как и в этом случае, предполагаются \textit{ведущими измерениями} (первыми измерениями). Например, пакетное умножение матриц в PyTorch — это то же самое, что и стандартное умножение матриц, см. Листинг \ref{code:bmm}.
 
-\begin{mypy}{BMM in PyTorch is equivalent to standard matrix multiplication. Practically every operation is implemented to run on generically batched inputs.}{code:bmm}
+\begin{mypy}{BMM в PyTorch эквивалентно стандартному умножению матриц. Практически каждая операция реализована для работы с обобщенными пакетными входами.}{code:bmm}
 X = torch.randn((4, 5, 2))
 Y = torch.randn((4, 2, 3))
-(torch.matmul(X, Y)).shape # Or X @ Y 
+(torch.matmul(X, Y)).shape # Или X @ Y 
 # [Out]: (4, 5, 3)
 \end{mypy}
 %
-As an example of a reduction operation, consider two tensors $X, Y \sim (a,b,c)$. A generalized version of the dot product (GDT) can be written as:
+В качестве примера операции редукции рассмотрим два тензора $X, Y \sim (a,b,c)$. Обобщенная версия скалярного произведения (GDT) может быть записана как:
 %
 $$
 \text{GDT}(X,Y) =\sum_{i,j,k} \idx{X \odot Y}{ijk}
 $$
 %
-which is simply a dot product over the `flattened' versions of its inputs. This brief overview covers most of the tensor operations we will use in the rest of the book, with additional material introduced when necessary.
+что является просто скалярным произведением над «сплющенными» версиями его входов. Этот краткий обзор охватывает большинство тензорных операций, которые мы будем использовать в остальной части книги, с дополнительным материалом, вводимым по мере необходимости.
 %
-\subsection{Einstein's notation}
+\subsection{Нотация Эйнштейна}
 %
-This is an optional section that covers {\footnotesize\mintinline{python}{einsum}},\footnote{\url{https://numpy.org/doc/stable/reference/generated/numpy.einsum.html}} \addteacup a set of conventions allowing the user to specify most tensor operations with a unified syntax. Let us consider again the two examples shown before, writing down explicitly all the axes:
+Это необязательный раздел, который охватывает {\footnotesize\mintinline{python}{einsum}},\footnote{\url{https://numpy.org/doc/stable/reference/generated/numpy.einsum.html}} \addteacup набор соглашений, позволяющих пользователю указывать большинство тензорных операций с помощью единого синтаксиса. Давайте снова рассмотрим два примера, показанных ранее, выписав явно все оси:
 %
 \begin{align}
-\text{Batched matrix multiply:} &&& M_{ijk}=\sum_z {A}_{ijz}{B}_{izk}\label{eq:bmm_idx}\\
-\text{Generalized dot product:} &&& M=\sum_i\sum_j\sum_k {X}_{ijk}{Y}_{ijk}\label{eq:gdt_idx}
+\text{Пакетное умножение матриц:} &&& M_{ijk}=\sum_z {A}_{ijz}{B}_{izk}\label{eq:bmm_idx}\\
+\text{Обобщенное скалярное произведение:} &&& M=\sum_i\sum_j\sum_k {X}_{ijk}{Y}_{ijk}\label{eq:gdt_idx}
 \end{align}
 %
-In line with \textbf{Einstein’s notation},\footnote{See \url{https://en.wikipedia.org/wiki/Einstein_notation}. The notation we use is a simplified version which ignores the distinction between upper and lower indices.} we can simplify the two equations by removing the sums, under the convention that any index appearing on the right but not on the left is summed over:
+В соответствии с \textbf{нотацией Эйнштейна},\footnote{См. \url{https://en.wikipedia.org/wiki/Einstein_notation}. Нотация, которую мы используем, является упрощенной версией, которая игнорирует различие между верхними и нижними индексами.} мы можем упростить два уравнения, убрав суммы, при условии, что любой индекс, появляющийся справа, но не слева, суммируется:
 %
 \begin{gather}
 {M}_{ijk} ={A}_{ijz}{B}_{izk} \triangleq {\color{drawred}\sum_z} \; {A}_{ijz}{B}_{izk} \label{eq:einops_1}\\
@@ -247,47 +247,47 @@ M= {X}_{ijk}{Y}_{ijk} \triangleq {\color{drawred}\sum_i\sum_j\sum_k} \; {X}_{ijk
 \label{eq:einops_2}
 \end{gather}
 %
-Then, we can condense the two definitions by isolating the indices in a unique string (where the operands are now on the left):
+Затем мы можем сжать два определения, выделив индексы в уникальную строку (где операнды теперь находятся слева):
 %
 \begin{itemize}
-    \item ‘\textit{ijz,izk→ijk}’ (batched matrix multiply);
-    \item ‘\textit{ijk,ijk→}’ (generalized dot product).
+    \item ‘\textit{ijz,izk→ijk}’ (пакетное умножение матриц);
+    \item ‘\textit{ijk,ijk→}’ (обобщенное скалярное произведение).
 \end{itemize}
 %
-There is a direct one-to-one correspondence between the definitions in \eqref{eq:einops_1}-\eqref{eq:einops_2} and their simplified string definition. This is implemented in most frameworks in the {\footnotesize\verb+einsum+} operation, see Box \ref{code:einsum}.
+Существует прямое взаимно-однозначное соответствие между определениями в \eqref{eq:einops_1}-\eqref{eq:einops_2} и их упрощенным строковым определением. Это реализовано в большинстве фреймворков в операции {\footnotesize\verb+einsum+}, см. Листинг \ref{code:einsum}.
 %
-\begin{mypy}{Examples of using einsum in PyTorch.}{code:einsum}
-# Batched matrix multiply
+\begin{mypy}{Примеры использования einsum в PyTorch.}{code:einsum}
+# Пакетное умножение матриц
 M = torch.einsum('ijz,izk->ijk', A, B) 
-# Generalized dot product
+# Обобщенное скалярное произведение
 M = torch.einsum('ijk,ijk->', A, B)    
 \end{mypy}
 
-The advantage of this notation is that we do not need to remember the API of a framework to implement a given operation; and translating from one framework to the other is transparent because the einsum syntax is equivalent. For example, PyTorch has several matrix multiplication methods, including {\footnotesize\verb+matmul+} and {\footnotesize\verb+bmm+}, with different broadcasting rules and shape constraints, and einsum provides a uniform syntax for all of them. In addition, the einsum definition of our batched matrix multiplication is identical to, e.g., the definition in JAX, see Box \ref{code:einsum_pt}.
+Преимущество этой нотации в том, что нам не нужно помнить API фреймворка для реализации данной операции; и перевод из одного фреймворка в другой прозрачен, потому что синтаксис einsum эквивалентен. Например, в PyTorch есть несколько методов умножения матриц, включая {\footnotesize\verb+matmul+} и {\footnotesize\verb+bmm+}, с различными правилами трансляции и ограничениями на форму, и einsum предоставляет единый синтаксис для всех из них. Кроме того, определение einsum нашего пакетного умножения матриц идентично, например, определению в JAX, см. Листинг \ref{code:einsum_pt}.
 
-\begin{mypy}{Example of using einsum in JAX - compare with Box \ref{code:einsum}.}{code:einsum_pt}
+\begin{mypy}{Пример использования einsum в JAX - сравните с Листингом \ref{code:einsum}.}{code:einsum_pt}
 M = jax.numpy.einsum('ijz,izk->ijk', A, B)
 \end{mypy}
 %
-Working with transposed axes is also simple. For example, for $A \sim (n,a,b)$ and $B \sim (n, c, b)$, a batched multiplication of $\idx{\mathbf{A}}{i}$ times $\idx{\mathbf{B}^\top}{i}$ is obtained by switching the corresponding axes in the einsum definition:
+Работа с транспонированными осями также проста. Например, для $A \sim (n,a,b)$ и $B \sim (n, c, b)$ пакетное умножение $\idx{\mathbf{A}}{i}$ на $\idx{\mathbf{B}^\top}{i}$ получается путем переключения соответствующих осей в определении einsum:
 
 {\footnotesize
 \noindent\mintinline{python}{M = torch.einsum('ijz,ikz->ijk', A, B)}
 }
 
-\noindent Because of these reasons, einsum and its generalizations (like the popular {\footnotesize\verb+einops+}\footnote{\url{http://einops.rocks}} package) have gained a wide popularity recently.
+\noindent По этим причинам einsum и его обобщения (например, популярный пакет {\footnotesize\verb+einops+}\footnote{\url{http://einops.rocks}}) приобрели в последнее время широкую популярность.
 
-\section{Gradients and Jacobians}
+\section{Градиенты и Якобианы}
 \label{sec:gradients_and_jacobians}
 
-As the name \textit{differentiable} implies, gradients play a pivotal role in the book, by allowing us to optimize our models through semi-automatic mechanisms deriving from gradient descent. To this end, we recall here some basic definitions and concepts concerning differentiation of multi-valued functions. We focus on properties that will be essential for later, partially at the expense of mathematical precision.
+Как следует из названия \textit{дифференцируемый}, градиенты играют ключевую роль в книге, позволяя нам оптимизировать наши модели с помощью полуавтоматических механизмов, основанных на градиентном спуске. Для этого мы напомним здесь некоторые основные определения и концепции, касающиеся дифференцирования многозначных функций. Мы сосредоточимся на свойствах, которые будут важны для дальнейшего, частично в ущерб математической точности.
 
-\subsection{Derivatives of scalar functions}
+\subsection{Производные скалярных функций}
 
-Starting from a simple function $y=f(x)$ with a scalar input and a scalar output, its derivative is defined as follows.
+Начиная с простой функции $y=f(x)$ со скалярным входом и скалярным выходом, ее производная определяется следующим образом.
 
-\begin{definition}[Derivative]
-The \textbf{derivative} of $f(x)$ is defined as:
+\begin{definition}[Производная]
+\textbf{Производная} $f(x)$ определяется как:
 
 \begin{equation}
  f'(x)= \lim_{h\rightarrow 0}\frac{f(x+h)-f(x)}{h}
@@ -295,134 +295,134 @@ The \textbf{derivative} of $f(x)$ is defined as:
 
 \end{definition}
 
-We use a variety of notation to denote derivatives: $\partial$ will denote generically derivatives and gradients of any dimension (vectors, matrices); $\partial_x$ or $\frac{\partial}{\partial x}$ to highlight the input argument we are differentiating with respect to (when needed); while $f^\prime(x)$ is specific to scalar functions and it is sometimes called \textit{Lagrange's notation}. 
+Мы используем различные обозначения для производных: $\partial$ будет обозначать в общем производные и градиенты любой размерности (векторы, матрицы); $\partial_x$ или $\frac{\partial}{\partial x}$ для выделения входного аргумента, по которому мы дифференцируем (при необходимости); в то время как $f^\prime(x)$ специфично для скалярных функций и иногда называется \textit{нотацией Лагранжа}. 
 
-We are not concerned here about the existence of the derivative of the function (which is not guaranteed everywhere even for a continuous function), which we assume as given. We will only touch upon this point when discussing derivatives of non-smooth functions, such as $f(x) = \lvert x \rvert$ in $0$ later on in Chapter \ref{chap:automatic_differentiation}.
+Мы не будем здесь беспокоиться о существовании производной функции (которое не гарантировано везде даже для непрерывной функции), которое мы принимаем как данность. Мы коснемся этого вопроса только при обсуждении производных негладких функций, таких как $f(x) = \lvert x \rvert$ в $0$ позже в Главе \ref{chap:automatic_differentiation}.
 
-Derivatives of simple functions can be obtained by direct application of the definition, e.g., the derivative of a polynomial should be familiar:
+Производные простых функций можно получить прямым применением определения, например, производная многочлена должна быть знакома:
 
 \begin{align*}
 \partial x^p & = \lim_{h \rightarrow 0}\frac{\eqnmarkbox[drawred]{node}{(x+h)^p} - x^p}{h} = \lim_{h\rightarrow 0} \frac{1}{h} \left( px^{p-1}h + \frac{p(p-1)}{2}x^{p-2}h^2 + \ldots + h^p   \right) \\  & = \eqnmarkbox[drawblue]{node2}{px^{p-1}} + \lim_{h\rightarrow 0} \left(\frac{p(p-1)}{2} x^{p-2}h^2 + \ldots + h^{p-1}\right) = px^{p-1}
 \end{align*}
-\annotate[yshift=1em]{above,right}{node}{Expandable via the binomial theorem}
-\annotate[yshift=-1em]{below,right}{node2}{Independent from $h$}
+\annotate[yshift=1em]{above,right}{node}{Раскладывается по биному Ньютона}
+\annotate[yshift=-1em]{below,right}{node2}{Не зависит от $h$}
 
-Geometrically, the derivative can be understood as the slope of the tangent passing through a point, or equivalently as the best first-order approximation of the function itself in that point, as shown in Figure \ref{fig:derivative}. This is a fundamental point of view, because the slope of the line tells us how the function is evolving in a close neighborhood: for a positive slope, the function is increasing on the right and decreasing on the left (again, for a sufficiently small interval), while for a negative slope the opposite is true. As we will see, this insight extends to vector-valued functions.
+Геометрически производную можно понимать как наклон касательной, проходящей через точку, или, что эквивалентно, как наилучшее приближение первого порядка самой функции в этой точке, как показано на Рисунке \ref{fig:derivative}. Это фундаментальная точка зрения, потому что наклон прямой говорит нам, как функция изменяется в близкой окрестности: при положительном наклоне функция возрастает справа и убывает слева (опять же, для достаточно малого интервала), а при отрицательном наклоне — наоборот. Как мы увидим, это понимание распространяется и на векторнозначные функции.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.6\textwidth]{images/gradient_info.pdf}
-    \caption{Plot of the function $f(x)=x^2 -1.5x$, shown along with the derivatives on two separate points.}
+    \caption{График функции $f(x)=x^2 -1.5x$, показанный вместе с производными в двух разных точках.}
     \label{fig:derivative}
 \end{SCfigure}
 
 
-We recall some important properties of derivatives that extend to the multi-dimensional case:
+Мы напомним некоторые важные свойства производных, которые распространяются на многомерный случай:
 %
 \begin{itemize}
-    \item \textbf{Linearity}: the derivative is linear, so the derivative of a sum is the sum of derivatives:
+    \item \textbf{Линейность}: производная линейна, поэтому производная суммы равна сумме производных:
     %
     $$
     \partial \Big[{\color{drawred}f(x)} + {\color{drawgreen}g(x)}\Big] = {\color{drawred}{f}^\prime(x)} + {\color{drawgreen}g^\prime(x)} \,.
     $$
-    \item \textbf{Product rule}:
+    \item \textbf{Правило произведения}:
     %
     $$
-    \partial\Big[ {\color{drawred}f(x)}{\color{drawgreen}g(x)}\Big] = {\color{drawred}{f}^\prime(x)}{\color{drawgreen}g(x)} + {\color{drawred}f(x)}{\color{drawgreen}g'(x)} \,,
+    \partial\Big[ {\color{drawred}f(x)}{\color{drawgreen}g(x)}\Big] = {\color{drawred}{f}^\prime(x)}{\color{drawgreen}g(x)} + {\color{drawred}f(x)}{\color{drawgreen}g'(x)} \,.
     $$
-    \item \textbf{Chain rule}: the derivative of function composition is given by multiplying the corresponding derivatives:
+    \item \textbf{Цепное правило}: производная композиции функций задается умножением соответствующих производных:
     %
     \begin{equation}
-        \partial \Big[{\color{drawred}f(}{\color{drawgreen}g(x)}{\color{drawred})}\Big] = {\color{drawred}{f^\prime}(}{\color{drawgreen}g(x)}{\color{drawred})}{\color{drawgreen}g'(x)} \,
+        \partial \Big[{\color{drawred}f(}{\color{drawgreen}g(x)}{\color{drawred})}\Big] = {\color{drawred}{f^\prime}(}{\color{drawgreen}g(x)}{\color{drawred}}){ \color{drawgreen}g'(x)} \,
     \end{equation}
 \end{itemize}
 
-\subsection{Gradients and directional derivatives}
+\subsection{Градиенты и производные по направлению}
 
-Consider now a function $y = f(\mathbf{x})$ taking a vector $\mathbf{x} \sim(d)$ as input. Talking about infinitesimal perturbations here does not make sense unless we specify the direction of this perturbation (while in the scalar case we only had “left” and “right”, in this case we have infinite possible directions in the Euclidean space). In the simplest case, we can consider moving along the $i$-th axis, keeping all other values fixed:
+Рассмотрим теперь функцию $y = f(\mathbf{x})$, принимающую на вход вектор $\mathbf{x} \sim(d)$. Говорить здесь о бесконечно малых возмущениях не имеет смысла, если мы не укажем направление этого возмущения (в то время как в скалярном случае у нас были только «влево» и «вправо», в этом случае у нас есть бесконечное количество возможных направлений в евклидовом пространстве). В простейшем случае мы можем рассмотреть движение вдоль $i$-й оси, сохраняя все остальные значения фиксированными:
 %
 \begin{equation}
-\partial_{x_i} f(\mathbf{x}) = \frac{\partial y}{\partial x_i} = \lim_{h \rightarrow 0} \frac{f(\mathbf{x} + h\mathbf{e}_i) - f(\mathbf{x})}{h} \,,
+\partial_{x_i} f(\mathbf{x}) = \frac{\partial y}{\partial x_i} = \lim_{h \rightarrow 0} \frac{f(\mathbf{x} + h\mathbf{e}_i) - f(\mathbf{x})}{h} \,.
 \label{eq:partial_derivative}
 \end{equation}
 %
-where $\mathbf{e}_i \sim (d)$ is the $i$-th basis vector (the $i$-th row of the identity matrix):
+где $\mathbf{e}_i \sim (d)$ — это $i$-й базисный вектор ( $i$-я строка единичной матрицы):
 %
 \begin{equation}
-\idx{\mathbf{e}_i}{j} = \begin{cases} 1 & \text{ if } i =j \\ 0 & \text{otherwise} \end{cases}
+\idx{\mathbf{e}_i}{j} = \begin{cases} 1 & \text{ если } i =j \\ 0 & \text{иначе} \end{cases}
 \label{eq:basis_vector}
 \end{equation}
 %
-\eqref{eq:partial_derivative} is called a \textbf{partial derivative}. Stacking all partial derivatives together gives us a $d$-dimensional vector called the \textbf{gradient} of the function.
+\eqref{eq:partial_derivative} называется \textbf{частной производной}. Собирая все частные производные вместе, мы получаем $d$-мерный вектор, называемый \textbf{градиентом} функции.
 
-\begin{definition}[Gradient] \addbottle
-The \textbf{gradient} of a function $y = f(\mathbf{x})$ is given by:
+\begin{definition}[Градиент] \addbottle
+\textbf{Градиент} функции $y = f(\mathbf{x})$ задается как:
 %
 \begin{equation}
     \nabla f(\mathbf{x}) = \partial f(\mathbf{x})=\begin{bmatrix} \partial_{x_1} f(\mathbf{x}) \\ \vdots \\ \partial_{x_d} f(\mathbf{x}) \end{bmatrix}
 \end{equation}
 \end{definition}
 
-Because gradients are fundamental, we use the special notation $\nabla f(\mathbf{x})$ to distinguish them. What about displacements in a general direction $\mathbf{v}$? In this case we obtain the \textbf{directional derivative}:
+Поскольку градиенты являются фундаментальными, мы используем специальное обозначение $\nabla f(\mathbf{x})$ для их выделения. А как насчет смещений в общем направлении $\mathbf{v}$? В этом случае мы получаем \textbf{производную по направлению}:
 %
 \begin{equation}
-\mathrm{D}_{\mathbf{v}}f(\mathbf{x}) = \lim_{h \rightarrow 0} \frac{f(\mathbf{x} + h\mathbf{v}) - f(\mathbf{x})}{h} \,,
+\mathrm{D}_{\mathbf{v}}f(\mathbf{x}) = \lim_{h \rightarrow 0} \frac{f(\mathbf{x} + h\mathbf{v}) - f(\mathbf{x})}{h} \,.
 \label{eq:directional_derivative}
 \end{equation}
 %
-Movement in space can be decomposed by considering individual displacements along each axis, hence it is easy to prove that the directional derivative is given by the dot product of the gradient with the displacement vector $\mathbf{v}$:
+Движение в пространстве можно разложить, рассматривая отдельные смещения вдоль каждой оси, поэтому легко доказать, что производная по направлению задается скалярным произведением градиента на вектор смещения $\mathbf{v}$:
 %
 \begin{equation}
 \mathrm{D}_\mathbf{v} f(\mathbf{x})=\langle\nabla f(\mathbf{x}),\mathbf{v}\rangle = \sum_i \eqnmarkbox[drawred]{node}{\partial_{x_i} f(\mathbf{x})v_i}
 \label{eq:directional_derivative_dot_product}
 \end{equation}
-\annotate[yshift=-1em]{below,right}{node}{Displacement on the $i$-th axis}
+\annotate[yshift=-1em]{below,right}{node}{Смещение по $i$-й оси}
 
-Hence, knowing how to compute the gradient of a function is enough to compute all possible directional derivatives.
+Следовательно, умения вычислять градиент функции достаточно для вычисления всех возможных производных по направлению.
 
-\subsection{Jacobians}
+\subsection{Якобианы}
 
-Let us now consider the generic case of a function $\mathbf{y} = f(\mathbf{x})$ \addclock with a vector input $\mathbf{x} \sim (d)$ as before, and this time a \textit{vector} output $\mathbf{y} \sim(o)$. As we will see, this is the most general case we need to consider. Because we have more than one output, we can compute a gradient for each output, and their stack provides an $(o, d)$ matrix we call the \textbf{Jacobian} of $f$.
+Рассмотрим теперь общий случай функции $\mathbf{y} = f(\mathbf{x})$ \addclock с векторным входом $\mathbf{x} \sim (d)$, как и раньше, и на этот раз с \textit{векторным} выходом $\mathbf{y} \sim(o)$. Как мы увидим, это самый общий случай, который нам нужно рассмотреть. Поскольку у нас более одного выхода, мы можем вычислить градиент для каждого выхода, и их стек дает матрицу $(o, d)$, которую мы называем \textbf{Якобианом} $f$.
 
-\begin{definition}[Jacobian]
-The \textbf{Jacobian} matrix of a function $\mathbf{y} = f(\mathbf{x})$, $\mathbf{x} \sim (d)$, $\mathbf{y} \sim (o)$ is given by:
+\begin{definition}[Якобиан]
+\textbf{Матрица Якоби} функции $\mathbf{y} = f(\mathbf{x})$, $\mathbf{x} \sim (d)$, $\mathbf{y} \sim (o)$ задается как:
 %
 \begin{equation}
-\partial f(\mathbf{x}) = \begin{pmatrix}				\frac{\partial y_1}{\partial x_1} & \dots & \frac{\partial y_1}{\partial x_d} \\				\vdots & \ddots & \vdots \\				\frac{\partial y_o}{\partial x_1} & \dots & \frac{\partial y_o}{\partial x_d} \\			\end{pmatrix} \sim (o,d)
+\partial f(\mathbf{x}) = \begin{pmatrix}		\frac{\partial y_1}{\partial x_1} & \dots & \frac{\partial y_1}{\partial x_d} \\		\vdots & \ddots & \vdots \\		\frac{\partial y_o}{\partial x_1} & \dots & \frac{\partial y_o}{\partial x_d} \\	\end{pmatrix} \sim (o,d)
 \end{equation}
 \end{definition}
 
-We recover the gradient for $o=1$, and the standard derivative for $d=o=1$. Jacobians inherit all the properties of derivatives: importantly, the Jacobian of a composition of functions is now a \textit{matrix multiplication} of the corresponding individual Jacobians:
+Мы получаем градиент при $o=1$ и стандартную производную при $d=o=1$. Якобианы наследуют все свойства производных: важно, что Якобиан композиции функций теперь является \textit{умножением матриц} соответствующих индивидуальных Якобианов:
 %
 \begin{equation}
 \partial\left[f(g(\mathbf{x}))\right] = \left[\partial f(\bullet)\right]\partial g(\mathbf{x})
 \label{eq:jacobian_chain_rule}
 \end{equation}
 %
-where the first derivative is evaluated in $g(\mathbf{x}) \sim (h)$. See \cite[Chapter 2]{petersen2008matrix} for numerical examples of worked out gradients and Jacobians. Like in the scalar case, gradients and Jacobians can be understood as linear functions tangent to a specific point. In particular, the gradient is the best “first-order approximation” in the following sense. For a point $\mathbf{x}_0$, the best linear approximation in an infinitesimal neighborhood of $f(\mathbf{x}_0)$ is given by:
+где первая производная вычисляется в $g(\mathbf{x}) \sim (h)$. См. \cite[Глава 2]{petersen2008matrix} для численных примеров вычисленных градиентов и Якобианов. Как и в скалярном случае, градиенты и Якобианы можно понимать как линейные функции, касательные к определенной точке. В частности, градиент является наилучшим «приближением первого порядка» в следующем смысле. Для точки $\mathbf{x}_0$ наилучшее линейное приближение в бесконечно малой окрестности $f(\mathbf{x}_0)$ задается:
 
 \vspace{0.5em}
 $$
 \widetilde{f}(\mathbf{x})= f(\mathbf{x}_0)+\langle \eqnmarkbox[drawred]{node}{\partial f(\mathbf{x}_0)}, \eqnmarkbox[drawgreen]{node2}{\mathbf{x}-\mathbf{x}_0} \rangle
 $$
-\annotate[yshift=1em]{above,right}{node}{Slope of the line}
-\annotate[yshift=-1em]{below,right}{node2}{Displacement from $\mathbf{x}_0$}
+\annotate[yshift=1em]{above,right}{node}{Наклон прямой}
+\annotate[yshift=-1em]{below,right}{node2}{Смещение от $\mathbf{x}_0$}
 
 \vspace{0.5em}
-This is called \textbf{Taylor's theorem}. See Box \ref{code:taylor_approximation} and Figure \ref{fig:taylor_approximation} for a visualization in the scalar case $f(x) = x^2 - 1.5x$.
+Это называется \textbf{теоремой Тейлора}. См. Листинг \ref{code:taylor_approximation} и Рисунок \ref{fig:taylor_approximation} для визуализации в скалярном случае $f(x) = x^2 - 1.5x$.
 
-\begin{mypy}{Example of computing a first-order approximation (scalar case). The result is plotted in Figure \ref{fig:taylor_approximation}.}{code:taylor_approximation}
-# Generic function
+\begin{mypy}{Пример вычисления приближения первого порядка (скалярный случай). Результат показан на Рисунке \ref{fig:taylor_approximation}.}{code:taylor_approximation}
+# Общая функция
 f = lambda x: x**2-1.5*x
 
-# Derivative (computed manually for now) 
+# Производная (пока вычисляется вручную)
 df = lambda x: 2*x-1.5 
 
-# Linearization at 0.5 
+# Линеаризация в точке 0.5
 x=0.5
 f_linearized = lambda h: f(x) + df(x)*(h-x) 
 
-# Comparing the approximation to the real derivative
+# Сравнение приближения с реальной производной
 print(f(x + 0.01))            # [Out]: -0.5049
 print(f_linearized(x + 0.01)) # [Out]: -0.5050
 \end{mypy}
@@ -430,90 +430,90 @@ print(f_linearized(x + 0.01)) # [Out]: -0.5050
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.6\textwidth]{images/taylor_approximation.pdf}
-    \caption{The function $f(x)=x^2-1.5x$ and its first-order approximation shown in $0.5$.}
+    \caption{Функция $f(x)=x^2-1.5x$ и ее приближение первого порядка, показанное в точке $0.5$.}
     \label{fig:taylor_approximation}
 \end{SCfigure}
 
-\subsection*{On the dimensionality of the Jacobians \addteacup}
+\subsection*{О размерности Якобианов \addteacup}
 %
-We close with a pedantic note on dimensionality that will be useful in the following.   Consider the following function:
+В заключение сделаем педантичное замечание о размерности, которое будет полезно в дальнейшем.   Рассмотрим следующую функцию:
 %
 $$
 \mathbf{y} = \mathbf{W}\mathbf{x}
 $$
 %
-When viewed as a function of $\mathbf{x}$, the derivative is, as before, an $(o, d)$ matrix, and it can be shown that:
+При рассмотрении как функции от $\mathbf{x}$, производная, как и прежде, является матрицей $(o, d)$, и можно показать, что:
 %
 $$
 \partial_{\mathbf{x}}\left[\mathbf{W}\mathbf{x}\right] =\mathbf{W}
 $$
 %
-When viewed as a function of $\mathbf{W}$, instead, the input is itself an $(o, d)$ matrix, and the “Jacobian” in this case has shape $(o,o,d)$ (see box in the following page). However, we can always imagine an identical (isomorphic) function taking as input the vectorized version of $\mathbf{W}$, $\text{vect}(\mathbf{W})  \sim(od)$, in which case the Jacobian will be a matrix of shape $(o, od)$.
+При рассмотрении как функции от $\mathbf{W}$, вход сам является матрицей $(o, d)$, и «Якобиан» в этом случае имеет форму $(o,o,d)$ (см. вставку на следующей странице). Однако мы всегда можем представить себе идентичную (изоморфную) функцию, принимающую на вход векторизованную версию $\mathbf{W}$, $\text{vect}(\mathbf{W})  \sim(od)$, и в этом случае Якобиан будет матрицей формы $(o, od)$.
 
-This quick example clarifies what we mean by our statement that working with vector inputs and outputs “is enough” from a notational point of view. However, it will be important to keep this point in mind in Chapter \ref{chap:automatic_differentiation}, when we will use matrix Jacobians for simplicity of notation (in particular, to avoid the proliferation of indices), but the sizes of these Jacobians may “hide” inside the actual shapes of the inputs and the outputs, most importantly the batch sizes. Importantly, we will see in Chapter \ref{chap:automatic_differentiation} that explicit computation of Jacobians can be avoided in practice by considering the so-called \textbf{vector-Jacobian products}. This can also be formalized by viewing Jacobians as abstract linear maps - see \cite{blondel2024elements} for a formal overview of this topic.
+Этот краткий пример проясняет, что мы имеем в виду под нашим утверждением, что работа с векторными входами и выходами «достаточна» с точки зрения нотации. Однако важно помнить об этом в Главе \ref{chap:automatic_differentiation}, когда мы будем использовать матричные Якобианы для простоты нотации (в частности, чтобы избежать размножения индексов), но размеры этих Якобианов могут «скрываться» внутри фактических форм входов и выходов, в первую очередь размеров пакетов. Важно отметить, что в Главе \ref{chap:automatic_differentiation} мы увидим, что явного вычисления Якобианов можно избежать на практике, рассматривая так называемые \textbf{векторно-якобианские произведения}. Это также можно формализовать, рассматривая Якобианы как абстрактные линейные отображения - см. \cite{blondel2024elements} для формального обзора этой темы.
 
-\begin{supportbox}{Working out the Jacobian}
-To compute the Jacobian $\partial_{\mathbf{W}} \mathbf{W}\mathbf{x}$, we can rewrite the expression element-wise as:
+\begin{supportbox}{Вычисление Якобиана}
+Чтобы вычислить Якобиан $\partial_{\mathbf{W}} \mathbf{W}\mathbf{x}$, мы можем переписать выражение поэлементно как:
 %
 $$
 y_i=\sum_j W_{ij}x_j
 $$
 %
-from which we immediately find that:
+откуда мы немедленно находим, что:
 %
 \begin{equation}
 \frac{\partial y_i}{\partial W_{ij}}=x_j
 \label{eq:partial_yi_wij}
 \end{equation}
 %
-Note that to materialize the Jacobian explicitly (store it in memory), we would need a lot of repeated values. As we will see in Chapter \ref{chap:automatic_differentiation}, this can be avoided because, in practice, we only care about the application of the Jacobian on another tensor.
+Обратите внимание, что для явной материализации Якобиана (хранения его в памяти) нам потребовалось бы много повторяющихся значений. Как мы увидим в Главе \ref{chap:automatic_differentiation}, этого можно избежать, потому что на практике нас интересует только применение Якобиана к другому тензору.
 \label{supportbox:jacobian}
 \end{supportbox}
 
-\section{Numerical optimization and gradient descent} 
+\section{Численная оптимизация и градиентный спуск} 
 
-\addclock To understand the usefulness of having access to gradients, consider the problem of  minimizing a generic function $f(\mathbf{x})$, with $\mathbf{x} \sim (d)$: 
+\addclock Чтобы понять полезность доступа к градиентам, рассмотрим задачу минимизации общей функции $f(\mathbf{x})$, где $\mathbf{x} \sim (d)$: 
 %
 \begin{equation}
 \mathbf{x}^* = \underset{\mathbf{x}}{\arg\min} \; f(\mathbf{x})
 \label{eq:optimization}
 \end{equation}
 %
-where, similarly to $\argmax$, $\arg\min \; f(\mathbf{x})$ denotes the operation of finding the value of $\mathbf{x}$ corresponding to the lowest possible value of $f(\mathbf{x})$. We assume the function has a single output (\textbf{single-objective optimization}), and that the domain over which we are optimizing $\mathbf{x}$ is unconstrained. 
+где, аналогично $\argmax$, $\arg\min \; f(\mathbf{x})$ обозначает операцию нахождения значения $\mathbf{x}$, соответствующего наименьшему возможному значению $f(\mathbf{x})$. Мы предполагаем, что функция имеет один выход (\textbf{однокритериальная оптимизация}), и что область, по которой мы оптимизируем $\mathbf{x}$, не ограничена. 
 
-In the rest of the book $\mathbf{x}$ will encode the parameters of our model, and $f$ will describe the performance of the model itself on our data, a setup called \textbf{supervised learning} that we introduce in the next chapter. We can consider minimizing instead of maximizing with no loss of generality, since minimizing $f(\mathbf{x})$ is equivalent to maximizing $-f(\mathbf{x})$ and vice versa (to visualize this, think of a function in 1D and rotate it across the $x$-axis, picturing what happens to its low points).
+В остальной части книги $\mathbf{x}$ будет кодировать параметры нашей модели, а $f$ будет описывать производительность самой модели на наших данных, что называется \textbf{обучением с учителем}, которое мы вводим в следующей главе. Мы можем рассматривать минимизацию вместо максимизации без потери общности, поскольку минимизация $f(\mathbf{x})$ эквивалентна максимизации $-f(\mathbf{x})$ и наоборот (чтобы это представить, подумайте о функции в 1D и поверните ее вокруг оси $x$, представляя, что происходит с ее низкими точками).
 
-In very rare cases, we may be able to express the solution in closed-form (we will see one example in the context of least-squares optimization in Section \ref{subsec:least_squares}). In general, however, we are forced to resort to iterative procedures. Suppose we start from a random guess $\mathbf{x}_0$ and that, for every iteration, we take a step, that we decompose in terms of its magnitude $\eta_t$ (the length of the step) and the direction $\mathbf{p}_t$:
+В очень редких случаях мы можем выразить решение в замкнутой форме (мы увидим один пример в контексте оптимизации методом наименьших квадратов в Разделе \ref{subsec:least_squares}). Однако в общем случае мы вынуждены прибегать к итерационным процедурам. Предположим, мы начинаем со случайного предположения $\mathbf{x}_0$ и на каждой итерации делаем шаг, который мы раскладываем на его величину $\eta_t$ (длину шага) и направление $\mathbf{p}_t$:
 
 \vspace{1em}
 \begin{equation}
 \mathbf{x}_t = \eqnmarkbox[drawred]{node}{\mathbf{x}_{t-1}} + \eqnmarkbox[drawblue]{node2}{\eta_t\mathbf{p}_t}
 \label{eq:iterative_descent}
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{Guess at iteration $t$}
-\annotate[yshift=-1em]{below,right}{node2}{Displacement at iteration $t$}
+\annotate[yshift=1em]{above,right}{node}{Предположение на итерации $t$}
+\annotate[yshift=-1em]{below,right}{node2}{Смещение на итерации $t$}
 
 \vspace{1em}
-We call $\eta_t$ the \textbf{step size} (or, in machine learning terminology, the \textbf{learning rate}, for reasons that will become clear in the next chapter). A direction $\mathbf{p}_t$ for which there exists an $\eta_t$ such that $f(\mathbf{x}_t) \le f(\mathbf{x}_{t-1})$ is called a \textbf{descent direction}. If we can select a descent direction for every iteration, and if we are careful in the choice of step size, the iterative algorithm in \eqref{eq:iterative_descent} will converge to a minimum in a sense to be described shortly.
+Мы называем $\eta_t$ \textbf{размером шага} (или, в терминологии машинного обучения, \textbf{скоростью обучения}, по причинам, которые станут ясны в следующей главе). Направление $\mathbf{p}_t$, для которого существует $\eta_t$ такое, что $f(\mathbf{x}_t) \le f(\mathbf{x}_{t-1})$, называется \textbf{направлением спуска}. Если мы можем выбирать направление спуска на каждой итерации, и если мы осторожны в выборе размера шага, итерационный алгоритм в \eqref{eq:iterative_descent} сойдется к минимуму в смысле, который будет описан в ближайшее время.
 
-For differentiable functions, we can precisely quantify all descent directions by using the directional derivative from \eqref{eq:directional_derivative}, as they can be defined as the directions inducing a negative change with respect to our previous guess $\mathbf{x}_{t-1}$:
+Для дифференцируемых функций мы можем точно определить все направления спуска, используя производную по направлению из \eqref{eq:directional_derivative}, поскольку их можно определить как направления, вызывающие отрицательное изменение по отношению к нашему предыдущему предположению $\mathbf{x}_{t-1}$:
 %
 $$
-\mathbf{p}_t \text{ is a descent direction} \;\;\Rightarrow\;\; \mathrm{D}_{\mathbf{p}_t} f(\mathbf{x}_{t-1}) \le 0
+\mathbf{p}_t \text{ является направлением спуска} \;\;\Rightarrow\;\; \mathrm{D}_{\mathbf{p}_t} f(\mathbf{x}_{t-1}) \le 0
 $$
 %
-Using what we learned in Section \ref{sec:gradients_and_jacobians} and the definition of the dot product in terms of cosine similarity from \eqref{eq:dot_product_cosine} we get:
+Используя то, что мы узнали в Разделе \ref{sec:gradients_and_jacobians}, и определение скалярного произведения через косинусное сходство из \eqref{eq:dot_product_cosine}, мы получаем:
 %
 $$
 \mathrm{D}_{\mathbf{p}_t} f(\mathbf{x}_{t-1})=\langle \nabla f(\mathbf{x}_{t-1}), \mathbf{p}_t\rangle=\lVert\nabla f(\mathbf{x}_{t-1})\rVert \lVert\mathbf{p}_t\rVert \cos(\alpha)
 $$
 %
-where $\alpha$ is the angle between $\mathbf{p}_t$ and $\nabla f(\mathbf{x}_{t-1})$. Considering the expression on the right, the first term is a constant with respect to $\mathbf{p}_t$. Because we have assumed $\mathbf{p}_t$ only encodes the direction of movement, we can also safely restrict it to $\lVert\mathbf{p}_t\rVert = 1$, rendering the second term another constant. Hence, by the properties of the cosine we deduce that any $\mathbf{p}_t$ whose angle is between $\pi/2$ and $3\pi/2$ with $\nabla f(\mathbf{x}_{t-1})$ is a descent direction. Among these, the direction $\mathbf{p}_t = -\nabla f(\mathbf{x}_{t-1})$ (with an angle of $\pi$) has the lowest possible directional derivative, and we refer to it as the \textbf{steepest descent direction}. 
+где $\alpha$ — угол между $\mathbf{p}_t$ и $\nabla f(\mathbf{x}_{t-1})$. Рассматривая выражение справа, первый член является константой по отношению к $\mathbf{p}_t$. Поскольку мы предположили, что $\mathbf{p}_t$ кодирует только направление движения, мы также можем безопасно ограничить его до $\lVert\mathbf{p}_t\rVert = 1$, делая второй член еще одной константой. Следовательно, по свойствам косинуса мы заключаем, что любое $\mathbf{p}_t$, чей угол с $\nabla f(\mathbf{x}_{t-1})$ находится между $\pi/2$ и $3\pi/2$, является направлением спуска. Среди них направление $\mathbf{p}_t = -\nabla f(\mathbf{x}_{t-1})$ (с углом $\pi$) имеет наименьшую возможную производную по направлению, и мы называем его \textbf{направлением наискорейшего спуска}. 
 
-Putting together this insight with the iterative procedure in \eqref{eq:iterative_descent} gives us an algorithm to minimize any differentiable function, that we call \textbf{(steepest) gradient descent}.
+Соединив это понимание с итерационной процедурой в \eqref{eq:iterative_descent}, мы получаем алгоритм для минимизации любой дифференцируемой функции, который мы называем \textbf{(наискорейшим) градиентным спуском}.
 
-\begin{definition}[(Steepest) Gradient descent] \addbottle
-Given a differentiable function $f(\mathbf{x})$, a starting point $\mathbf{x}_0$, and a step size sequence $\eta_t$, \textbf{gradient descent} proceeds as:
+\begin{definition}[(Наискорейший) Градиентный спуск] \addbottle
+Для дифференцируемой функции $f(\mathbf{x})$, начальной точки $\mathbf{x}_0$ и последовательности размеров шага $\eta_t$, \textbf{градиентный спуск} выполняется как:
 %
 \begin{equation}
 \mathbf{x}_{t}=\mathbf{x}_{t-1}-\eta_t\nabla f(\mathbf{x}_{t-1})
@@ -521,138 +521,138 @@ Given a differentiable function $f(\mathbf{x})$, a starting point $\mathbf{x}_0$
 \end{equation}
 \end{definition}
 
-We will not be concerned with the problem of finding an appropriate step size, which we will just assume “small enough” so that the gradient descent iteration provides a reduction in $f$. In the next section we focus on what points are obtained by running gradient descent from a generic initialization. Note that gradient descent is as efficient as the procedure we use to compute the gradient: we introduce a general efficient algorithm to this end in Chapter \ref{chap:automatic_differentiation}.
+Мы не будем заниматься проблемой поиска подходящего размера шага, который мы просто будем считать «достаточно малым», чтобы итерация градиентного спуска обеспечивала уменьшение $f$. В следующем разделе мы сосредоточимся на том, какие точки получаются при запуске градиентного спуска из общей инициализации. Обратите внимание, что градиентный спуск так же эффективен, как и процедура, которую мы используем для вычисления градиента: мы представим общий эффективный алгоритм для этой цели в Главе \ref{chap:automatic_differentiation}.
 
-\subsection{Convergence of gradient descent}
+\subsection{Сходимость градиентного спуска}
 
-When discussing the convergence of gradient descent, we need to clarify what we mean by “a minimizer” of a function. If you do not care about convergence and you trust gradient descent to go well, proceed with no hesitation to the next section.
+При обсуждении сходимости градиентного спуска нам нужно уточнить, что мы имеем в виду под «минимизатором» функции. Если вас не волнует сходимость и вы доверяете градиентному спуску, смело переходите к следующему разделу.
 
-\begin{definition}[Minimum]
-A \textbf{local minimum} of $f(\mathbf{x})$ is a point $\mathbf{x}^+$ such that the following is true for some $\varepsilon > 0$:
+\begin{definition}[Минимум]
+\textbf{Локальный минимум} $f(\mathbf{x})$ — это точка $\mathbf{x}^+$, такая, что для некоторого $\varepsilon > 0$ верно следующее:
 %
 $$
 f(\mathbf{x}^+)\le f(\mathbf{x}) \;\;\; \forall \mathbf{x} \; :\; \eqnmarkbox[drawred]{node}{\lVert \mathbf{x}-\mathbf{x}^+ \rVert <\varepsilon}
 $$
-\annotate[yshift=-1em]{below,left}{node}{Ball of size $\varepsilon$ centered in $\mathbf{x}^+$}
+\annotate[yshift=-1em]{below,left}{node}{Шар размера $\varepsilon$ с центром в $\mathbf{x}^+$}
 
 \end{definition}
 
-In words, the value of $f(\mathbf{x}^+$) is a minimum if we consider a sufficiently small neighborhood of $\mathbf{x}^+$. Intuitively, in such a point the slope of the tangent will be $0$, and the gradient everywhere else in the neighborhood of $\mathbf{x}^+$ will point upwards. We can formalize the first idea by the concept of \textbf{stationary points}.
+Словами, значение $f(\mathbf{x}^+$) является минимумом, если мы рассматриваем достаточно малую окрестность $\mathbf{x}^+$. Интуитивно, в такой точке наклон касательной будет равен $0$, а градиент везде в окрестности $\mathbf{x}^+$ будет указывать вверх. Мы можем формализовать первую идею с помощью концепции \textbf{стационарных точек}.
 
-\begin{definition}[Stationary points]
-    A \textbf{stationary point} of $f(\mathbf{x})$ is a point $\mathbf{x}^+$ such that $\nabla f(\mathbf{x}^+)=0$.
+\begin{definition}[Стационарные точки]
+    \textbf{Стационарная точка} $f(\mathbf{x})$ — это точка $\mathbf{x}^+$, такая, что $\nabla f(\mathbf{x}^+)=0$.
 \end{definition}
 
-Stationary points are not limited to minima: they can be maxima (the minima of $-f(\mathbf{x})$) or \textbf{saddle points}, which are inflexion points where the curvature of the function is changing (see Figure \ref{fig:saddle_point} for an example). In general, without any constraint on $f$, gradient descent can only be proven to converge to a generic stationary point depending on its initialization.
+Стационарные точки не ограничиваются минимумами: они могут быть максимумами (минимумами $-f(\mathbf{x})$) или \textbf{седловыми точками}, которые являются точками перегиба, где кривизна функции меняется (см. Рисунок \ref{fig:saddle_point} для примера). В общем, без каких-либо ограничений на $f$, можно доказать, что градиентный спуск сходится только к общей стационарной точке в зависимости от его инициализации.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.6\textwidth]{images/saddle_point.pdf}
-    \caption{Simple example of a saddle point (try visualizing the tangent line in that point to see it is indeed stationary).}
+    \caption{Простой пример седловой точки (попробуйте представить касательную в этой точке, чтобы увидеть, что она действительно стационарна).}
     \label{fig:saddle_point}
 \end{SCfigure}
 
-Can we do better? Picture a parabola: in this case, the function does not have any saddle points, and it only has a single minimum. This minimum is also special, in the sense that the function in that point attains its lowest possible value across the entire domain: we say this is a \textbf{global minimum}.
+Можем ли мы сделать лучше? Представьте себе параболу: в этом случае у функции нет седловых точек, и у нее есть только один минимум. Этот минимум также особенный, в том смысле, что функция в этой точке достигает своего наименьшего возможного значения во всей области определения: мы говорим, что это \textbf{глобальный минимум}.
 
-\begin{definition}[Global minimum]
-    A \textbf{global minimum} of $f(\mathbf{x})$ is a point $\mathbf{x}^*$ such that $f(\mathbf{x}^*) \le f(\mathbf{x})$ for any possible input $\mathbf{x}$.
+\begin{definition}[Глобальный минимум]
+    \textbf{Глобальный минимум} $f(\mathbf{x})$ — это точка $\mathbf{x}^*$, такая, что $f(\mathbf{x}^*) \le f(\mathbf{x})$ для любого возможного входа $\mathbf{x}$.
 \end{definition}
 
-Intuitively, gradient descent will converge to this global minimum if run on a parabola (from any possible initialization) because all gradients will point towards it. We can generalize this idea with the concept of \textbf{convexity} of a function. There are many possible definitions of convexity, we choose the one below for simplicity of exposition.
+Интуитивно, градиентный спуск сойдется к этому глобальному минимуму, если запустить его на параболе (из любой возможной инициализации), потому что все градиенты будут указывать на него. Мы можем обобщить эту идею с помощью концепции \textbf{выпуклости} функции. Существует много возможных определений выпуклости, мы выберем приведенное ниже для простоты изложения.
 
-\begin{definition}[Convex function]
-    A function $f(\mathbf{x})$ is convex if for any two points $\mathbf{x}_1$ and $\mathbf{x}_2$ and $\alpha \in \left[0,1\right]$ we have:
+\begin{definition}[Выпуклая функция]
+    Функция $f(\mathbf{x})$ является выпуклой, если для любых двух точек $\mathbf{x}_1$ и $\mathbf{x}_2$ и $\alpha \in \left[0,1\right]$ мы имеем:
 
     \vspace{1em}
     \begin{equation}
         f(\eqnmarkbox[drawblue]{node}{\alpha \mathbf{x}_1 + (1-\alpha)\mathbf{x}_2})\le \eqnmarkbox[drawred]{node2}{\alpha f(\mathbf{x}_1)+(1-\alpha)f(\mathbf{x}_2)}
         \label{eq:convex_function}
     \end{equation}
-    \annotate[yshift=-1em]{below,right}{node}{Interval from $\mathbf{x}_1$ to $\mathbf{x}_2$}
-    \annotate[yshift=1em]{above,right}{node2}{Line segment from $f(\mathbf{x}_1)$ to $f(\mathbf{x}_2)$}
+    \annotate[yshift=-1em]{below,right}{node}{Интервал от $\mathbf{x}_1$ до $\mathbf{x}_2$}
+    \annotate[yshift=1em]{above,right}{node2}{Отрезок прямой от $f(\mathbf{x}_1)$ до $f(\mathbf{x}_2)$}
 \end{definition}
 
 \vspace{1em}
-The left-hand side in \eqref{eq:convex_function} is the value of $f$ on any point inside the interval ranging from $\mathbf{x}_1$ to $\mathbf{x}_2$, while the right-hand side is the corresponding value on a line connecting $f(\mathbf{x}_1)$ and $f(\mathbf{x}_2)$. If the function is always below the line joining any two points, it is convex (as an example, a parabola pointing upwards is convex). 
+Левая часть в \eqref{eq:convex_function} — это значение $f$ в любой точке внутри интервала от $\mathbf{x}_1$ до $\mathbf{x}_2$, в то время как правая часть — это соответствующее значение на прямой, соединяющей $f(\mathbf{x}_1)$ и $f(\mathbf{x}_2)$. Если функция всегда находится ниже прямой, соединяющей любые две точки, она выпукла (например, парабола, направленная вверх, выпукла). 
 
-Convexity qualifies the simplicity of optimizing the function, in the following sense \cite{jain2017non}:
+Выпуклость характеризует простоту оптимизации функции в следующем смысле \cite{jain2017non}:
 %
 \begin{enumerate}
-    \item For a generic \textit{non-convex} function, gradient descent converges to a \textit{stationary point}. Nothing more can be said unless we look at higher-order derivatives (derivatives of the derivatives).
-    \item For a \textit{convex} function, gradient descent will converge to a \textit{global minimum}, irrespective of initialization.
-    \item  If the inequality in \eqref{eq:convex_function} is satisfied in a strict way (\textbf{strict convexity}), the global minimizer will also be \textit{unique}.
+    \item Для общей \textit{невыпуклой} функции градиентный спуск сходится к \textit{стационарной точке}. Больше ничего нельзя сказать, если не смотреть на производные более высокого порядка (производные от производных).
+    \item Для \textit{выпуклой} функции градиентный спуск сойдется к \textit{глобальному минимуму}, независимо от инициализации.
+    \item  Если неравенство в \eqref{eq:convex_function} выполняется строго (\textbf{строгая выпуклость}), глобальный минимизатор также будет \textit{единственным}.
 \end{enumerate}
 
-This is a hard property: to find a global minimum in a non-convex problem with gradient descent, the only solution is to run the optimizer infinite times from any possible initialization, turning it into an NP-hard task \cite{jain2017non}.
+Это жесткое свойство: чтобы найти глобальный минимум в невыпуклой задаче с помощью градиентного спуска, единственное решение — запускать оптимизатор бесконечное количество раз из всех возможных инициализаций, превращая это в NP-трудную задачу \cite{jain2017non}.
 
-This discussion has a strong historical significance. As we will see in Chapter \ref{chap:fully_connected_models}, any non-trivial model is non-convex, meaning that its optimization problem may have several stationary points. This is in contrast to alternative algorithms for supervised learning, such as support vector machines, which maintain non-linearity while allowing for convex optimization. Interestingly, complex differentiable models seem to work well even in the face of such restriction, in the sense that their optimization, when started from a reasonable initialization, converge to points with good empirical performance.
+Это обсуждение имеет большое историческое значение. Как мы увидим в Главе \ref{chap:fully_connected_models}, любая нетривиальная модель является невыпуклой, что означает, что ее задача оптимизации может иметь несколько стационарных точек. Это контрастирует с альтернативными алгоритмами для обучения с учителем, такими как машины опорных векторов, которые сохраняют нелинейность, допуская при этом выпуклую оптимизацию. Интересно, что сложные дифференцируемые модели, кажется, хорошо работают даже перед лицом такого ограничения, в том смысле, что их оптимизация, при запуске из разумной инициализации, сходится к точкам с хорошей эмпирической производительностью.
 
-\subsection{Accelerating gradient descent}
-The negative gradient describes the direction of steepest descent, but only in an infinitesimally small neighborhood of the point. As we will see in Chapter \ref{chap:deep_cnns} (where we introduce stochastic optimization), these directions can be extremely noisy, especially when dealing with large models. A variety of techniques have been developed to accelerate convergence of the optimization algorithm by selecting better descent directions. For computational reasons, we are especially interested in methods that do not require higher-order derivatives (e.g., the Hessian), or multiple calls to the function.
+\subsection{Ускорение градиентного спуска}
+Отрицательный градиент описывает направление наискорейшего спуска, но только в бесконечно малой окрестности точки. Как мы увидим в Главе \ref{chap:deep_cnns} (где мы вводим стохастическую оптимизацию), эти направления могут быть чрезвычайно шумными, особенно при работе с большими моделями. Было разработано множество техник для ускорения сходимости алгоритма оптимизации путем выбора лучших направлений спуска. По вычислительным причинам нас особенно интересуют методы, которые не требуют производных более высокого порядка (например, Гессиана) или многократных вызовов функции.
 
-We describe here one such technique, \textbf{momentum}, and we refer to \cite[Chapter 12]{zhang2023dive}, for a broader introduction.\footnote{See also this 2016 blog post by S. Ruder: \url{https://www.ruder.io/optimizing-gradient-descent/}.} If you picture gradient descent as a ball “rolling down a hill”, the movement is relatively erratic, because each gradient can point in a completely different direction (in fact, for a perfect choice of step size and a convex loss function, any two gradients in subsequent iterations will be orthogonal). We can smooth this behavior by introducing a “momentum” term that conserves some direction from the previous gradient iteration:
+Мы опишем здесь одну такую технику, \textbf{момент}, и отсылаем к \cite[Глава 12]{zhang2023dive} для более широкого введения.\footnote{См. также этот пост в блоге С. Рудера 2016 года: \url{https://www.ruder.io/optimizing-gradient-descent/}.} Если вы представляете градиентный спуск как шар, «катящийся с холма», движение относительно хаотично, потому что каждый градиент может указывать в совершенно другом направлении (фактически, при идеальном выборе размера шага и выпуклой функции потерь любые два градиента на последующих итерациях будут ортогональны). Мы можем сгладить это поведение, введя член «момента», который сохраняет некоторое направление от предыдущей итерации градиента:
 
 \begin{align*}
-\mathbf{g}_t& =- \eqnmarkbox[drawred]{node}{\eta_t\nabla f(\mathbf{x}_{t-1})} + \eqnmarkbox[drawblue]{node2}{\lambda\mathbf{g}_{t-1}} \\ 
+\mathbf{g}_t& =- \eqnmarkbox[drawred]{node}{\eta_t\nabla f(\mathbf{x}_{t-1})} + \eqnmarkbox[drawblue]{node2}{\lambda\mathbf{g}_{t-1}} \\
 \mathbf{x}_{t}& =\mathbf{x}_{t-1}+\mathbf{g}_t
 \end{align*}
-\annotate[yshift=1em]{above,right}{node}{Normal gradient descent iteration}
-\annotate[yshift=-1em]{below,right}{node2}{Additional momentum term}
+\annotate[yshift=1em]{above,right}{node}{Обычная итерация градиентного спуска}
+\annotate[yshift=-1em]{below,right}{node2}{Дополнительный член момента}
 
-where we initialize $\mathbf{g}_0 = \mathbf{0}$. See Figure \ref{fig:momentum} for an example. 
+где мы инициализируем $\mathbf{g}_0 = \mathbf{0}$. См. Рисунок \ref{fig:momentum} для примера. 
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.6\textwidth]{images/momentum.pdf}
-    \caption{First iterations of standard GD and GD with momentum when minimizing $f(x)=x\sin(2x)$ starting from $x=1+\varepsilon$, with $\lambda=0.3$.}
+    \caption{Первые итерации стандартного GD и GD с моментом при минимизации $f(x)=x\sin(2x)$, начиная с $x=1+\varepsilon$, с $\lambda=0.3$.}
     \label{fig:momentum}
 \end{SCfigure}
 
-The coefficient $\lambda$ determines how much the previous term is dampened. In fact, unrolling two terms:
+Коэффициент $\lambda$ определяет, насколько сильно затухает предыдущий член. Фактически, разворачивая два члена:
 %
 \begin{gather*}
 \mathbf{g}_t=-\eta_t\nabla f(\mathbf{x}_{t-1}) +\lambda(-\eta_t\nabla f(\mathbf{x}_{t-2}) +\lambda\mathbf{g}_{t-2}) \\ = -\eta_t\nabla f(\mathbf{x}_{t-1}) -\lambda\eta_t\nabla f(\mathbf{x}_{t-2}) +\lambda^2\mathbf{g}_{t-2}
 \end{gather*}
 %
-Generalizing, the iteration at time $t-n$ gets dampened by a factor $\lambda^{n-1}$. Momentum can be shown to accelerate training by smoothing the optimization path \cite{sutskever2013importance}. Another common technique is adapting the step size for each parameter based on the gradients’ magnitude \cite{zhang2023dive}. A common optimization algorithm combining several of these ideas is Adam \cite{kingma2014adam}. One advantage of Adam is that it is found to be relatively robust to the choice of its \textbf{hyper-parameters},\footnote{A hyper-parameter is a parameter which is selected by the user, as opposed to being learnt by gradient descent.} with the default choice in most frameworks being a good starting point in the majority of cases.
+Обобщая, итерация в момент времени $t-n$ затухает с коэффициентом $\lambda^{n-1}$. Можно показать, что момент ускоряет обучение, сглаживая путь оптимизации \cite{sutskever2013importance}. Другой распространенной техникой является адаптация размера шага для каждого параметра на основе величины градиентов \cite{zhang2023dive}. Распространенным алгоритмом оптимизации, сочетающим несколько из этих идей, является Adam \cite{kingma2014adam}. Одним из преимуществ Adam является то, что он оказывается относительно устойчивым к выбору своих \textbf{гиперпараметров},\footnote{Гиперпараметр — это параметр, который выбирается пользователем, в отличие от того, который изучается градиентным спуском.} при этом выбор по умолчанию в большинстве фреймворков является хорошей отправной точкой в большинстве случаев.
 
-One disadvantage of using accelerated optimization algorithms can be increased storage requirements: for example, momentum requires us to store the previous gradient iteration in memory, doubling the space needed by the optimization algorithm (although in most cases, the memory required to compute the gradient is the most influential factor in terms of memory, as we will see in Section \ref{sec:reverse_mode_automatic_differentiation}).
+Одним из недостатков использования ускоренных алгоритмов оптимизации могут быть увеличенные требования к хранению: например, момент требует, чтобы мы хранили предыдущую итерацию градиента в памяти, удваивая пространство, необходимое для алгоритма оптимизации (хотя в большинстве случаев, память, необходимая для вычисления градиента, является наиболее влиятельным фактором с точки зрения памяти, как мы увидим в Разделе \ref{sec:reverse_mode_automatic_differentiation}).
 
 \newpage
-\section*{From theory to practice}
+\section*{От теории к практике}
 
-\begin{supportbox}{About the exercises}
-This book does not have classical end-of-chapter exercises, which are covered in many existing textbooks. By contrast, I describe a self-learning path to help you explore two frameworks (JAX and PyTorch) as you progress in the book. Solutions to the more practical exercises will be published on the book's website.\footnote{\url{https://www.sscardapane.it/alice-book}} These sections are full of URLs linking to online material -- they might be expired or moved by the time you search for them.
+\begin{supportbox}{Об упражнениях}
+В этой книге нет классических упражнений в конце главы, которые рассматриваются во многих существующих учебниках. Вместо этого я описываю путь самообучения, чтобы помочь вам изучить два фреймворка (JAX и PyTorch) по мере продвижения по книге. Решения более практических упражнений будут опубликованы на веб-сайте книги.\footnote{\url{https://www.sscardapane.it/alice-book}} Эти разделы полны URL-ссылок на онлайн-материалы — они могут быть просрочены или перемещены к тому времени, как вы их будете искать.
 \end{supportbox}
 
-\subsection*{Starting from the basics: NumPy}
+\subsection*{Начиная с основ: NumPy}
 
 \begin{wrapfigure}{R}{3.0cm}
 \vspace{-4em}\includegraphics[width=3.0cm]{images/shutterstock_2075221579.jpg}
 \vspace{-2em}
 \end{wrapfigure} 
 
-The starting block for any designer of differentiable models is a careful study of NumPy. NumPy implements a generic set of functions to manipulate multidimensional arrays (what we call \textit{tensors} in the book), as long as functions to index and transform their content. You can read more on the library's quick start.\footnote{\url{https://numpy.org/doc/stable/user/quickstart.html}} You should feel comfortable in handling arrays in NumPy, most notably for their indexing: the {\footnotesize\verb+rougier/numpy-100+}\footnote{\url{https://github.com/rougier/numpy-100}} repository provides a nice, slow-paced series of exercises to test your knowledge.
+Отправной точкой для любого разработчика дифференцируемых моделей является тщательное изучение NumPy. NumPy реализует общий набор функций для манипулирования многомерными массивами (которые мы называем \textit{тензорами} в книге), а также функции для индексации и преобразования их содержимого. Вы можете прочитать больше в кратком руководстве по библиотеке.\footnote{\url{https://numpy.org/doc/stable/user/quickstart.html}} Вы должны чувствовать себя комфортно при работе с массивами в NumPy, особенно с их индексацией: репозиторий {\footnotesize\verb+rougier/numpy-100+}\footnote{\url{https://github.com/rougier/numpy-100}} предоставляет хорошую, медленную серию упражнений для проверки ваших знаний.
 
-\subsection*{Moving to a realistic framework}
+\subsection*{Переход к реалистичному фреймворку}
 
-Despite its influence, NumPy is limited, in particular in his support for parallel hardware such as GPUs (unless additional libraries are used), and for his lack of automatic differentiation (introduced in Chapter \ref{chap:automatic_differentiation}). JAX replicates the NumPy's interface while adding extended hardware support, the automatic computation of gradients, and additional transformations such as the \textbf{vectorized map} (\mintinline{python}{jax.vmap}). Frameworks such as PyTorch also implement a NumPy-like interface at their core, but they make minor adjustments in nomenclature and functionality and they add several high-level utilities for building differentiable models. For the purposes of this chapter, you can skim the documentation of \mintinline{python}{jax.numpy.array} and \mintinline{python}{torch.tensor} to understand how much they have in common with NumPy. For now, you can ignore high-level modules such as \mintinline{python}{torch.nn}. We will have more to say about how these frameworks are designed in Chapter \ref{chap:automatic_differentiation}, after we introduce their gradient computation mechanism.
+Несмотря на свое влияние, NumPy ограничен, в частности, в поддержке параллельного оборудования, такого как GPU (если не используются дополнительные библиотеки), и в отсутствии автоматического дифференцирования (введенного в Главе \ref{chap:automatic_differentiation}). JAX воспроизводит интерфейс NumPy, добавляя расширенную поддержку оборудования, автоматическое вычисление градиентов и дополнительные преобразования, такие как \textbf{векторизованное отображение} (\mintinline{python}{jax.vmap}). Фреймворки, такие как PyTorch, также реализуют NumPy-подобный интерфейс в своей основе, но они вносят незначительные коррективы в номенклатуру и функциональность и добавляют несколько высокоуровневых утилит для построения дифференцируемых моделей. Для целей этой главы вы можете бегло просмотреть документацию \mintinline{python}{jax.numpy.array} и \mintinline{python}{torch.tensor}, чтобы понять, насколько много у них общего с NumPy. Пока вы можете игнорировать высокоуровневые модули, такие как \mintinline{python}{torch.nn}. Мы еще поговорим о том, как спроектированы эти фреймворки, в Главе \ref{chap:automatic_differentiation}, после того как представим их механизм вычисления градиентов.
 
-\subsection*{Implementing a gradient descent algorithm}
+\subsection*{Реализация алгоритма градиентного спуска}
 
-To become proficient with all three frameworks (NumPy, JAX, PyTorch), I suggest to replicate the exercise below thrice -- each variant should only take a few minutes if you know the syntax.  Consider a 2D function $f(\mathbf{x})$, $\mathbf{x} \sim (2)$, where we take the domain to be $[0,10]$:\footnote{I asked ChatGPT to generate a nice function with several minima and maxima. Nothing else in the book is LLM-generated, which I feel is becoming an important disclaimer to make.}
+Чтобы освоиться со всеми тремя фреймворками (NumPy, JAX, PyTorch), я предлагаю повторить приведенное ниже упражнение трижды — каждый вариант должен занять всего несколько минут, если вы знаете синтаксис.  Рассмотрим 2D-функцию $f(\mathbf{x})$, $\mathbf{x} \sim (2)$, где мы принимаем область определения $[0,10]$:\footnote{Я попросил ChatGPT сгенерировать хорошую функцию с несколькими минимумами и максимумами. Больше ничего в книге не сгенерировано БЯМ, что, как мне кажется, становится важным уточнением.}
 %
 \begin{equation*}
     f(\mathbf{x}) = \sin(x_1) \cos(x_2) + \sin(0.5x_1) \cos(0.5x_2)
 \end{equation*}
 %
-Before proceeding in the book, repeat this for each framework:
+Прежде чем продолжить чтение книги, повторите это для каждого фреймворка:
 %
 \begin{enumerate}
-\item Implement the function in a \textbf{vectorized} way, i.e., given a matrix $\mathbf{X} \sim (n,2)$ of $n$ inputs, it should return a vector $f(\mathbf{X}) \sim (n)$ where $\idx{f(\mathbf{X})}{i} = f(\mathbf{X}_i)$.
-\item Implement another function to compute its gradient (hard-coded -- we have not touched automatic differentiation yet).
-\item Write a basic gradient descent procedure and visualize the paths taken by the optimization process from multiple starting points.
-\item Try adding a momentum term and visualizing the norm of the gradients, which should converge to zero as the algorithm moves towards a stationary point.
+\item Реализуйте функцию \textbf{векторизованным} способом, т.е. для матрицы $\mathbf{X} \sim (n,2)$ из $n$ входов она должна возвращать вектор $f(\mathbf{X}) \sim (n)$, где $\idx{f(\mathbf{X})}{i} = f(\mathbf{X}_i)$.
+\item Реализуйте другую функцию для вычисления ее градиента (жестко закодированного — мы еще не касались автоматического дифференцирования).
+\item Напишите базовую процедуру градиентного спуска и визуализируйте пути, пройденные процессом оптимизации из нескольких начальных точек.
+\item Попробуйте добавить член момента и визуализировать норму градиентов, которая должна сходиться к нулю по мере движения алгоритма к стационарной точке.
 \end{enumerate}
 %
-If you are using JAX or PyTorch to solve the exercise, point (3) is a good place to experiment with \mintinline{python}{vmap} for vectorizing a function.
+Если вы используете JAX или PyTorch для решения упражнения, пункт (3) — хорошее место для экспериментов с \mintinline{python}{vmap} для векторизации функции.

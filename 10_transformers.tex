@@ -1,253 +1,253 @@
-\chapter{Transformer models}
+\chapter{Трансформерные модели}
 \label{chap:transformers}
 
-\begin{supportbox}{About this chapter}
-Convolutional models are strong baselines, especially for images and sequences where local relations prevail, but they are limited in handling very long sequences or non-local dependencies between elements of a sequence. In this chapter we introduce another class of models, called transformers, which are designed to overcome such challenges.
+\begin{supportbox}{Об этой главе}
+Свёрточные модели являются сильными базовыми моделями, особенно для изображений и последовательностей, где преобладают локальные отношения, но они ограничены в обработке очень длинных последовательностей или нелокальных зависимостей между элементами последовательности. В этой главе мы представляем другой класс моделей, называемых трансформерами, которые предназначены для преодоления таких проблем.
 \end{supportbox}
 
-\section{Long convolutions and non-local models}
+\section{Длинные свёртки и нелокальные модели}
 
-After the key developments in the period 2012-2016, discussed in the previous chapter, the next important breakthrough in the design of differentiable models came in 2016-2017 with the popularization of the \textbf{transformer} \cite{vaswani2017attention}, an architecture designed to handle efficiently long-range dependencies in natural language processing. Due to its strong scaling laws, the architecture was then extended to other types of data, from images to time-series and graphs, and it is today a state-of-the-art model in many fields due to its very good scaling laws when trained on large amounts of data \cite{kaplan2020scaling,bordes2024introduction}. 
+После ключевых разработок в период 2012-2016 годов, обсуждавшихся в предыдущей главе, следующий важный прорыв в проектировании дифференцируемых моделей произошел в 2016-2017 годах с популяризацией \textbf{трансформера} \cite{vaswani2017attention}, архитектуры, разработанной для эффективной обработки дальних зависимостей в обработке естественного языка. Благодаря своим сильным законам масштабирования, архитектура затем была расширена на другие типы данных, от изображений до временных рядов и графов, и сегодня является самой современной моделью во многих областях благодаря своим очень хорошим законам масштабирования при обучении на больших объемах данных \cite{kaplan2020scaling,bordes2024introduction}. 
 
-As we will see, an interesting aspect of the transformer is a decoupling between the data type (through the use of appropriate tokenizers) and the architecture, which for the most part remains data-agnostic. This opens up several interesting directions, such as simple multimodal architectures and transfer learning strategies. We begin by motivating the core component of the transformer, called the \textbf{multi-head attention} (MHA) layer. We will defer a discussion on the original transformer model from \cite{vaswani2017attention} to the next chapter.
+Как мы увидим, интересный аспект трансформера — это разделение между типом данных (за счет использования соответствующих токенизаторов) и архитектурой, которая по большей части остается агностичной к данным. Это открывает несколько интересных направлений, таких как простые мультимодальные архитектуры и стратегии трансферного обучения. Мы начнем с мотивации основного компонента трансформера, называемого слоем \textbf{многоголовочного внимания} (MHA). Обсуждение оригинальной модели трансформера из \cite{vaswani2017attention} мы отложим до следующей главы.
 
 
-\begin{supportbox}{A bit of history}
-Historically, this chapter is out of order: in 2015, the most common alternative to CNNs for text were \textbf{recurrent neural networks} (RNNs). As an isolated component, MHA was introduced for RNNs \cite{bahdanau2014neural}, before being used as the core component in the transformer model. We cover RNNs and their modern incarnation, linearized RNNs, in Chapter \ref{chap:rnns}. Recently, RNNs have become an attractive competitor to transformers for language modeling.
+\begin{supportbox}{Немного истории}
+Исторически эта глава не по порядку: в 2015 году наиболее распространенной альтернативой СНС для текста были \textbf{рекуррентные нейронные сети} (РНС). Как отдельный компонент, MHA был введен для РНС \cite{bahdanau2014neural}, прежде чем был использован в качестве основного компонента в модели трансформера. Мы рассмотрим РНС и их современное воплощение, линеаризованные РНС, в Главе \ref{chap:rnns}. В последнее время РНС стали привлекательным конкурентом трансформерам для языкового моделирования.
 \end{supportbox}
 
-\subsection{Handling long-range and sparse dependencies}
+\subsection{Обработка дальних и разреженных зависимостей}
 
-Consider these two sentences: 
+Рассмотрим эти два предложения: 
 %
 \begin{quote}
-“\textit{The {\color{drawred}cat} is on the {\color{drawgreen}table}}”
+«\textit{{\color{drawred}Кошка} сидит на {\color{drawgreen}столе}}»
 \end{quote}
 %
-and a longer one:
+и более длинное:
 %
 \begin{quote}
-“\textit{The {\color{drawred}cat}, who belongs to my mother, is on the {\color{drawgreen}table}}”.
+«\textit{{\color{drawred}Кошка}, которая принадлежит моей матери, сидит на {\color{drawgreen}столе}}».
 \end{quote}
 %
-In order to be processed by a differentiable model, the sentences must be tokenized and the tokens embedded as vectors (Chapter \ref{chap:convolutions_beyond_images}). From a semantic point of view, the tokens belonging to the red word ({\color{drawred}cat}) and to the green word ({\color{drawgreen}table}) share a similar dependency in both sentences. However, their relative offset varies in the two cases, and their distance can become arbitrarily large. Hence, dependencies in text can be both \textbf{long-range} and \textbf{input-dependent}.
+Чтобы их можно было обработать дифференцируемой моделью, предложения должны быть токенизированы, а токены вложены в виде векторов (Глава \ref{chap:convolutions_beyond_images}). С семантической точки зрения, токены, принадлежащие красному слову ({\color{drawred}кошка}) и зеленому слову ({\color{drawgreen}стол}), имеют схожую зависимость в обоих предложениях. Однако их относительное смещение в двух случаях различно, и их расстояние может стать сколь угодно большим. Следовательно, зависимости в тексте могут быть как \textbf{дальними}, так и \textbf{зависящими от входа}.
 
-Denote by $\mathbf{X} \sim (n, e)$ a sentence of $n$ tokens embedded in $e$-dimensional vectors and denote by $\mathbf{x}_i$ the $i$th token. We can rewrite a 1D convolution with kernel size $k$ on token $i$ as follows:
+Обозначим через $\mathbf{X} \sim (n, e)$ предложение из $n$ токенов, вложенных в $e$-мерные векторы и обозначим через $\mathbf{x}_i$ $i$-й токен. Мы можем переписать 1D-свёртку с размером ядра $k$ на токене $i$ следующим образом:
 %
 \begin{equation}
 \mathbf{h}_i=\sum_{j=1}^{2k+1}\mathbf{W}_j \mathbf{x}_{i+k+1-j}
 \label{eq:conv_1d}
 \end{equation}
 %
-Each token inside the receptive field is processed with a fixed weight matrix $\mathbf{W}_i$ that only depends on the specific offset $i$. Modeling long-range dependencies inside the layer requires us to increase the receptive field of the layer, increasing the number of parameters linearly in the receptive field. 
+Каждый токен внутри рецептивного поля обрабатывается с помощью фиксированной весовой матрицы $\mathbf{W}_i$, которая зависит только от конкретного смещения $i$. Моделирование дальних зависимостей внутри слоя требует от нас увеличения рецептивного поля слоя, что линейно увеличивает количество параметров в рецептивном поле. 
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\textwidth]{images/convolution_types}
-    \caption{Comparison between different types of convolution for a 1D sequence. We show how one output token (in \colorbox{drawred!30}{red}) interacts with two tokens, one inside the receptive field of the convolution (in \colorbox{drawgreen!30}{green}), and one outside (in \colorbox{drawblue!30}{blue}). (a) In a standard convolution, the blue token is ignored because it is outside of the receptive field of the filter. (b) For a continuous convolution, both tokens are considered, and the resulting weight matrices are given by $g(-1)$ and $g(2)$ respectively. (c) In the non-local case, the weight matrices depend on a pairwise comparison between the tokens themselves.}
+    \caption{Сравнение различных типов свёрток для 1D-последовательности. Мы показываем, как один выходной токен (в {\color{drawred!30}красном}) взаимодействует с двумя токенами, один внутри рецептивного поля свёртки (в {\color{drawgreen!30}зеленом}), а другой снаружи (в {\color{drawblue!30}синем}). (a) В стандартной свёртке синий токен игнорируется, потому что он находится за пределами рецептивного поля фильтра. (b) Для непрерывной свёртки рассматриваются оба токена, и результирующие весовые матрицы задаются как $g(-1)$ и $g(2)$ соответственно. (c) В нелокальном случае весовые матрицы зависят от попарного сравнения самих токенов.}
     \label{fig:biases}
 \end{figure}
 
 
-One possibility to solve this is the following: instead of explicitly learning the parameter matrices $\mathbf{W}_1, \mathbf{W}_2, \ldots$, we can define them \textit{implicitly} by defining a separate neural block $g(i): \mathbb{R} \rightarrow \mathbb{R}^{e \times e}$ that outputs all weight matrices based on the relative offset $i$. Hence, we rewrite \eqref{eq:conv_1d} as:
+Одна из возможностей решить эту проблему заключается в следующем: вместо явного изучения матриц параметров $\mathbf{W}_1, \mathbf{W}_2, \ldots$, мы можем определить их \textit{неявно}, определив отдельный нейронный блок $g(i): \mathbb{R} \rightarrow \mathbb{R}^{e \times e}$, который выводит все весовые матрицы на основе относительного смещения $i$. Следовательно, мы переписываем \eqref{eq:conv_1d} как:
 
 $$
 \mathbf{h}_i=\eqnmarkbox[drawred]{node}{\sum_{j=1}^n} g(i-j)\mathbf{x}_j
 $$
-\annotate[yshift=-1em]{below,right}{node}{The sum is now on \textit{all} tokens}
+\annotate[yshift=-1em]{below,right}{node}{Сумма теперь по \textit{всем} токенам}
 
 \vspace{1em}
-This is called a \textbf{long convolution}, as the convolution spans the entire input matrix $\mathbf{X}$. It is also called a \textbf{continuous convolution} \cite{romero2022towards}, because we can use $g(\cdot)$ to parameterize intermediate positions or variable resolutions \cite{romero2022towards}. The number of parameters in this case only depends on the parameters of $g$, while it does not depend on $n$, the length of the sequence. Defining $g$ is non-trivial because it needs to output an entire weight matrix. We can recover a standard convolution easily:
+Это называется \textbf{длинной свёрткой}, поскольку свёртка охватывает всю входную матрицу $\mathbf{X}$. Это также называется \textbf{непрерывной свёрткой} \cite{romero2022towards}, потому что мы можем использовать $g(\cdot)$ для параметризации промежуточных положений или переменных разрешений \cite{romero2022towards}. Количество параметров в этом случае зависит только от параметров $g$, в то время как оно не зависит от $n$, длины последовательности. Определение $g$ нетривиально, потому что оно должно выводить целую весовую матрицу. Мы можем легко восстановить стандартную свёртку:
 %
 \begin{equation}
-    g(i, j) = \begin{cases} \mathbf{W}_{i-j} & \text{ if } \lvert i - j \rvert \le k \\ 0 & \text{ otherwise } \end{cases}
+    g(i, j) = \begin{cases} \mathbf{W}_{i-j} & \text{ если } \lvert i - j \rvert \le k \\ 0 & \text{ иначе } \end{cases}
 \end{equation}
 %
-This partially solves the problem of long-range dependencies, but it does not solve the problem of dependencies which are conditional on the input, since the weight given to a token depends only on the relative offset with respect to the index $i$. However, this formulation provides a simple way to tackle this problem by letting the trained function $g$ depend on the \textit{content} of the tokens instead of their positions:
+Это частично решает проблему дальних зависимостей, но не решает проблему зависимостей, которые зависят от входа, поскольку вес, придаваемый токену, зависит только от относительного смещения по отношению к индексу $i$. Однако эта формулировка предоставляет простой способ решения этой проблемы, позволяя обученной функции $g$ зависеть от \textit{содержимого} токенов, а не от их положений:
 %
 \begin{equation}
 \mathbf{h}_i=\sum_{j=1}^n {\color{drawred}g(\mathbf{x}_i, \mathbf{x}_j)}\mathbf{x}_j
 \label{eq:nonlocal_convolution}
 \end{equation}
 %
-In the context of computer vision, these models are also called \textbf{non-local} networks \cite{wang2018non}. We provide a comparison of standard convolutions, continuous convolutions, and non-local convolutions in Figure \ref{fig:biases}.
+В контексте компьютерного зрения эти модели также называются \textbf{нелокальными} сетями \cite{wang2018non}. Мы приводим сравнение стандартных свёрток, непрерывных свёрток и нелокальных свёрток на Рисунке \ref{fig:biases}.
 
-\subsection{The attention layer} \addclock
+\subsection{Слой внимания} \addclock
 
-The MHA layer is a simplification of \eqref{eq:nonlocal_convolution}. First, working with functions having matrix outputs is difficult, so we restrict the layer to work with scalar weights. In particular, a simple measure of similarity between tokens is their \textbf{dot-product}:
+Слой MHA является упрощением \eqref{eq:nonlocal_convolution}. Во-первых, работа с функциями, имеющими матричные выходы, сложна, поэтому мы ограничиваем слой работой со скалярными весами. В частности, простой мерой сходства между токенами является их \textbf{скалярное произведение}:
 %
 $$
 g(\mathbf{x}_i, \mathbf{x}_j)=\mathbf{x}_i^\top\mathbf{x}_j
 $$
 %
-As we will see, this results in an easily parallelizable algorithm for the entire sequence. For the following we consider a normalized version of the dot-product:
+Как мы увидим, это приводит к легко распараллеливаемому алгоритму для всей последовательности. Для дальнейшего мы рассмотрим нормализованную версию скалярного произведения:
 %
 $$
 g(\mathbf{x}_i, \mathbf{x}_j)=\frac{1}{\sqrt{e}}\mathbf{x}_i^\top\mathbf{x}_j
 $$
 %
-This can be motivated as follows: if we assume $\mathbf{x}_i \sim \mathcal{N}(0, \sigma^2\mathbf{I})$, the variance of each element of $\mathbf{x}_i^\top\mathbf{x}_j$ is $\sigma^4$, hence the elements can easily grow very large in magnitude. The scaling factor ensures that the variance of the dot product remains bounded at $\sigma^2$.
+Это можно мотивировать следующим образом: если мы предположим, что $\mathbf{x}_i \sim \mathcal{N}(0, \sigma^2\mathbf{I})$, дисперсия каждого элемента $\mathbf{x}_i^\top\mathbf{x}_j$ равна $\sigma^4$, следовательно, элементы могут легко расти по величине. Масштабирующий коэффициент гарантирует, что дисперсия скалярного произведения остается ограниченной на уровне $\sigma^2$.
 
-Because we are summing over a potentially variable number of tokens $n$, it is also helpful to include a normalization operation, such as a softmax:\footnote{The notation $\text{softmax}_j$ in \eqref{eq:pre_self_attention} means we are applying the softmax normalization to the set $\left\{g(\mathbf{x}_i, \mathbf{x}_j)\right\}_{j=1}^n$, independently for each $i$. This is easier to see in the vectorized case, described below.}
+Поскольку мы суммируем по потенциально переменному числу токенов $n$, полезно также включить операцию нормализации, такую как softmax:\footnote{Обозначение $\text{softmax}_j$ в \eqref{eq:pre_self_attention} означает, что мы применяем нормализацию softmax к множеству $\left\{g(\mathbf{x}_i, \mathbf{x}_j)\right\}_{j=1}^n$ независимо для каждого $i$. Это легче увидеть в векторизованном случае, описанном ниже.}
 %
 \begin{equation}
 \mathbf{h}_i=\sum_{j=1}^n {\color{drawgreen}\text{softmax}_j}(g(\mathbf{x}_i, \mathbf{x}_j))\mathbf{x}_j
 \label{eq:pre_self_attention}
 \end{equation}
 
-In this context, we refer to $g(\cdot, \cdot)$ as the \textbf{attention scoring function}, and to the output of the softmax as the \textbf{attention scores}. Because of the normalization properties of the softmax, we can imagine that each token $i$ has a certain amount of “attention” it can allocate across the other tokens: by increasing the budget on a token, the attention over the other tokens will necessarily decrease due to the denominator in the softmax.
+В этом контексте мы называем $g(\cdot, \cdot)$ \textbf{функцией оценки внимания}, а выход softmax — \textbf{оценками внимания}. Из-за свойств нормализации softmax мы можем представить, что каждый токен $i$ имеет определенное количество «внимания», которое он может распределить по другим токенам: увеличивая бюджет на одном токене, внимание к другим токенам обязательно уменьшится из-за знаменателя в softmax.
 
 \vspace{-0.5em}
-If we use a “dot-product attention”, our $g$ does not have trainable parameters. The idea of an attention layer is to recover them by adding trainable projections to the input before computing the previous equation. To this end, we define three trainable matrices ${\color{drawred}\mathbf{W}_k} \sim (k,e)$, ${\color{drawgreen}\mathbf{W}_v} \sim (v,e)$, ${\color{drawblue}\mathbf{W}_q} \sim (k,e)$, where $k$ and $v$ are hyper-parameters. Each token is projected using these three matrices, obtaining $3n$ tokens in total:
+Если мы используем «скалярное произведение внимания», наша функция $g$ не имеет обучаемых параметров. Идея слоя внимания заключается в том, чтобы восстановить их, добавив обучаемые проекции к входу перед вычислением предыдущего уравнения. Для этого мы определяем три обучаемые матрицы ${\color{drawred}\mathbf{W}_k} \sim (k,e)$, ${\color{drawgreen}\mathbf{W}_v} \sim (v,e)$, ${\color{drawblue}\mathbf{W}_q} \sim (k,e)$, где $k$ и $v$ — гиперпараметры. Каждый токен проецируется с помощью этих трех матриц, получая в общей сложности $3n$ токенов:
 %
-\begin{align}\text{Key tokens:} & \;\;\;{\color{drawred}\mathbf{k}_i}=\mathbf{W}_k\mathbf{x}_i \label{eq:keys}\\
-\text{Value tokens:} & \;\;\; {\color{drawgreen}\mathbf{v}_i}=\mathbf{W}_v\mathbf{x}_i  \label{eq:values}\\ 
-\text{Query tokens:} & \;\;\; {\color{drawblue}\mathbf{q}_i}=\mathbf{W}_q\mathbf{x}_i\label{eq:queries}\end{align}
+\begin{align}\text{Токены-ключи:} & \quad\;{\color{drawred}\mathbf{k}_i}=\mathbf{W}_k\mathbf{x}_i \label{eq:keys}\\
+\text{Токены-значения:} & \quad\; {\color{drawgreen}\mathbf{v}_i}=\mathbf{W}_v\mathbf{x}_i  \label{eq:values}\\
+\text{Токены-запросы:} & \quad\; {\color{drawblue}\mathbf{q}_i}=\mathbf{W}_q\mathbf{x}_i\label{eq:queries}\end{align}
 %
-These processed tokens are called the \textbf{keys}, the \textbf{values}, and the \textbf{queries} (you can ignore the choice of terminology for now; we will return on this point at the end of the section). The \textbf{self-attention} (SA)  layer is obtained by combining the three projections \eqref{eq:keys}-\eqref{eq:values}-\eqref{eq:queries} with \eqref{eq:pre_self_attention}:
+Эти обработанные токены называются \textbf{ключами}, \textbf{значениями} и \textbf{запросами} (вы можете пока игнорировать выбор терминологии; мы вернемся к этому вопросу в конце раздела). Слой \textbf{самовнимания} (SA) получается путем объединения трех проекций \eqref{eq:keys}-\eqref{eq:values}-\eqref{eq:queries} с \eqref{eq:pre_self_attention}:
 %
 $$
 \mathbf{h}_i=\sum_{j=1}^n \text{softmax}_j(g({\color{drawblue}\mathbf{q}_i}, {\color{drawred}\mathbf{k}_j}))\mathbf{\color{drawgreen}v_j}
 $$
 %
-Hence, we compute the updated representation of token $i$ by comparing its query to all possible keys, and we use the normalized weights to combine the corresponding value tokens. Note that the dimensionality of keys and queries must be identical, while the dimensionality of the values can be different.
+Следовательно, мы вычисляем обновленное представление токена $i$, сравнивая его запрос со всеми возможными ключами, и используем нормализованные веса для объединения соответствующих токенов-значений. Обратите внимание, что размерность ключей и запросов должна быть одинаковой, в то время как размерность значений может быть разной.
 
-If we use the dot product, we can rewrite the operation of the SA layer compactly for all tokens. To this end, we define three matrices with the stack of all possible keys, queries, and values:
+Если мы используем скалярное произведение, мы можем компактно переписать операцию слоя SA для всех токенов. Для этого мы определяем три матрицы со стеком всех возможных ключей, запросов и значений:
 %
 \begin{align}{\color{drawred}\mathbf{K}}=\mathbf{X}\mathbf{W}_k  \\ {\color{drawgreen}\mathbf{V}}=\mathbf{X}\mathbf{W}_v \\ {\color{drawblue}\mathbf{Q}}=\mathbf{X}\mathbf{W}_q \end{align}
 %
-The three matrices have shape $(n,k)$, $(n,v)$, and $(n,k)$ respectively. As a side note, we can also implement them as a single matrix multiplication whose output is chunked in three parts:
+Три матрицы имеют форму $(n,k)$, $(n,v)$ и $(n,k)$ соответственно. В качестве примечания, мы также можем реализовать их как одно умножение матриц, выход которого разделен на три части:
 %
 $$
 \begin{bmatrix}\mathbf{K} \\ \mathbf{V} \\  \mathbf{Q} \end{bmatrix} = \mathbf{X}\begin{bmatrix} \mathbf{W}_k  \\ \mathbf{W}_v \\ \mathbf{W}_q \end{bmatrix}
 $$
 %
-The SA layer is then written as:
+Слой SA тогда записывается как:
 %
 $$
 \text{SA}(\mathbf{X})=\text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^\top}{\sqrt{k}}\right)\mathbf{V}
 $$
 %
-where we assume the softmax is applied row-wise. We can also make the projections explicit, as follows.
+где мы предполагаем, что softmax применяется построчно. Мы также можем сделать проекции явными, как показано ниже.
 
-\begin{definition}[Self-attention layer] \addbottle
-The \textbf{self-attention} (SA) layer is defined for an input $\mathbf{X} \sim (n,e)$ as:
+\begin{definition}[Слой самовнимания] \addbottle
+Слой \textbf{самовнимания} (SA) определяется для входа $\mathbf{X} \sim (n,e)$ как:
 %
 \begin{equation}
 \textnormal{SA}(\mathbf{X})=\textnormal{softmax}\left(\frac{\mathbf{X}\mathbf{W}_q\mathbf{W}_k^\top\mathbf{X}^\top}{\sqrt{k}}\right)\mathbf{X}\mathbf{W}_v
 \end{equation}
 %
-The trainable parameters are $\mathbf{W}_q \sim (k,e)$, $\mathbf{W}_k \sim (k,e)$ and $\mathbf{W}_v \sim (v,e)$, where $k$ and $v$ are hyper-parameters. Hence, there are $k(2e + v)$ trainable parameters, independent of $n$.
+Обучаемыми параметрами являются $\mathbf{W}_q \sim (k,e)$, $\mathbf{W}_k \sim (k,e)$ и $\mathbf{W}_v \sim (v,e)$, где $k$ и $v$ — гиперпараметры. Следовательно, имеется $k(2e + v)$ обучаемых параметров, не зависящих от $n$.
 %
 \end{definition}
 %
-We show the operation of the layer visually in Figure \ref{fig:self_attention}.
+Мы показываем работу слоя визуально на Рисунке \ref{fig:self_attention}.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.9\textwidth]{images/attention-1}
-    \caption{Visualization of the main operations of the SA layer (excluding projections).}
+    \caption{Визуализация основных операций слоя SA (за исключением проекций).}
     \label{fig:self_attention}
 \end{figure}
 
 
-\subsection{Multi-head attention}
+\subsection{Многоголовочное внимание}
 \label{subsec:multi_head_attention}
 
-The previous layer is also called a \textbf{single-head} attention operation. It allows to model pairwise dependencies across tokens with high flexibility. However, in some cases we may have multiple sets of dependencies to consider: taking again the example of “\textit{the cat, which belongs to my mother, is on the table}”, the dependencies between “\textit{cat}” and “\textit{table}” are different with respect to the dependencies between “\textit{cat}” and “\textit{mother}”, and we may want the layer to be able to model them separately.\footnote{And everything depends on the cat, of course.}
+Предыдущий слой также называется операцией внимания с \textbf{одной головой}. Он позволяет моделировать попарные зависимости между токенами с высокой гибкостью. Однако в некоторых случаях у нас может быть несколько наборов зависимостей для рассмотрения: снова взяв пример «\textit{кошка, которая принадлежит моей матери, сидит на столе}», зависимости между «\textit{кошкой}» и «\textit{столом}» отличаются от зависимостей между «\textit{кошкой}» и «\textit{матерью}», и мы можем захотеть, чтобы слой мог моделировать их отдельно.\footnote{И все зависит от кошки, конечно.}
 
-A multi-head layer achieves this by running multiple attention operations in parallel, each with its own set of trainable parameters, before aggregating the results with some pooling operation. To this end, we define a new hyper-parameter $h$, that we call the number of \textbf{heads} of the layer. We instantiate $h$ separate projections for the tokens, for a total of $3hn$ tokens ($3n$ for each “head”):
+Многоголовочный слой достигает этого, запуская несколько операций внимания параллельно, каждая со своим набором обучаемых параметров, перед агрегацией результатов с помощью некоторой операции пулинга. Для этого мы определяем новый гиперпараметр $h$, который мы называем количеством \textbf{голов} слоя. Мы инстанцируем $h$ отдельных проекций для токенов, всего $3hn$ токенов ($3n$ для каждой «головы»):
 %
 \begin{align}\mathbf{K}_e=\mathbf{X}\mathbf{W}_{k,e} \\ 
 \mathbf{V}_e=\mathbf{X}\mathbf{W}_{v,e} \\ 
 \mathbf{Q}_e=\mathbf{X} \mathbf{W}_{q,e}
 \end{align}
 %
-$\mathbf{W}_{k,e}$ represents the key projection for the $e$-th head, and similarly for the other quantities. The \textbf{multi-head attention} (MHA) layer performs $h$ separate SA operations, stacks the resulting output embeddings, and projects them a final time to the desired dimensionality:
+$\mathbf{W}_{k,e}$ представляет проекцию ключа для $e$-й головы, и аналогично для других величин. Слой \textbf{многоголовочного внимания} (MHA) выполняет $h$ отдельных операций SA, объединяет результирующие выходные вложения и проецирует их в последний раз в желаемую размерность:
 
 \vspace{1em}
 \begin{equation}
 \text{MHA}(\mathbf{X})=\begin{bmatrix}\eqnmarkbox[drawred]{node}{\text{softmax}\left(\frac{\mathbf{Q}_1\mathbf{K}_1^\top}{\sqrt{k}}\right)\mathbf{V}_1} \;\mathbin\Vert\; \ldots \; \mathbin\Vert\;\text{softmax}\left(\frac{\mathbf{Q}_h\mathbf{K}_h^\top}{\sqrt{k}}\right)\mathbf{V}_h\end{bmatrix}\eqnmarkbox[drawgreen]{node2}{\mathbf{W}_o}
 \label{eq:mha_explicit}
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{Individual SA layer}
-\annotate[yshift=-1em]{below,left}{node2}{Output projection}
+\annotate[yshift=1em]{above,right}{node}{Отдельный слой SA}
+\annotate[yshift=-1em]{below,left}{node2}{Выходная проекция}
 
 \vspace{0.5em}
-Each SA operation returns a matrix of shape $(n,v)$. These $h$ matrices are concatenated across the second dimension to obtain a matrix $(n,hv)$, which is then projected with a matrix $\mathbf{W}_o \sim (o,hv)$, where $o$ is an additional hyper-parameter allowing flexibility in the choice of the output dimensionality.
+Каждая операция SA возвращает матрицу формы $(n,v)$. Эти $h$ матриц объединяются по второму измерению, чтобы получить матрицу $(n,hv)$, которая затем проецируется с помощью матрицы $\mathbf{W}_o \sim (o,hv)$, где $o$ — дополнительный гиперпараметр, обеспечивающий гибкость в выборе выходной размерности.
 
-\subsection*{An explanation of the terminology} 
+\subsection*{Объяснение терминологии} 
 
-In order to understand why the three tokens are called queries, keys, and values, \addteacup we consider the analogy of a SA layer with a standard Python dictionary, which is shown in Box \ref{code:dictionary}. 
+Чтобы понять, почему три токена называются запросами, ключами и значениями, \addteacup мы рассмотрим аналогию слоя SA со стандартным словарем Python, который показан в Листинге \ref{code:dictionary}. 
 
-\begin{mypy}{A dictionary in Python: a value is returned only if a perfect key-query match is found. Otherwise, we get an error.}{code:dictionary}
+\begin{mypy}{Словарь в Python: значение возвращается только в том случае, если найдено точное совпадение ключа и запроса. В противном случае мы получаем ошибку.}{code:dictionary}
 d = dict()
-d["Simone"] = 2
-d["Simone"]       # Returns 2
-d["Smone "]       # Returns an error
+d["Симоне"] = 2
+d["Симоне"]       # Возвращает 2
+d["Смоне "]       # Возвращает ошибку
 \end{mypy}
 
-Formally, a dictionary is a set of pairs of the form (key, value), where the key acts as an univocal ID to retrieve the corresponding value. For example, in the third and fourth line of Box \ref{code:dictionary} we query the dictionary with two different strings (“\textit{Simone}” and “\textit{Smone }”): the dictionary compares the query string to all keys which are stored inside, returning the corresponding value if a perfect match is found, an error otherwise.
+Формально, словарь — это набор пар вида (ключ, значение), где ключ действует как уникальный идентификатор для извлечения соответствующего значения. Например, в третьей и четвертой строках Листинга \ref{code:dictionary} мы запрашиваем словарь с двумя разными строками («\textit{Симоне}» и «\textit{Смоне }»): словарь сравнивает строку запроса со всеми ключами, которые хранятся внутри, возвращая соответствующее значение, если найдено точное совпадение, и ошибку в противном случае.
 
-Given a measure of similarity over pair of keys, we can consider a variant of a standard dictionary which always returns the value corresponding to the closest key found in the dictionary. If the keys, queries, and values are vectors, this dictionary variant is equivalent to our SA layer if we replace the softmax operation with an argmax over the tokens, as shown in Figure \ref{fig:hard_attention}.
+Для меры сходства пар ключей мы можем рассмотреть вариант стандартного словаря, который всегда возвращает значение, соответствующее ближайшему ключу, найденному в словаре. Если ключи, запросы и значения являются векторами, этот вариант словаря эквивалентен нашему слою SA, если мы заменим операцию softmax на argmax по токенам, как показано на Рисунке \ref{fig:hard_attention}.
 
-This “hard” variant of attention is difficult to implement because the gradients of the argmax operation are zero almost everywhere (we will cover discrete sampling and approximating the argmax operation with a discrete relaxation in the next volume). Hence, we can interpret the SA layer as a soft approximation in which each token is updated with a weighted combination of all values based on the corresponding key/query similarities.
+Этот «жесткий» вариант внимания трудно реализовать, потому что градиенты операции argmax почти везде равны нулю (мы рассмотрим дискретную выборку и аппроксимацию операции argmax с помощью дискретной релаксации в следующем томе). Следовательно, мы можем интерпретировать слой SA как мягкую аппроксимацию, в которой каждый токен обновляется взвешенной комбинацией всех значений на основе соответствующих сходств ключ/запрос.
 
 \begin{figure}[t]
     \centering
     \includegraphics[width=1.0\textwidth]{images/attention-2}
-    \caption{SA with a “hard” attention is equivalent to a vector-valued dictionary.}
+    \caption{SA с «жестким» вниманием эквивалентен векторнозначному словарю.}
     \label{fig:hard_attention}
 \end{figure}
 
-\begin{supportbox}{Heads and circuits}
+\begin{supportbox}{Головы и схемы}
 
-We will see shortly that the MHA layer is always combined with a residual connection (Section \ref{sec:residual_connections}). In this case we can write its output for the $i$-th token as:
+Вскоре мы увидим, что слой MHA всегда комбинируется с остаточным соединением (Раздел \ref{sec:residual_connections}). В этом случае мы можем записать его выход для $i$-го токена как:
 
 \vspace{2em}
 \begin{equation}
 \mathbf{x}_i \leftarrow \mathbf{x}_i + \eqnmarkbox[drawred]{node}{\sum_e} \eqnmarkbox[drawgreen]{node2}{\sum_j} \alpha_e(\mathbf{x}_i, \mathbf{x}_j)\mathbf{W}_e^\top \mathbf{x}_j
 \end{equation}
-\annotate[yshift=1em]{above,right}{node}{Sum over heads}
-\annotate[yshift=-1em]{below,right}{node2}{Sum over tokens}
+\annotate[yshift=1em]{above,right}{node}{Сумма по головам}
+\annotate[yshift=-1em]{below,right}{node2}{Сумма по токенам}
 
 \vspace{2em}
-where $\alpha_e(\mathbf{x}_i, \mathbf{x}_j)$ is the attention score between tokens $i$ and $j$ in head $e$, and $\mathbf{W}_e$ combines the value projection of the $e$-th head with the $e$-th block of the output projection in \eqref{eq:mha_explicit}. The token embeddings are sometimes called the \textbf{residual stream} of the model.\footnote{This has been popularized in the context of \textbf{mechanistic interpretability}, which tries to retro-engineer the layers' behaviour to find interpretable components called \textit{circuits}: \url{https://transformer-circuits.pub}. The linearity of the stream is fundamental for the analisys.} Hence, the heads can be understood as “reading” from the residual stream (via the projection by $\mathbf{W}_e$ and the selection via the attention scores), and linearly “writing” back on the streams.
+где $\alpha_e(\mathbf{x}_i, \mathbf{x}_j)$ — это оценка внимания между токенами $i$ и $j$ в голове $e$, а $\mathbf{W}_e$ объединяет проекцию значения $e$-й головы с $e$-м блоком выходной проекции в \eqref{eq:mha_explicit}. Вложения токенов иногда называют \textbf{остаточным потоком} модели.\footnote{Это было популяризировано в контексте \textbf{механистической интерпретируемости}, которая пытается реконструировать поведение слоев, чтобы найти интерпретируемые компоненты, называемые \textit{схемами}: \url{https://transformer-circuits.pub}. Линейность потока является фундаментальной для анализа.} Следовательно, головы можно понимать как «чтение» из остаточного потока (через проекцию $\mathbf{W}_e$ и выбор через оценки внимания) и линейное «записывание» обратно в потоки.
 \end{supportbox}
 
-\section{Positional embeddings}
+\section{Позиционные вложения}
 \label{sec:positional_embeddings}
 
-With the MHA layer in hand, we consider the design of the complete transformer model, which requires another component, positional embeddings.
+Имея слой MHA, мы рассмотрим проектирование полной модели трансформера, которая требует еще одного компонента, позиционных вложений.
 
-\subsection{Permutation equivariance of the MHA layer}
+\subsection{Перестановочная эквивариантность слоя MHA}
 
-It is interesting to consider what happens to the output of a MHA layer when the order of the tokens is re-arranged (\textit{permuted}). To formalize this, we introduce the concept of \textbf{permutation matrices}.
+Интересно рассмотреть, что происходит с выходом слоя MHA, когда порядок токенов переупорядочивается (\textit{переставляется}). Чтобы формализовать это, мы вводим понятие \textbf{матриц перестановок}.
 
-\begin{definition}[Permutation matrix]
-A \textbf{permutation matrix} of size $n$ is a square binary matrix $\mathbf{P} \sim \text{Binary}(n,n)$ such that only a single 1 is present on each row or column:
+\begin{definition}[Матрица перестановки]
+\textbf{Матрица перестановки} размера $n$ — это квадратная бинарная матрица $\mathbf{P} \sim \text{Binary}(n,n)$, такая, что в каждой строке или столбце присутствует только одна $1$:
 
 $$
 \mathbf{1}^\top\mathbf{P}=\mathbf{1},\;\; \mathbf{P}\mathbf{1}=\mathbf{1}
 $$
 
-If we remove the requirement for the matrix to have binary entries and we only constrain the entries to be non-negative, we obtain the set of \textbf{doubly stochastic} matrices (matrices whose rows and columns sum to one).
+Если мы уберем требование, чтобы матрица имела двоичные элементы, и ограничим элементы только неотрицательными, мы получим множество \textbf{дважды стохастических} матриц (матриц, у которых строки и столбцы суммируются в единицу).
 
 \end{definition}
 
-The effect of applying a permutation matrix is to rearrange the corresponding rows / columns of a matrix. For example, consider the following permutation:
+Эффект применения матрицы перестановки заключается в переупорядочивании соответствующих строк/столбцов матрицы. Например, рассмотрим следующую перестановку:
 
 $$
 \mathbf{P}=\begin{bmatrix} 1 & 0 & 0 \\ 0 & 0 & 1 \\ 0 & 1 & 0 \end{bmatrix}
 $$
 
-Looking at the rows, we see that the second and third elements are swapped by its application:
+Глядя на строки, мы видим, что второй и третий элементы меняются местами при ее применении:
 
 $$
 \mathbf{P}\begin{bmatrix} {\color{drawred}\mathbf{x}_1} \\ {\color{drawgreen}\mathbf{x}_2} \\ {\color{drawblue}\mathbf{x}_3} \end{bmatrix} = \begin{bmatrix} {\color{drawred}\mathbf{x}_1} \\ {\color{drawblue}\mathbf{x}_3}  \\ {\color{drawgreen}\mathbf{x}_2}\end{bmatrix}
 $$
 
-Interestingly, the only effect of applying a permutation matrix to the inputs of a MHA layer is to rearrange the outputs of the layer in an equivalent way:
+Интересно, что единственным эффектом применения матрицы перестановки к входам слоя MHA является переупорядочивание выходов слоя эквивалентным образом:
 
 $$
 \text{MHA}(\mathbf{P}\mathbf{X})=\mathbf{P}\,\cdot\,\text{MHA}(\mathbf{X})
@@ -256,201 +256,202 @@ $$
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.95\textwidth]{images/permutation_equivariance}
-    \caption{The output of a MHA layer after permuting the ordering of the tokens is trivially the permutation of the original outputs.}
+    \caption{Выход слоя MHA после перестановки порядка токенов тривиально является перестановкой исходных выходов.}
     \label{fig:permutation_equivariance_mha}
 \end{figure}
 
-This is immediate to prove. We focus on the single headed variant as the multi-headed variant proceeds similarly. First, the softmax renormalizes the elements over the columns of a matrix, so it is trivially permutation equivariant across both rows and columns:
+Это немедленно доказывается. Мы сосредоточимся на варианте с одной головой, поскольку вариант с несколькими головами аналогичен. Во-первых, softmax перенормирует элементы по столбцам матрицы, поэтому он тривиально перестановочно эквивариантен как по строкам, так и по столбцам:
 
 $$
 \text{softmax}(\mathbf{P}\mathbf{X}\mathbf{P}^\top)=\mathbf{P}\left[\text{softmax}(\mathbf{X})\right]\mathbf{P}^\top
 $$
 
-From this we can immediately deduce the positional equivariance of SA:
+Из этого мы можем немедленно вывести позиционную эквивариантность SA:
 
 \begin{gather}
-\text{SA}(\mathbf{P}\mathbf{X}) = \text{softmax}\left(\mathbf{P}\frac{\mathbf{X}\mathbf{W}_q\mathbf{W}_k^\top\mathbf{X}^\top}{\sqrt{k}}\mathbf{P}^\top\right)\mathbf{P}\mathbf{X}\mathbf{W}_v \\ = \mathbf{P}\text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_q\mathbf{W}_k^\top\mathbf{X}^\top}{\sqrt{k}}\right)\mathbf{X}\mathbf{W}_v = \mathbf{P}\cdot\text{SA}(\mathbf{X})
+\text{SA}(\mathbf{P}\mathbf{X}) = \text{softmax}\left(\mathbf{P}\frac{\mathbf{X}\mathbf{W}_q\mathbf{W}_k^\top\mathbf{X}^\top}{\sqrt{k}}\mathbf{P}^\top\right)\mathbf{P}\mathbf{X}\mathbf{W}_v \\
+= \mathbf{P}\text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_q\mathbf{W}_k^\top\mathbf{X}^\top}{\sqrt{k}}\right)\mathbf{X}\mathbf{W}_v = \mathbf{P}\cdot\text{SA}(\mathbf{X})
 \end{gather}
 
-where we make use of the fact that $\mathbf{P}^\top \mathbf{P} = \mathbf{I}$ for any permutation matrix. This can also be seen by reasoning on the SA layer for each token: the output is given by a sum of elements, each weighted by a pairwise comparison. Hence, for a given token the operation is \textbf{permutation invariant}. Instead, for the entire input matrix, the operation is \textbf{permutation equivariant}.
+где мы используем тот факт, что $\mathbf{P}^\top \mathbf{P} = \mathbf{I}$ для любой матрицы перестановки. Это также можно увидеть, рассуждая о слое SA для каждого токена: выход задается суммой элементов, каждый из которых взвешен попарным сравнением. Следовательно, для данного токена операция является \textbf{перестановочно инвариантной}. Вместо этого, для всей входной матрицы операция является \textbf{перестановочно эквивариантной}.
 
-Translational equivariance was a desirable property for a convolutional layer, but permutation equivariance is \textit{undesirable} (at least here), because it discards the valuable ordering of the input sequence. As an example, the only effect of processing a text whose tokens have been reversed would be to reverse the output of the layer, despite the fact that the resulting reversed input is probably invalid. Formally, the SA and MHA layers are set functions, not sequence functions.
+Трансляционная эквивариантность была желательным свойством для свёрточного слоя, но перестановочная эквивариантность \textit{нежелательна} (по крайней мере, здесь), потому что она отбрасывает ценный порядок входной последовательности. В качестве примера, единственным эффектом обработки текста, токены которого были перевернуты, будет переворот выхода слоя, несмотря на то, что результирующий перевернутый вход, вероятно, недействителен. Формально, слои SA и MHA являются функциями множеств, а не функциями последовательностей.
 
-Instead of modifying the layer or adding layers that are not permutation equivariant, the transformer operates by introducing the new concept of \textbf{positional embeddings}, which are auxiliary tokens that depend only on the position of a token in a sequence (\textbf{absolute positional embeddings}) or the offset of two tokens (\textbf{relative positional embeddings}). We describe the two in turn.
+Вместо того, чтобы изменять слой или добавлять слои, которые не являются перестановочно эквивариантными, трансформер работает, вводя новую концепцию \textbf{позиционных вложений}, которые являются вспомогательными токенами, зависящими только от положения токена в последовательности (\textbf{абсолютные позиционные вложения}) или смещения двух токенов (\textbf{относительные позиционные вложения}). Мы опишем их по очереди.
 
-\subsection{Absolute positional embeddings}
+\subsection{Абсолютные позиционные вложения}
 
-Each token in the input matrix $\mathbf{X} \sim (n,e)$ represents the \textit{content} of the specific piece of text (e.g., a subword). Suppose we fix the maximum length of any sequence to $m$ tokens. To overcome positional equivariance, we introduce an additional set of \textbf{positional embeddings} $\mathbf{S} \sim (m,e)$, where the vector $\mathbf{S}_i$ uniquely encodes the concept of “being in position $i$”. Hence, the sum of the input matrix with the first rows of $\mathbf{S}$:
+Каждый токен во входной матрице $\mathbf{X} \sim (n,e)$ представляет \textit{содержимое} конкретного фрагмента текста (например, подслова). Предположим, мы фиксируем максимальную длину любой последовательности в $m$ токенов. Чтобы преодолеть перестановочную эквивариантность, мы вводим дополнительный набор \textbf{позиционных вложений} $\mathbf{S} \sim (m,e)$, где вектор $\mathbf{S}_i$ однозначно кодирует понятие «находиться в позиции $i$». Следовательно, сумма входной матрицы с первыми строками $\mathbf{S}$:
 %
 $$
 \mathbf{X}^\prime =  \mathbf{X} + \mathbf{S}_{1:n}
 $$
 %
-is such that $\idx{\mathbf{X}^\prime}{i}$ represents “token $\mathbf{X}_i$ in position $i$”.
+такова, что $\idx{\mathbf{X}^\prime}{i}$ представляет «токен $\mathbf{X}_i$ в позиции $i$».
 %
-Because it does not make sense to permute the positional embeddings (as they only depend on the position), the resulting layer is not permutation equivariant anymore:
+Поскольку нет смысла переставлять позиционные вложения (поскольку они зависят только от положения), результирующий слой больше не является перестановочно эквивариантным:
 %
 $$
 \text{MHA}(\mathbf{P}\mathbf{X} + \mathbf{S}) \neq \mathbf{P}\,\cdot\,\text{MHA}(\mathbf{X}+\mathbf{S})
 $$
 %
-See Figure \ref{fig:positional_embeddings} for a visualization of this idea. 
+См. Рисунок \ref{fig:positional_embeddings} для визуализации этой идеи. 
 
 \begin{SCfigure}[1.5]
     \centering
     \includegraphics[width=0.6\textwidth]{images/positional_embeddings}
-    \caption{Positional embeddings (\colorbox{drawgreen!30}{green}) added to the  tokens' embeddings (\colorbox{drawred!30}{red}). The same token in different positions has different outputs (\colorbox{drawblue!30}{blue}).}
+    \caption{Позиционные вложения ({\color{drawgreen!30}зеленый}) добавляются к вложениям токенов ({\color{drawred!30}красный}). Один и тот же токен в разных позициях имеет разные выходы ({\color{drawblue!30}синий}).}
     \label{fig:positional_embeddings}
 \end{SCfigure}
 
-How should we build positional embeddings? The easiest strategy is to consider $\mathbf{S}$ as part of the model's parameters, and train it together with the rest of the trainable parameters, similarly to the token embeddings. This strategy works well  when the number of tokens is relatively stable; we will see an example in the next chapter in the context of computer vision.
+Как нам построить позиционные вложения? Самая простая стратегия — рассматривать $\mathbf{S}$ как часть параметров модели и обучать его вместе с остальными обучаемыми параметрами, аналогично вложениям токенов. Эта стратегия хорошо работает, когда количество токенов относительно стабильно; мы увидим пример в следующей главе в контексте компьютерного зрения.
 
-Alternatively, we can define some deterministic function from the set of tokens' positions to a given vector that uniquely identifies the position. Some strategies are clearly poor choices, for example:
+В качестве альтернативы мы можем определить некоторую детерминированную функцию из множества позиций токенов в заданный вектор, который однозначно идентифицирует позицию. Некоторые стратегии явно являются плохим выбором, например:
 %
 \begin{enumerate}
-\item We can associate to each position a scalar $p=i/m$ which is linearly increasing with the position. However, adding a single scalar to the token embeddings has a minor effect.
-\item We can one-hot encode the position into a binary vector of size $m$, but the resulting vector would be extremely sparse and high-dimensional.
+\item Мы можем связать с каждой позицией скаляр $p=i/m$, который линейно возрастает с позицией. Однако добавление одного скаляра к вложениям токенов оказывает незначительное влияние.
+\item Мы можем one-hot закодировать позицию в двоичный вектор размера $m$, но результирующий вектор будет чрезвычайно разреженным и высокоразмерным.
 \end{enumerate}
 %
-A possibility, introduced in the original transformer paper \cite{vaswani2017attention}, is that of \textbf{sinusoidal embeddings}. To understand them, consider a sine function:
+Возможность, представленная в оригинальной статье о трансформере \cite{vaswani2017attention}, — это \textbf{синусоидальные вложения}. Чтобы понять их, рассмотрим синусоидальную функцию:
 %
 $$
 y=\sin(x)
 $$
 %
-The sine assigns a unique value to any input $x$ inside the range $[0, 2\pi]$. We can also vary the frequency of the sine:
+Синус присваивает уникальное значение любому входу $x$ в диапазоне $[0, 2\pi]$. Мы также можем изменять частоту синуса:
 %
 $$
 y=\sin(\omega x)
 $$
 %
-This oscillates more or less rapidly based on the frequency $\omega$, and it assigns a unique value to any input in the range $[0, \frac{2\pi}{\omega}]$. There is an analogy with an (analogical) clock: the seconds' hand makes a full rotation with a frequency of $\frac{1}{60}$ Hz (once every minute). Hence, every “point in time” inside a minute can be distinguished by looking at the hand, but two time instants in general can only be identified modulo 60 seconds. We overcome this in a clock by adding a separate hand (the minute hand) that rotates with a much slower frequency of $\frac{1}{3600}$ Hz. Hence, by looking at the pair of coordinates (second, minute) (the “embedding” of time) we can distinguish any point inside an hour. Adding yet another hand with an even slower frequency (the hour hand) we can distinguish any point inside a day. This can be generalized: we could design clocks with lower or higher frequencies to distinguish months, years, or milliseconds.
+Он колеблется более или менее быстро в зависимости от частоты $\omega$ и присваивает уникальное значение любому входу в диапазоне $[0, \frac{2\pi}{\omega}]$. Существует аналогия с (аналоговыми) часами: секундная стрелка совершает полный оборот с частотой $\frac{1}{60}$ Гц (один раз в минуту). Следовательно, каждый «момент времени» в течение минуты можно различить, глядя на стрелку, но два момента времени в общем можно идентифицировать только с точностью до 60 секунд. Мы преодолеваем это в часах, добавляя отдельную стрелку (минутную), которая вращается с гораздо меньшей частотой $\frac{1}{3600}$ Гц. Следовательно, глядя на пару координат (секунда, минута) («вложение» времени), мы можем различить любую точку в течение часа. Добавляя еще одну стрелку с еще меньшей частотой (часовую), мы можем различить любую точку в течение дня. Это можно обобщить: мы могли бы спроектировать часы с более низкими или более высокими частотами для различения месяцев, лет или миллисекунд.
 
-A similar strategy can be applied here: we can distinguish each position $i$ by encoding it through a set of $e$ sines (with $e$ an hyper-parameter) of increasing frequencies:
+Аналогичную стратегию можно применить и здесь: мы можем различать каждую позицию $i$, кодируя ее через набор из $e$ синусов (где $e$ — гиперпараметр) с возрастающими частотами:
 %
 $$
 \mathbf{S}_i=\left[ \sin(\omega_1i), \sin(\omega_2i),\ldots,\sin(\omega_ei) \right]
 $$
 %
-In practice, the original proposal from \cite{vaswani2017attention} uses only $e/2$ possible frequencies, but adds both sines and cosines:
+На практике исходное предложение из \cite{vaswani2017attention} использует только $e/2$ возможных частот, но добавляет как синусы, так и косинусы:
 %
 $$
 \mathbf{S}_i=\left[ \sin(\omega_1i), \cos(\omega_1i),\sin(\omega_2i), \cos(\omega_2i),\ldots,\sin(\omega_{e/2}i), \cos(\omega_{e/2}i) \right]
 $$
 %
-This can be justified by noting that in this embedding, two positions are related via a simple linear transformation, a rotation, that depends only on the relative offset of the two positions.\footnote{See \url{https://kazemnejad.com/blog/transformer_architecture_positional_encoding/} for a worked-out computation.} Any choice of frequency is valid provided they are sufficiently large and increasing at a super-linear rate. The choice from \cite{vaswani2017attention} was a geometric progression:
+Это можно оправдать, заметив, что в этом вложении две позиции связаны простым линейным преобразованием, вращением, которое зависит только от относительного смещения двух позиций.\footnote{См. \url{https://kazemnejad.com/blog/transformer_architecture_positional_encoding/} для подробного вычисления.} Любой выбор частоты действителен при условии, что они достаточно велики и возрастают со сверхлинейной скоростью. Выбор из \cite{vaswani2017attention} был геометрической прогрессией:
 %
 $$
 \omega_i=\frac{1}{10000^{i/e}}
 $$
 %
-that varies from $\omega_0=1$ to $\omega_e=\frac{1}{10000}$. See Figure \ref{fig:positional_embeddings_plot} for a visualization.
+которая изменяется от $\omega_0=1$ до $\omega_e=\frac{1}{10000}$. См. Рисунок \ref{fig:positional_embeddings_plot} для визуализации.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.6\textwidth]{images/positional_embeddings_plot}
-    \caption{We show three $\sin$ functions with $\omega=0.1$, $\omega=1$, and $\omega=10$. The embedding for position $x=6$ is given by the corresponding values (red circles).}
+    \caption{Мы показываем три функции $\sin$ с $\omega=0.1$, $\omega=1$ и $\omega=10$. Вложение для позиции $x=6$ задается соответствующими значениями (красные круги).}
     \label{fig:positional_embeddings_plot}
 \end{SCfigure}
 
-\subsection{Relative positional embeddings}
+\subsection{Относительные позиционные вложения}
 
-Trainable positional embeddings and sinuisodal positional embeddings are examples of \textbf{absolute} embeddings, because they encode a specific position in the sequence. An alternative that has become common with very long sequences are \textbf{relative positional embeddings}. In this case, instead of adding a positional encoding to a token, we modify the attention function to make it dependent on the offset between any two tokens:
+Обучаемые позиционные вложения и синусоидальные позиционные вложения являются примерами \textbf{абсолютных} вложений, поскольку они кодируют конкретную позицию в последовательности. Альтернативой, которая стала распространенной для очень длинных последовательностей, являются \textbf{относительные позиционные вложения}. В этом случае вместо добавления позиционного кодирования к токену мы изменяем функцию внимания, чтобы сделать ее зависимой от смещения между любыми двумя токенами:
 %
 $$
 g(\mathbf{x}_i, \mathbf{x}_j)\rightarrow g(\mathbf{x}_i, \mathbf{x}_j, i-j)
 $$
 %
-This is a combination of the two ideas we introduced at the beginning of this chapter (Figure \ref{fig:biases}). Note that while absolute embeddings are added only once (at the input), relative embeddings must be added every time an MHA layer is used. As an example, we can add a trainable bias matrix $\mathbf{B} \sim (m,m)$ and rewrite the dot product with an offset-dependent bias:
+Это комбинация двух идей, которые мы представили в начале этой главы (Рисунок \ref{fig:biases}). Обратите внимание, что в то время как абсолютные вложения добавляются только один раз (на входе), относительные вложения должны добавляться каждый раз, когда используется слой MHA. В качестве примера мы можем добавить обучаемую матрицу смещения $\mathbf{B} \sim (m,m)$ и переписать скалярное произведение со смещением, зависящим от смещения:
 %
 $$
 g(\mathbf{x}_i,\mathbf{x}_j)=\mathbf{x}_i^\top\mathbf{x}_j+B_{ij}
 $$
 %
-A simpler variant, \textbf{attention with linear biases} (ALiBi) \cite{press2021train}, considers a single trainable scalar in each head which is multiplied by a matrix of offsets. More advanced strategies, such as \textbf{rotary positional embeddings} (RoPE), are also possible \cite{su2024roformer}.
+Более простой вариант, \textbf{внимание с линейными смещениями} (ALiBi) \cite{press2021train}, рассматривает один обучаемый скаляр в каждой голове, который умножается на матрицу смещений. Возможны и более продвинутые стратегии, такие как \textbf{ротационные позиционные вложения} (RoPE) \cite{su2024roformer}.
 
-\section{Building the transformer model}
-\subsection{The transformer block and model}
+\section{Построение модели трансформера}
+\subsection{Блок и модель трансформера}
 \label{subsec:transformer_block}
 
-A model could be built, in principle, from a stack of multiple MHA layers (with the softmax providing the non-linearity necessary to avoid the collapse of multiple linear projections). Empirically, however, it is found that the MHA works best when interleaved with a separate fully-connected block that operates on each token independently. These two operations can be understood as mixing the tokens (MHA), and mixing the channels (MLP), similarly to the depthwise-separable convolution  model.
+В принципе, модель можно было бы построить из стека нескольких слоев MHA (с softmax, обеспечивающим нелинейность, необходимую для предотвращения схлопывания нескольких линейных проекций). Однако эмпирически было обнаружено, что MHA лучше всего работает, когда чередуется с отдельным полносвязным блоком, который работает с каждым токеном независимо. Эти две операции можно понимать как смешивание токенов (MHA) и смешивание каналов (MLP), аналогично модели глубинно-разделимой свёртки.
 
-In particular, for the MLP block it is common to choose a bottleneck architecture composed of two fully-connected layers of the form:
+В частности, для блока MLP обычно выбирают архитектуру бутылочного горлышка, состоящую из двух полносвязных слоев вида:
 %
 $$
 \text{MLP}(\mathbf{x})=\mathbf{W}_2\phi\left(\mathbf{W}_1\mathbf{x}\right)
 $$
 %
-where $\mathbf{x} \sim (e)$ is a token, $\mathbf{W}_1 \sim (p, e)$, with $p$ selected as an integer multiple of $e$ (e.g., $p=3e$ or $p=4e$), and $\mathbf{W}_2 \sim (e,p)$ reprojecting back to the original embedding dimension. Biases are generally removed as the increased hidden dimension provides sufficient degrees of freedom.
+где $\mathbf{x} \sim (e)$ — это токен, $\mathbf{W}_1 \sim (p, e)$, где $p$ выбирается как целое кратное $e$ (например, $p=3e$ или $p=4e$), а $\mathbf{W}_2 \sim (e,p)$ перепроецирует обратно в исходную размерность вложения. Смещения обычно удаляются, поскольку увеличенная скрытая размерность обеспечивает достаточные степени свободы.
 
-To ensure efficient training of deep models we also need a few additional regularization strategies. In particular, it is common to include two layer normalization steps and two residual connections, respectively for the MHA and MLP blocks. Depending on where the layer normalization is applied, we obtain two variants of the basic transformer block, sometimes denoted as \textbf{pre-normalized} and \textbf{post-normalized}. These are shown in Figure \ref{fig:pre_post_normalization}.
+Чтобы обеспечить эффективное обучение глубоких моделей, нам также нужны несколько дополнительных стратегий регуляризации. В частности, обычно включают два шага послойной нормализации и два остаточных соединения, соответственно для блоков MHA и MLP. В зависимости от того, где применяется послойная нормализация, мы получаем два варианта базового блока трансформера, иногда обозначаемые как \textbf{предварительно нормализованный} и \textbf{пост-нормализованный}. Они показаны на Рисунке \ref{fig:pre_post_normalization}.
 
 \begin{SCfigure}
     \centering
     \hspace{2em}\includegraphics[width=0.4\textwidth]{images/transformer_block}
-    \caption{Schematic view of pre-normalized and post-normalized transformer blocks. In the post-normalized variant the LN block is applied after the MHA or MLP operation, while in the pre-normalized one before each layer.}
+    \caption{Схематический вид предварительно нормализованных и пост-нормализованных блоков трансформера. В пост-нормализованном варианте блок LN применяется после операции MHA или MLP, в то время как в предварительно нормализованном — перед каждым слоем.}
     \label{fig:pre_post_normalization}
 \end{SCfigure}
 
-While the post-normalized version corresponds to the original transformer block, the pre-normalized variant is generally found to be more stable and faster to train \cite{xiong2020layer}. The design of the block in Figure \ref{fig:pre_post_normalization} is, fundamentally, an empirical choice, and many variants have been proposed and tested in the literature. We review some of these later on in Section \ref{subsec:mha_variants}.
+Хотя пост-нормализованная версия соответствует оригинальному блоку трансформера, предварительно нормализованный вариант, как правило, оказывается более стабильным и быстрым в обучении \cite{xiong2020layer}. Дизайн блока на Рисунке \ref{fig:pre_post_normalization} является, по сути, эмпирическим выбором, и в литературе было предложено и протестировано множество вариантов. Мы рассмотрим некоторые из них позже в Разделе \ref{subsec:mha_variants}.
 
-We can now complete the description of a basic transformer model:
+Теперь мы можем завершить описание базовой модели трансформера:
 %
 \begin{enumerate}
-\item Tokenize and embed the original input sequence in a matrix $\mathbf{X} \sim (n,e)$.\
-\item If using absolute positional embeddings, add them to the input matrix.
-\item Apply 1 or more blocks of the form discussed above.
-\item Include a final head depending on the task.
+\item Токенизировать и вложить исходную входную последовательность в матрицу $\mathbf{X} \sim (n,e)$.\\
+\item Если используются абсолютные позиционные вложения, добавить их к входной матрице.
+\item Применить 1 или более блоков вида, описанного выше.
+\item Включить заключительную голову в зависимости от задачи.
 \end{enumerate}
 %
-The output of step (3) is a set of processed tokens $\mathbf{H} \sim (n,e)$, where neither $n$ nor $e$ are changed by the transformer model (the former because we do not have local pooling operations on sets, the latter because of the residual connections in the block). Considering for example a classification task, we can apply a standard classification head by pooling over the tokens and proceeding with a fully-connected block:
+Выход шага (3) — это набор обработанных токенов $\mathbf{H} \sim (n,e)$, где ни $n$, ни $e$ не изменяются моделью трансформера (первое, потому что у нас нет локальных операций пулинга на множествах, второе — из-за остаточных соединений в блоке). Рассматривая, например, задачу классификации, мы можем применить стандартную классификационную голову, выполнив пулинг по токенам и продолжив с полносвязным блоком:
 %
 $$
 y=\text{softmax}\left(\text{MLP}\left(\frac{1}{n}\sum_i\mathbf{H}_i\right)\right)
 $$
 %
-This part is identical to its corresponding CNN design. However, the transformer has a number of interesting properties, mostly stemming by the fact that it manipulates its input as a set, without modifying its dimensionality throughout the architecture. We investigate one simple example next.
+Эта часть идентична соответствующему дизайну СНС. Однако у трансформера есть ряд интересных свойств, в основном вытекающих из того факта, что он манипулирует своим входом как множеством, не изменяя его размерность на протяжении всей архитектуры. Мы рассмотрим один простой пример далее.
 
-\subsection{Class tokens and register tokens}
+\subsection{Классовые токены и токены-регистры}
 \label{subsec:class_register_tokens}
 
-While up to now we have assumed that each token corresponds to one part of our input sequence, nothing prevents us from adding \textit{additional} tokens to the input of the transformer. This is strictly dependent on its specific architecture: a CNN, for example, requires its input to be precisely ordered, and it is not clear how we could add additional tokens to an image or to a sequence. This is a very powerful idea, and we only consider two specific implementations here.
+Хотя до сих пор мы предполагали, что каждый токен соответствует одной части нашей входной последовательности, ничто не мешает нам добавлять \textit{дополнительные} токены к входу трансформера. Это строго зависит от его конкретной архитектуры: СНС, например, требует, чтобы ее вход был точно упорядочен, и неясно, как мы могли бы добавить дополнительные токены к изображению или последовательности. Это очень мощная идея, и мы рассмотрим здесь только две конкретные реализации.
 
-First, we consider the use of a \textbf{class token} \cite{dosovitskiy2020image}, an additional token which is added explicitly for classification in order to replace the global pooling operation above. Suppose we initialize a single trainable token $\mathbf{c} \sim (e)$, which is added to the input matrix:
+Во-первых, мы рассмотрим использование \textbf{классового токена} \cite{dosovitskiy2020image}, дополнительного токена, который добавляется явно для классификации, чтобы заменить операцию глобального пулинга выше. Предположим, мы инициализируем один обучаемый токен $\mathbf{c} \sim (e)$, который добавляется к входной матрице:
 %
 $$
 \mathbf{X} \leftarrow\begin{bmatrix}\mathbf{X} \\ \mathbf{c}^\top \end{bmatrix}
 $$
 %
-The new matrix has shape $(n+1, e)$. The class token is identical for all sequences in a mini-batch. After step (3) above, the transformer outputs a matrix $\mathbf{H} \sim (n+1,e)$ of updated representations for all tokens, including the class one. The idea is that, instead of pooling over the tokens, the model should be able to “compress” all information related to the classification task inside the class token, and we can rewrite the classification head by simply discarding all other tokens:\footnote{In the language of circuits and heads from Section \ref{subsec:multi_head_attention}, we could say equivalently that the model must learn to move all information related to the classification in the residual stream of the class token.}
+Новая матрица имеет форму $(n+1, e)$. Классовый токен идентичен для всех последовательностей в мини-пакете. После шага (3) выше, трансформер выводит матрицу $\mathbf{H} \sim (n+1,e)$ обновленных представлений для всех токенов, включая классовый. Идея заключается в том, что вместо пулинга по токенам модель должна быть в состоянии «сжать» всю информацию, связанную с задачей классификации, внутри классового токена, и мы можем переписать классификационную голову, просто отбросив все остальные токены:\footnote{На языке схем и голов из Раздела \ref{subsec:multi_head_attention} мы могли бы эквивалентно сказать, что модель должна научиться перемещать всю информацию, связанную с классификацией, в остаточный поток классового токена.}
 %
 $$
 y=\text{softmax}\left(\text{MLP}\left(\mathbf{H}_{n+1}\right)\right)
 $$
 %
-Additional trainable tokens can be useful even if not explicitly used. For example, \cite{darcet2023vision} has shown that adding a few additional tokens (called \textbf{registers} in this case) can improve the quality of the attention maps by providing the model with the possibility of using the registers to “store” auxiliary information that does not depend explicitly on a given position.
+Дополнительные обучаемые токены могут быть полезны, даже если они не используются явно. Например, \cite{darcet2023vision} показали, что добавление нескольких дополнительных токенов (называемых в этом случае \textbf{регистрами}) может улучшить качество карт внимания, предоставляя модели возможность использовать регистры для «хранения» вспомогательной информации, которая не зависит явно от данной позиции.
 
-\section*{From theory to practice}
+\section*{От теории к практике}
 
 \begin{wrapfigure}{r}{3.0cm}
 \vspace{-6em}\includegraphics[width=3.0cm]{images/shutterstock_2075221579.jpg}
 \vspace{-4em}
 \end{wrapfigure}
 
-We will introduce many important concepts related to transformers in the next chapter. Thus, for this chapter I am suggesting a slightly unconventional exercise which combines a convolutional backbone with a transformer-like head -- as depicted in Figure \ref{fig:multiview_model}.
+В следующей главе мы представим много важных понятий, связанных с трансформерами. Поэтому для этой главы я предлагаю немного нетрадиционное упражнение, которое сочетает в себе свёрточную основу с головой, подобной трансформеру, как показано на Рисунке \ref{fig:multiview_model}.
 
 \begin{figure}[t]
     \centering
     \hspace{1em}\includegraphics[width=1\textwidth]{images/Multiviewmodel}
-    \caption{Multi-view model to be implemented in this chapter. The image is augmented through a set of random data augmentation strategies to obtain a set of \textbf{views} of the input (\colorbox{gray!30}{gray}). Each \textit{view} is processed by the same convolutional backbone to obtain a fixed-sized dimensional embedding (\colorbox{drawred!30}{red}). The set of embeddings are processed by a transformer block before the final classification (\colorbox{drawgreen!30}{green}). Illustration by John Tenniel.}
+    \caption{Многовидовая модель для реализации в этой главе. Изображение аугментируется с помощью набора случайных стратегий аугментации данных для получения набора \textbf{видов} входа ({\color{gray!30}серый}). Каждый \textit{вид} обрабатывается одной и той же свёрточной основой для получения вложения фиксированного размера ({\color{drawred!30}красный}). Набор вложений обрабатывается блоком трансформера перед окончательной классификацией ({\color{drawgreen!30}зеленый}). Иллюстрация Джона Тенниела.}
     \label{fig:multiview_model}
 \end{figure}
 
-The convolutional models you developed in Chapters \ref{chap:cnns} and \ref{chap:deep_cnns} were applied to a \textit{single} image. However, sometimes we have available a \textit{set} of images of the same object to be recognized -- for example, in a monitoring system, we may have multiple screenshots of a suspicious person. This is called a \textbf{multi-view} system in the literature, and each image is called a \textbf{view} of the object. A multi-view model should provide a single prediction for the entire set of views, while being invariant to the order of the views in input. For this exercise we will implement a simple multi-view model -- see Figure \ref{fig:multiview_model}.
+Свёрточные модели, которые вы разработали в Главах \ref{chap:cnns} и \ref{chap:deep_cnns}, применялись к \textit{одному} изображению. Однако иногда у нас есть \textit{набор} изображений одного и того же объекта для распознавания — например, в системе мониторинга у нас может быть несколько скриншотов подозрительного человека. В литературе это называется \textbf{многовидовой} системой, и каждое изображение называется \textbf{видом} объекта. Многовидовая модель должна давать одно предсказание для всего набора видов, будучи инвариантной к порядку видов на входе. В этом упражнении мы реализуем простую многовидовую модель — см. Рисунок \ref{fig:multiview_model}.
 
 \begin{enumerate}
-\item Using any image classification dataset, you can simulate a multi-view model by applying a fixed number of data transformations to the input (gray block in Figure \ref{fig:multiview_model}). Ignoring the batch dimension, for each input image of shape $x \sim (h,w,c)$ (height, width, channels), you obtain a \textit{multi-view} input of shape $x^\prime \sim (v,h,w,c)$, where $v$ is the number of views. A single label $y$ is associated to this tensor -- the label of the original image. The number of views can also be different from mini-batch to mini-batch, as no part of the model is constrained to a pre-specified number of view.
-\item The multi-view model is composed of three components. Denote by $g(x)$ a model that processes a single view to a fixed-dimensional embedding -- for example, this can be any convolutional backbone you trained for the previous exercises. The first part of the full model (red part in Figure \ref{fig:multiview_model}) applies $g$ in parallel to all views, $\mathbf{h}_i = g(x_i) \sim (e)$, where $e$ is a hyper-parameter (the output size of the backbone).
-\item After concatenating the embeddings of the views we obtain a matrix $\mathbf{H} \sim (v, e)$. In order for the full model to be permutation invariant, any component applied on $\mathbf{H}$ must be permutation equivariant.\footnote{An average operation over the views is the simplest example of permutation invariant layer. Hence, removing the MHA block from Figure \ref{fig:multiview_model} is also a valid baseline. Alternatively, deep sets \cite{zaheer2017deep} characterize the full spectrum of linear, permutation invariant layers.} For the purposes of this exercise, implement and apply a single transformer block as per Section \ref{subsec:transformer_block}. You can implement MHA using basic PyTorch, or you can try a more advanced implementation using \texttt{einops}.\footnote{See \url{https://einops.rocks/pytorch-examples.html}.} You can also compare with the pre-implemented version in \mintinline{python}{torch.nn}.
-\item The transformer block does not modify the input shape. To complete the model, perform an average over the views (which represent the tokens in this scenario), and apply a final classification head. You can also experiment with adding a class token (Section \ref{subsec:class_register_tokens}). It is easy to show that a model built in this way is permutation invariant with respect to the views.
+\item Используя любой набор данных для классификации изображений, вы можете смоделировать многовидовую модель, применив фиксированное количество преобразований данных к входу (серый блок на Рисунке \ref{fig:multiview_model}). Игнорируя измерение пакета, для каждого входного изображения формы $x \sim (h,w,c)$ (высота, ширина, каналы) вы получаете \textit{многовидовой} вход формы $x^\prime \sim (v,h,w,c)$, где $v$ — количество видов. С этим тензором связана одна метка $y$ — метка исходного изображения. Количество видов также может отличаться от мини-пакета к мини-пакету, поскольку ни одна часть модели не ограничена заранее заданным количеством видов.
+\item Многовидовая модель состоит из трех компонентов. Обозначим через $g(x)$ модель, которая обрабатывает один вид в вложение фиксированного размера — например, это может быть любая свёрточная основа, которую вы обучили для предыдущих упражнений. Первая часть полной модели (красная часть на Рисунке \ref{fig:multiview_model}) применяет $g$ параллельно ко всем видам, $\mathbf{h}_i = g(x_i) \sim (e)$, где $e$ — гиперпараметр (размер выхода основы).
+\item После объединения вложений видов мы получаем матрицу $\mathbf{H} \sim (v, e)$. Чтобы полная модель была перестановочно инвариантной, любой компонент, применяемый к $\mathbf{H}$, должен быть перестановочно эквивариантным.\footnote{Операция среднего по видам является простейшим примером перестановочно инвариантного слоя. Следовательно, удаление блока MHA с Рисунка \ref{fig:multiview_model} также является допустимой базовой линией. В качестве альтернативы, глубокие множества \cite{zaheer2017deep} характеризуют полный спектр линейных, перестановочно инвариантных слоев.} Для целей этого упражнения реализуйте и примените один блок трансформера согласно Разделу \ref{subsec:transformer_block}. Вы можете реализовать MHA, используя базовый PyTorch, или вы можете попробовать более продвинутую реализацию с использованием \texttt{einops}.\footnote{См. \url{https://einops.rocks/pytorch-examples.html}.} Вы также можете сравнить с предварительно реализованной версией в \mintinline{python}{torch.nn}.
+\item Блок трансформера не изменяет форму входа. Чтобы завершить модель, выполните усреднение по видам (которые представляют токены в этом сценарии) и примените заключительную классификационную голову. Вы также можете поэкспериментировать с добавлением классового токена (Раздел \ref{subsec:class_register_tokens}). Легко показать, что модель, построенная таким образом, является перестановочно инвариантной по отношению к видам.
 \end{enumerate}

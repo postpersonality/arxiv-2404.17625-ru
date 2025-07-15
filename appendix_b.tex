@@ -1,138 +1,138 @@
-\chapter{Universal approximation in 1D}
+\chapter{Универсальная аппроксимация в 1D}
 \label{sec:universal_approximation}
 
-\begin{supportbox}{About this chapter}
-While formally proving the universal approximation theorem is beyond the scope of this book, it is helpful to get an intuitive feeling for how such proofs can be constructed. In this appendix we follow and extend the visual intuitions from a 2019 online book chapter by M. Nielsen,\footnote{\url{http://neuralnetworksanddeeplearning.com/chap4.html}} to which we refer for an extended discussion (and some interactive visualizations), especially for the case of multi-dimensional inputs.
+\begin{supportbox}{Об этой главе}
+Хотя формальное доказательство теоремы об универсальной аппроксимации выходит за рамки этой книги, полезно получить интуитивное представление о том, как такие доказательства могут быть построены. В этом приложении мы следуем и расширяем визуальные интуиции из главы онлайн-книги М. Нильсена 2019 года,\footnote{\url{http://neuralnetworksanddeeplearning.com/chap4.html}} к которой мы отсылаем для расширенного обсуждения (и некоторых интерактивных визуализаций), особенно для случая многомерных входов.
 \end{supportbox}
 
-We focus on the original approximation theorem by Cybenko \cite{cybenko1989approximation} which considers models having one hidden layer with sigmoid activation functions. We also restrict the analysis to functions with a single input and a single output, that can be visualized easily. The reasoning can be extended to other activation functions and to higher dimensions.
+Мы сосредоточимся на оригинальной теореме аппроксимации Цыбенко \cite{cybenko1989approximation}, которая рассматривает модели с одним скрытым слоем с сигмоидальными функциями активации. Мы также ограничиваем анализ функциями с одним входом и одним выходом, которые можно легко визуализировать. Рассуждения можно распространить на другие функции активации и на более высокие размерности.
 
-The outline of this visual proof is relatively simple: 
+План этого визуального доказательства относительно прост: 
 
 \begin{enumerate}
-\item As a first step, we show how to manually set the weights of a model with a single neuron in the hidden layer to approximate a step function.
-\item Then, we proceed to show how adding another unit in the hidden layer allows to approximate any function which is constant over a small interval, and zero everywhere else (we call these interval functions “bin” functions). 
-\item Finally, we describe a simple procedure to approximate a generic function by first binning it to the desired accuracy, and then adding as many neurons as needed to approximate all bins in turn. For $m$ bins we obtain a network with $2m$ neurons. For a generic function with multiple inputs, this number would grow exponentially in the number of dimensions, making the proof non constructive in a practical case.
+\item В качестве первого шага мы покажем, как вручную установить веса модели с одним нейроном в скрытом слое для аппроксимации ступенчатой функции.
+\item Затем мы покажем, как добавление еще одного блока в скрытый слой позволяет аппроксимировать любую функцию, которая является постоянной на небольшом интервале и нулевой везде вне его (мы называем эти интервальные функции «бин»-функциями). 
+\item Наконец, мы опишем простую процедуру для аппроксимации общей функции, сначала разбив ее на бины до желаемой точности, а затем добавляя столько нейронов, сколько необходимо для аппроксимации всех бинов по очереди. Для $m$ бинов мы получаем сеть с $2m$ нейронами. Для общей функции с несколькими входами это число будет расти экспоненциально с числом измерений, что делает доказательство неконструктивным в практическом случае.
 \end{enumerate}
 
-\section{Approximating a step function}
+\section{Аппроксимация ступенчатой функции}
 
-To begin, let us consider a single neuron in the hidden layer, in which case we can write the network’s equation as (ignoring the output bias term, as it is not helpful in our derivation):
+Для начала рассмотрим один нейрон в скрытом слое, и в этом случае мы можем записать уравнение сети как (игнорируя член смещения на выходе, поскольку он не помогает в нашем выводе):
 %
 $$
 f(x)=a\sigma(wx+s)
 $$
 %
-For the purposes of visualization, we rewrite this by adding a minus sign on the bias, and we factor the multiplication term on the entire input of $\sigma$ (the two variants are clearly equivalent):
+Для целей визуализации мы перепишем это, добавив знак минус к смещению, и вынесем множитель за скобки для всего входа $\sigma$ (два варианта, очевидно, эквивалентны):
 %
 \begin{equation}
 f(x) = \eqnmarkbox[drawred]{node}{a}\sigma(\eqnmarkbox[drawgreen]{node2}{w}(x-\eqnmarkbox[drawblue]{node3}{s}))
 \label{eq:proof_1}
 \end{equation}
-\annotate[yshift=-1em]{below,left}{node}{Amplitude}
-\annotate[yshift=-1em]{below,right}{node2}{Slope}
-\annotate[yshift=-1em]{below,right}{node3}{Shift}
+\annotate[yshift=-1em]{below,left}{node}{Амплитуда}
+\annotate[yshift=-1em]{below,right}{node2}{Наклон}
+\annotate[yshift=-1em]{below,right}{node3}{Сдвиг}
 
 \vspace{1em}
-This is similar to the “tunable” variant of sigmoid we introduce in Section \ref{sec:activation_functions}. In particular, in this formulation $\color{drawred}a$ controls the amplitude of the sigmoid, $\color{drawgreen}w$ controls the slope, and $\color{drawblue}s$ shifts the function by a fixed amount.
+Это похоже на «настраиваемый» вариант сигмоиды, который мы вводим в Разделе \ref{sec:activation_functions}. В частности, в этой формулировке $\color{drawred}a$ контролирует амплитуду сигмоиды, $\color{drawgreen}w$ контролирует наклон, а $\color{drawblue}s$ сдвигает функцию на фиксированную величину.
 
 \begin{SCfigure}
     \centering
     \hspace{1em}\includegraphics[width=0.5\textwidth]{images/tunable_sigmoid.pdf}
-    \caption{A network with a single neuron in the hidden layer can be visualized as a sigmoid with controllable slope, center, and amplitude. We show here an example where we fix the amplitude and the center, but we vary the slope.}
+    \caption{Сеть с одним нейроном в скрытом слое можно представить как сигмоиду с управляемым наклоном, центром и амплитудой. Здесь мы показываем пример, где мы фиксируем амплитуду и центр, но изменяем наклон.}
     \label{fig:tunable_sigmoid}
 \end{SCfigure}
 %
-We show in Figure \ref{fig:tunable_sigmoid} several plots of \eqref{eq:proof_1}, where we fix $a$ and $s$ while varying $w$. As can be seen, by increasing $w$ the slope gets steeper. Fixing it to a very large constant (say, $w=10^4$), we are left with a very good approximation to a step function, of which we can control the location of the step (the $s$ parameter) and the amplitude (the $a$ parameter), as shown in Figure \ref{fig:step_function}.
+Мы показываем на Рисунке \ref{fig:tunable_sigmoid} несколько графиков \eqref{eq:proof_1}, где мы фиксируем $a$ и $s$, изменяя $w$. Как видно, при увеличении $w$ наклон становится круче. Зафиксировав его на очень большой константе (скажем, $w=10^4$), мы получаем очень хорошую аппроксимацию ступенчатой функции, для которой мы можем контролировать положение ступеньки (параметр $s$) и амплитуду (параметр $a$), как показано на Рисунке \ref{fig:step_function}.
 
 \begin{figure}
     \centering
     \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[width=0.95\textwidth]{images/step_function.pdf}
-    \caption{1 neuron}
+    \caption{1 нейрон}
     \label{fig:step_function}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[width=0.95\textwidth]{images/bin.pdf}
-    \caption{2 neurons}
+    \caption{2 нейрона}
     \label{fig:bin_function}
     \end{subfigure}
     \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[width=0.95\textwidth]{images/bin_2.pdf}
-    \caption{4 neurons}
+    \caption{4 нейрона}
     \label{fig:bin_function_2}
     \end{subfigure}
-    \caption{(a) A neural network with one input, one hidden neuron, and one output can approximate any step function (here shown with $a=1$ and $s=0.3$). (b) With two hidden neurons and one output we can approximate any function which is constant over a small interval. (c) With four neurons, we can approximate any function which is piecewise constant over two non-zero intervals. Note that bins can be negative by defining a negative amplitude.}
+    \caption{(a) Нейронная сеть с одним входом, одним скрытым нейроном и одним выходом может аппроксимировать любую ступенчатую функцию (здесь показано с $a=1$ и $s=0.3$). (b) С двумя скрытыми нейронами и одним выходом мы можем аппроксимировать любую функцию, которая является постоянной на небольшом интервале. (c) С четырьмя нейронами мы можем аппроксимировать любую функцию, которая является кусочно-постоянной на двух ненулевых интервалах. Обратите внимание, что бины могут быть отрицательными, если определить отрицательную амплитуду.}
 \end{figure}
 
-\section{Approximating a constant function}
+\section{Аппроксимация постоянной функции}
 
-If we add a second neuron with opposite amplitude (and slightly shifted position), we can approximate a function which is constant over a small interval (we call it a “bin” function). Defining a width $\Delta$ we can write:
+Если мы добавим второй нейрон с противоположной амплитудой (и немного сдвинутым положением), мы можем аппроксимировать функцию, которая является постоянной на небольшом интервале (мы называем ее «бин»-функцией). Определив ширину $\Delta$, мы можем записать:
 
 \begin{equation}
 f(x) = a\sigma\left(w\left(x-\eqnmarkbox[drawred]{node}{s -\frac{\Delta}{2}}\right)\right)  -a\sigma\left(w\left(x-\eqnmarkbox[drawgreen]{node2}{s+\frac{\Delta}{2}}\right)\right)
 \label{eq:proof_2}
 \end{equation}
-\annotate[yshift=-1em]{below,left}{node}{Go up [down] at $s-\frac{\Delta}{2}$}
-\annotate[yshift=-1em]{below,right}{node2}{Go down [up] at $s+\frac{\Delta}{2}$}
+\annotate[yshift=-1em]{below,left}{node}{Подняться [опуститься] в $s-\frac{\Delta}{2}$}
+\annotate[yshift=-1em]{below,right}{node2}{Опуститься [подняться] в $s+\frac{\Delta}{2}$}
 
 \vspace{1em}
-where we recall that $w$ is now a large constant, e.g., $10^4$. \eqref{eq:proof_2} describes a function (equivalent to a model with one hidden layer having two neurons) which increases by $a$ at $s-\frac{\Delta}{2}$, is constant with value $f(x)=a$ over the interval $\left[s-\frac{\Delta}{2}, s+\frac{\Delta}{2}\right]$, and then decreases to $0$ afterwards. An example is  shown in Figure \ref{fig:bin_function}.
+где мы напоминаем, что $w$ теперь является большой константой, например, $10^4$. \eqref{eq:proof_2} описывает функцию (эквивалентную модели с одним скрытым слоем с двумя нейронами), которая увеличивается на $a$ в $s-\frac{\Delta}{2}$, является постоянной со значением $f(x)=a$ над интервалом $\left[s-\frac{\Delta}{2}, s+\frac{\Delta}{2}\right]$, а затем уменьшается до $0$. Пример показан на Рисунке \ref{fig:bin_function}.
 
-For the following, we can rewrite the previous function as $f(x; a, s, \Delta)$ to highlight the dependence on the three parameters $a$, $s$, and $\Delta$.
+Для дальнейшего мы можем переписать предыдущую функцию как $f(x; a, s, \Delta)$, чтобы подчеркнуть зависимость от трех параметров $a$, $s$ и $\Delta$.
 
-\section{Approximating a piecewise constant function}
+\section{Аппроксимация кусочно-постоянной функции}
 
-Because $f_{a, s, \Delta}(x)$ is effectively $0$ outside the corresponding interval, two functions defined over non-intersecting intervals will not influence each other, i.e., the “bin” function we just defined is highly localized. Hence, by adding two additional neurons in the hidden layer we can define a function which is constant over two separate intervals (an example of which is shown in Figure \ref{fig:bin_function_2}):
+Поскольку $f_{a, s, \Delta}(x)$ фактически равна $0$ вне соответствующего интервала, две функции, определенные на непересекающихся интервалах, не будут влиять друг на друга, т.е. «бин»-функция, которую мы только что определили, сильно локализована. Следовательно, добавив два дополнительных нейрона в скрытый слой, мы можем определить функцию, которая является постоянной на двух отдельных интервалах (пример которой показан на Рисунке \ref{fig:bin_function_2}):
 %
 $$
 f(x)=f(x;a_1,s_2,\Delta_1)+f(x;a_2,s_2,\Delta_2)
 $$
 %
-The rest of the proof is now trivial and proceeds by binning the function we want to approximate in many small intervals. Given any (continuous) function $g(x)$ over an interval (which we assume $[0,1]$ for simplicity), we first bin the input domain into $m$ equispaced intervals, where $m$ controls the accuracy of the approximation (the higher $m$, the better the approximation). Hence, the $i$-th bin spans the interval:
+Остальная часть доказательства теперь тривиальна и заключается в разбиении функции, которую мы хотим аппроксимировать, на множество небольших интервалов. Для любой (непрерывной) функции $g(x)$ на интервале (который мы для простоты предполагаем $[0,1]$), мы сначала разбиваем входную область на $m$ равноотстоящих интервалов, где $m$ контролирует точность аппроксимации (чем больше $m$, тем лучше аппроксимация). Следовательно, $i$-й бин охватывает интервал:
 %
 $$
 B_i = \left[\frac{i}{m}-\frac{\Delta}{2}, \frac{i}{m}+\frac{\Delta}{2}\right]
 $$
 %
-where $\Delta$ is the size of each bin. For each bin, we compute the average value of $g(x)$ inside the interval itself:
+где $\Delta$ — это размер каждого бина. Для каждого бина мы вычисляем среднее значение $g(x)$ внутри самого интервала:
 %
 $$
 g_i = \frac{1}{\Delta}\int_{x \in B_i} g(x)dx
 $$
 %
-Finally, we define a network with $2m$ neurons in the hidden layer, two for each bin. Each bin function is centered in the bin and takes value $g_i$:
+Наконец, мы определяем сеть с $2m$ нейронами в скрытом слое, по два на каждый бин. Каждая бин-функция центрирована в бине и принимает значение $g_i$:
 %
 \begin{equation}
 f(x)=\sum_{i=1}^m f\left(x; \eqnmarkbox[drawgreen]{node2}{g_i}, \eqnmarkbox[drawred]{node}{\frac{i}{m}},\Delta\right)
 \label{eq:proof_3}
 \end{equation}
-\annotate[yshift=-1em]{below,right}{node}{The $i$-th bin is centered in $\frac{i}{m}$}
-\annotate[yshift=-1em]{below,left}{node2}{(Approximated) constant value}
+\annotate[yshift=-1em]{below,right}{node}{$i$-й бин центрирован в $\frac{i}{m}$}
+\annotate[yshift=-1em]{below,left}{node2}{(Приближенное) постоянное значение}
 
 \newpage
-We show in Figure \ref{fig:sin_approximation} an example of such approximation in the case of $g(x)=\frac{\sin(x)}{x}$ for increasing number of bins ($m=5$, $m=15$, $m=50$). It should be clear that the MSE is inversely proportional to $m$, and we can decrease the error as much as desired by simply increasing the resolution of the approximation.
+Мы показываем на Рисунке \ref{fig:sin_approximation} пример такой аппроксимации в случае $g(x)=\frac{\sin(x)}{x}$ для возрастающего числа бинов ($m=5$, $m=15$, $m=50$). Должно быть ясно, что СКО обратно пропорциональна $m$, и мы можем уменьшать ошибку сколько угодно, просто увеличивая разрешение аппроксимации.
 
 \begin{figure}[t]
     \centering
     \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[width=0.95\textwidth]{images/sin_approximation_5.pdf}
-    \caption{5 bins}
+    \caption{5 бинов}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[width=0.95\textwidth]{images/sin_approximation_15.pdf}
-    \caption{15 bins}
+    \caption{15 бинов}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.32\textwidth}
     \includegraphics[width=0.95\textwidth]{images/sin_approximation_50.pdf}
-    \caption{50 bins}
+    \caption{50 бинов}
     \end{subfigure}
     \hfill
-    \caption{Approximating $g(x) = \frac{\sin(x)}{x}$ in $[0,10]$ with (a) $m=5$, (b) $m=15$, and (c) $m=50$ bins. The original function is in red, the approximation \eqref{eq:proof_3} in green. The average squared error in the three cases decreases exponentially (approximately $0.02$, $0.002$, and $0.00016$).}
+    \caption{Аппроксимация $g(x) = \frac{\sin(x)}{x}$ в $[0,10]$ с (a) $m=5$, (b) $m=15$ и (c) $m=50$ бинами. Исходная функция — красная, аппроксимация \eqref{eq:proof_3} — зеленая. Среднеквадратичная ошибка в трех случаях экспоненциально уменьшается (приблизительно $0.02$, $0.002$ и $0.00016$).}
     \label{fig:sin_approximation}
 \end{figure}
 
-Similar reasonings can be applied to multi-dimensional inputs and different activation functions.\footnote{\url{http://neuralnetworksanddeeplearning.com/chap4.html}}
+Аналогичные рассуждения можно применить к многомерным входам и различным функциям активации.\footnote{\url{http://neuralnetworksanddeeplearning.com/chap4.html}}

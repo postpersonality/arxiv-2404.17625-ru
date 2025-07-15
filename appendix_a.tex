@@ -1,224 +1,224 @@
-\chapter{Probability theory}
+\chapter{Теория вероятностей}
 \label{chap:probability_theory}
 
-\begin{supportbox}{About this chapter}
-Machine learning deals with a wide array of uncertainties (such as in the data collection phase), making the use of probability fundamental. We review here - informally - basic concepts associated with probability distributions and probability densities that are helpful in the main text. This appendix introduces many concepts, but many of them should be familiar. For a more in-depth exposition of probability in the context of machine learning and neural networks, see \cite{bishop2006pattern,bishop2024deep}.
+\begin{supportbox}{Об этой главе}
+Машинное обучение имеет дело с широким спектром неопределенностей (например, на этапе сбора данных), что делает использование вероятности фундаментальным. Здесь мы неформально рассматриваем основные понятия, связанные с распределениями вероятностей и плотностями вероятностей, которые полезны в основном тексте. В этом приложении вводится много понятий, но многие из них должны быть вам знакомы. Для более глубокого изложения вероятности в контексте машинного обучения и нейронных сетей см. \cite{bishop2006pattern,bishop2024deep}.
 \end{supportbox}
 
-\section{Basic laws of probability}
+\section{Основные законы вероятности}
 
-Consider a simple lottery, where you can buy tickets with 3 possible outcomes: “no win”, “small win”, and “large win”. For any 10 tickets, 1 of them will have a large win, 3 will have a small win, and 6 will have no win. We can represent this with a probability distribution describing the relative frequency of the three events (we assume an unlimited supply of tickets):
+Рассмотрим простую лотерею, где вы можете купить билеты с 3 возможными исходами: «без выигрыша», «малый выигрыш» и «крупный выигрыш». На каждые 10 билетов 1 из них будет с крупным выигрышем, 3 — с малым выигрышем, а 6 — без выигрыша. Мы можем представить это с помощью распределения вероятностей, описывающего относительную частоту трех событий (мы предполагаем неограниченный запас билетов):
 %
 \begin{gather*}
-p(w=\text{`no win'})=6/10 \\
-p(w=\text{`small win'})=3/10\\
-p(w=\text{`large win'})=1/10
+p(w=\text{`без выигрыша'})=6/10 \\
+p(w=\text{`малый выигрыш'})=3/10\\
+p(w=\text{`крупный выигрыш'})=1/10
 \end{gather*}
 %
-Equivalently, we can associate an integer value $w=\left\{1,2,3\right\}$ to the three events, and write $p(w=1)=6/10$, $p(w=2)=3/10$, and $p(w=3)=1/10$. We call $w$ a \textbf{random variable}. In the following we always write $p(w)$ in place of $p(w=i)$ for readability when possible. The elements of the probability distribution must be positive and they must sum to one:
+Эквивалентно, мы можем связать целочисленное значение $w=\left\{1,2,3\right\}$ с тремя событиями и написать $p(w=1)=6/10$, $p(w=2)=3/10$ и $p(w=3)=1/10$. Мы называем $w$ \textbf{случайной величиной}. В дальнейшем мы всегда будем писать $p(w)$ вместо $p(w=i)$ для удобочитаемости, когда это возможно. Элементы распределения вероятностей должны быть положительными, и их сумма должна равняться единице:
 %
 $$
 p(w)\ge0,\;\sum_wp(w)=1
 $$
 %
-The space of all such vectors is called the \textbf{probability simplex}. 
+Пространство всех таких векторов называется \textbf{симплексом вероятностей}. 
 
 \begin{tcolorbox}
-Remember that we use $\mathbf{p} \sim \Delta(n)$ to denote a vector of size $n$ belonging to the probability simplex. 
+Помните, что мы используем $\mathbf{p} \sim \Delta(n)$ для обозначения вектора размера $n$, принадлежащего симплексу вероятностей. 
 \end{tcolorbox}
 
-Suppose we introduce a second random variable $r$, a binary variable describing whether the ticket is real (1) or fake (2). The fake tickets are more profitable but less probable overall, as summarized in Table \ref{tab:lottery_tickets}.
+Предположим, мы вводим вторую случайную величину $r$, двоичную переменную, описывающую, является ли билет настоящим (1) или поддельным (2). Поддельные билеты более прибыльны, но в целом менее вероятны, как показано в Таблице \ref{tab:lottery_tickets}.
 %
 \begin{table}[h]
 \centering
-\caption{Relative frequency of winning at an hypothetical lottery, in which tickets can be either real or fake, shown for a set of $100$ tickets.}
+\caption{Относительная частота выигрыша в гипотетической лотерее, в которой билеты могут быть либо настоящими, либо поддельными, показана для набора из $100$ билетов.}
 \label{tab:lottery_tickets}
 \begin{tabular}{@{}lcc@{}}
 \toprule
- & $r=1$ (real ticket) & $r=2$ (fake ticket) \\ \midrule
-$w=1$ (no win) & 58 & 2 \\
-$w=2$ (small win) & 27 & 3 \\
-$w=3$ (large win) & 2 & 8 \\ \midrule
-Sum & 87 & 13 \\ \bottomrule
+ & $r=1$ (настоящий билет) & $r=2$ (поддельный билет) \\ \midrule
+$w=1$ (без выигрыша) & 58 & 2 \\
+$w=2$ (малый выигрыш) & 27 & 3 \\
+$w=3$ (крупный выигрыш) & 2 & 8 \\ \midrule
+Сумма & 87 & 13 \\ \bottomrule
 \end{tabular}
 \end{table}
 
-We can use the numbers in the table to describe a \textbf{joint probability distribution}, describing the probability of two random variables taking a certain value jointly:
+Мы можем использовать числа в таблице для описания \textbf{совместного распределения вероятностей}, описывающего вероятность того, что две случайные величины примут определенное значение совместно:
 %
 $$
 p(r=2,w=3)=8/100
 $$
 %
-Alternatively, we can define a \textbf{conditional probability distribution}, e.g., answering the question “\textit{what is the probability of a certain event given that another event has occurred?}”:
+В качестве альтернативы мы можем определить \textbf{условное распределение вероятностей}, например, отвечая на вопрос «\textit{какова вероятность определенного события при условии, что произошло другое событие?}»:
 %
 $$
 p(r=1 \mid w=3) = \frac{p(r=1, w=3)}{p(w=3)} = 0.2
 $$
 %
-This is called the \textbf{product rule} of probability. As before, we can make the notation less verbose by using the random variable in-place of its value:
+Это называется \textbf{правилом произведения} вероятностей. Как и прежде, мы можем сделать нотацию менее многословной, используя случайную величину вместо ее значения:
 %
 \begin{equation}
 p(r,w)=p(r\mid w)p(w)
 \label{eq:product_rule}
 \end{equation}
 %
-If $p(r \mid w)=p(r)$ we have $p(r,w)=p(r)p(w)$, and we say that the two variables are \textbf{independent}. We can use conditional probabilities to \textbf{marginalize} over one random variable:
+Если $p(r \mid w)=p(r)$, мы имеем $p(r,w)=p(r)p(w)$, и мы говорим, что две переменные \textbf{независимы}. Мы можем использовать условные вероятности для \textbf{маргинализации} по одной случайной величине:
 %
 \begin{equation}
 p(w)=\sum_{r} p(w,r) = \sum_r p(w \mid r)p(r)
 \label{eq:sum_rule}
 \end{equation}
 
-This is called the \textbf{sum rule} of probability. The product and sum rules are the basic axioms that define the algebra of probabilities. By combining them we obtain the fundamental \textbf{Bayes’s rule}:
+Это называется \textbf{правилом суммы} вероятностей. Правила произведения и суммы являются основными аксиомами, определяющими алгебру вероятностей. Комбинируя их, мы получаем фундаментальное \textbf{правило Байеса}:
 
 \begin{equation}
     p(r\mid w)=\frac{p(w \mid r)p(r)}{p(w)} =\frac{p(w \mid r)p(r)}{\sum_{r^\prime}p(w \mid r^\prime)p(r^\prime)}
     \label{eq:bayes_rule}
 \end{equation}
 
-Bayes’s rule allows us to “reverse” conditional distributions, e.g., computing the probability that a winning ticket is real or fake, by knowing the relative proportions of winning tickets in both categories (try it).
+Правило Байеса позволяет нам «обращать» условные распределения, например, вычислять вероятность того, что выигрышный билет является настоящим или поддельным, зная относительные пропорции выигрышных билетов в обеих категориях (попробуйте).
 
-\section{Real-valued probability distributions}
+\section{Вещественнозначные распределения вероятностей}
 
-In the real-valued case, defining $p(x)$ is more tricky, because $x$ can take infinitely possible values, each of which has probability $0$ by definition. However, we can work around this by defining a probability \textbf{cumulative density function} (CDF):
+В вещественнозначном случае определение $p(x)$ сложнее, потому что $x$ может принимать бесконечное количество возможных значений, каждое из которых по определению имеет вероятность $0$. Однако мы можем обойти это, определив \textbf{кумулятивную функцию плотности} вероятности (CDF):
 
 $$
 P(x)=\int_{0}^xp(t)dt
 $$
 
-and defining the probability density function $p(x)$ as its derivative. We ignore most of the subtleties associated with working with probability densities, which are best tackled in the context of measure theory \cite{bogachev2007measure}. We only note that the product and sum rules continue to be valid in this case by suitably replacing sums with integrals:
+и определив функцию плотности вероятности $p(x)$ как ее производную. Мы игнорируем большинство тонкостей, связанных с работой с плотностями вероятностей, которые лучше всего рассматривать в контексте теории меры \cite{bogachev2007measure}. Мы только отмечаем, что правила произведения и суммы продолжают действовать в этом случае, если соответствующим образом заменить суммы на интегралы:
 
 \begin{gather}
-p(x,y)=p(x\mid y)p(y) \\ 
+p(x,y)=p(x\mid y)p(y) \\
 p(x)=\int_y p(x \mid y)p(y)dy
 \end{gather}
 
-Note that probability densities are not constrained to be less than one.
+Обратите внимание, что плотности вероятностей не обязаны быть меньше единицы.
 
-\section{Common probability distributions}
+\section{Распространенные распределения вероятностей}
 
-The previous random variables are example of \textbf{categorical probability distributions}, describing the situation in which a variable can take one out of $k$ possible values. We can write this down compactly by defining as $\mathbf{p} \sim \Delta(k)$ the vector of probabilities, and by $\mathbf{x} \sim \text{Binary}(k)$ a one-hot encoding of the observed class:
+Предыдущие случайные величины являются примером \textbf{категориальных распределений вероятностей}, описывающих ситуацию, в которой переменная может принимать одно из $k$ возможных значений. Мы можем записать это компактно, определив как $\mathbf{p} \sim \Delta(k)$ вектор вероятностей, и как $\mathbf{x} \sim \text{Binary}(k)$ one-hot кодирование наблюдаемого класса:
 %
 $$
 p(\mathbf{x})=\text{Cat}(\mathbf{x}; \mathbf{p})=\prod_ip_i^{x_i}
 $$
 %
-We use a semicolon to differentiate the input of the distribution from its parameters. If $k=2$, we can equivalently rewrite the distribution with a single scalar value $p$. The resulting distribution is called a \textbf{Bernoulli distribution}:
+Мы используем точку с запятой, чтобы отличить вход распределения от его параметров. Если $k=2$, мы можем эквивалентно переписать распределение с одним скалярным значением $p$. Результирующее распределение называется \textbf{распределением Бернулли}:
 %
 $$
 p(x)=\text{Bern}(x; p)= p^x(1-p)^{(1-x)}
 $$
 %
-In the continuous case, we will deal repeatedly with the \textbf{Gaussian} distribution, denoted by $\mathcal{N}(x; \mu, \sigma^2)$, describing a bell-shaped probability centered in $\mu$ (the mean) and with a spread of $\sigma^2$ (the variance):
+В непрерывном случае мы будем неоднократно иметь дело с \textbf{гауссовым} распределением, обозначаемым как $\mathcal{N}(x; \mu, \sigma^2)$, описывающим колоколообразную вероятность с центром в $\mu$ (среднее) и разбросом $\sigma^2$ (дисперсия):
 %
 $$
 p(x)=\mathcal{N}(x;\mu,\sigma^2)= \frac{1}{\sqrt{2\pi \sigma^2}}\exp\left(-\frac{1}{2}\left(\frac{x-\mu}{\sigma}\right)^2\right)
 $$
 %
-In the simplest case of mean zero and unitary variance, $\mu=0$, $\sigma^2=1$, this is also called the \textbf{normal distribution}. For a vector $\mathbf{x} \sim (k)$, a multivariate variant of the Gaussian distribution is obtained by considering a mean vector $\mathbf{\mu} \sim (k)$ and a covariance matrix $\Sigma \sim (k,k)$:
+В простейшем случае нулевого среднего и единичной дисперсии, $\mu=0$, $\sigma^2=1$, это также называется \textbf{нормальным распределением}. Для вектора $\mathbf{x} \sim (k)$, многомерный вариант гауссова распределения получается путем рассмотрения вектора среднего $\mathbf{\mu} \sim (k)$ и ковариационной матрицы $\Sigma \sim (k,k)$:
 %
 $$
 p(\mathbf{x})=\mathcal{N}(\mathbf{x};\mu, \Sigma)= \left(2\pi\right)^{-k/2}\det(\Sigma)^{-1/2}\exp\left((\mathbf{x}-\mu)^\top\Sigma^{-1}(\mathbf{x}-\mu)\right)
 $$
 %
-Two interesting cases are Gaussian distributions with a diagonal covariance matrix, and the even simpler \textbf{isotropic} Gaussian having a diagonal covariance with all entries identical:
+Два интересных случая — это гауссовы распределения с диагональной ковариационной матрицей и еще более простой \textbf{изотропный} гауссиан, имеющий диагональную ковариацию со всеми одинаковыми элементами:
 %
 $$
 \Sigma=\sigma^2\mathbf{I}
 $$
 %
-The first can be visualized as an axis-aligned ellipsoid, the isotropic one as an axis-aligned sphere.
+Первый можно представить как выровненный по осям эллипсоид, изотропный — как выровненную по осям сферу.
 
-\section{Moments and expected values}
+\section{Моменты и математические ожидания}
 
-In many cases we need to summarize a probability distribution with one or more values. Sometimes a finite number of values are enough: for example, having access to $\mathbf{p}$ for a categorical distribution or to $\mu$ and $\sigma^2$ for a Gaussian distribution completely describe the distribution itself. These are called \textbf{sufficient statistics}. 
+Во многих случаях нам нужно обобщить распределение вероятностей одним или несколькими значениями. Иногда достаточно конечного числа значений: например, доступ к $\mathbf{p}$ для категориального распределения или к $\mu$ и $\sigma^2$ для гауссова распределения полностью описывает само распределение. Они называются \textbf{достаточными статистиками}. 
 
-More in general, for any given function $f(x)$ we can define its \textbf{expected value} as:
+В более общем случае, для любой заданной функции $f(x)$ мы можем определить ее \textbf{математическое ожидание} как:
 %
 \begin{equation}
 \mathbb{E}_{p(x)}\left[f(x)\right]=\sum_{x}f(x)p(x)
 \label{eq:expected_value}
 \end{equation}
 %
-In the real-valued case, we obtain the same definition by replacing the sum with an integral. Of particular interest, when $f(x)=x^p$ we have the \textbf{moments} (of order $p$) of the distribution, with $p=1$ called the \textbf{mean} of the distribution:
+В вещественнозначном случае мы получаем то же определение, заменяя сумму на интеграл. Особый интерес представляют случаи, когда $f(x)=x^p$, и мы имеем \textbf{моменты} (порядка $p$) распределения, причем $p=1$ называется \textbf{средним} распределения:
 %
 $$
 \mathbb{E}_{p(x)}\left[x\right]=\sum_{x}xp(x)
 $$
 %
-We may want to estimate some expected values despite not having access to the underlying probability distribution. If we have access to a way of sampling elements from $p(x)$, we can apply the so-called \textbf{Monte Carlo estimator}:
+Мы можем захотеть оценить некоторые математические ожидания, не имея доступа к базовому распределению вероятностей. Если у нас есть способ выборки элементов из $p(x)$, мы можем применить так называемый \textbf{оценщик Монте-Карло}:
 %
 \begin{equation}
 \mathbb{E}_{p(x)}\left[f(x)\right]\approx \frac{1}{n}\sum_{x_i \sim p(x)}f(x_i)
 \label{eq:montecarlo_estimation}
 \end{equation}
 %
-where $n$ controls the quality of the estimation and we use $x_i \sim p(x)$ to denote the operation of sampling from the probability distribution $p(x)$. For the first-order moment, this reverts to the very familiar notation for computing the mean of a quantity from several measurements:
+где $n$ контролирует качество оценки, и мы используем $x_i \sim p(x)$ для обозначения операции выборки из распределения вероятностей $p(x)$. Для момента первого порядка это сводится к очень знакомой нотации для вычисления среднего значения величины по нескольким измерениям:
 
 $$
 \mathbb{E}_{p(x)}\left[x\right]=\frac{1}{n}\sum_{x_i \sim p(x)}x_i
 $$
 
-\section{Distance between probability distributions}
+\section{Расстояние между распределениями вероятностей}
 
-At times we may also require some form of distance between probability distributions, in order to evaluate how close two distributions are. The \textbf{Kullback-Leibler} (KL) divergence between $p(x)$ and $q(x)$ is a common choice:
+Иногда нам также может потребоваться некоторая форма расстояния между распределениями вероятностей, чтобы оценить, насколько близки два распределения. Дивергенция \textbf{Кульбака-Лейблера} (KL) между $p(x)$ и $q(x)$ является распространенным выбором:
 %
 $$
 \text{KL}(p \;\lVert\; q) = \int p(x)\log\frac{p(x)}{q(x)}dx
 $$
 %
-The KL divergence is not a proper metric (it is asymmetric and does not respect the triangle inequality). It is lower bounded at 0, but it is not upper bounded. The divergence can only be defined if for any $x$ such that $q(x)=0$, then $p(x)=0$ (i.e., the support of $p$ is a subset of the support of $q$). The minimum of $0$ is achieved whenever the two distributions are identical. The KL divergence can be written as an expected value, hence it can be estimated via Monte Carlo sampling as in \eqref{eq:montecarlo_estimation}.
+Дивергенция KL не является правильной метрикой (она асимметрична и не удовлетворяет неравенству треугольника). Она ограничена снизу нулем, но не ограничена сверху. Дивергенция может быть определена только в том случае, если для любого $x$, такого что $q(x)=0$, тогда $p(x)=0$ (т.е. носитель $p$ является подмножеством носителя $q$). Минимум $0$ достигается, когда два распределения идентичны. Дивергенцию KL можно записать как математическое ожидание, следовательно, ее можно оценить с помощью выборки Монте-Карло, как в \eqref{eq:montecarlo_estimation}.
 
-\section{Maximum likelihood estimation} \addclock
+\section{Оценка максимального правдоподобия} \addclock
 \label{sec:maximum_likelihood_estimation}
 
-Monte Carlo sampling shows that we can estimate quantities of interest concerning a probability distribution if we have access to samples from it. However, we may be interested in estimating the probability distribution itself. Suppose we have a guess about its functional form $f(x; s)$, where $s$ are the sufficient statistics (e.g., mean and variance of a Gaussian distribution), and a set of $n$ samples $x_i \sim p(x)$. We call these samples identical (because they come from the same probability distribution) and independently distributed, in short, i.i.d. Because of independence, their joint distribution factorizes for any choice of $s$:
+Выборка Монте-Карло показывает, что мы можем оценивать интересующие нас величины, касающиеся распределения вероятностей, если у нас есть доступ к выборкам из него. Однако мы можем быть заинтересованы в оценке самого распределения вероятностей. Предположим, у нас есть предположение о его функциональной форме $f(x; s)$, где $s$ — это достаточные статистики (например, среднее и дисперсия гауссова распределения), и набор из $n$ выборок $x_i \sim p(x)$. Мы называем эти выборки одинаковыми (потому что они происходят из одного и того же распределения вероятностей) и независимо распределенными, короче, i.i.d. Из-за независимости их совместное распределение факторизуется для любого выбора $s$:
 %
 $$
 p(x_1, \ldots, x_n)=\prod_{i=1}^n f(x_i; s)
 $$
 %
-Large products are inconvenient computationally, but we can equivalently rewrite this as a sum through a logarithmic transformation:
+Большие произведения неудобны в вычислительном отношении, но мы можем эквивалентно переписать это как сумму с помощью логарифмического преобразования:
 %
 $$
 L(s)= \sum_{i=1}^n\log(f(x_i;s))
 $$
 %
-Finding the parameters $s$ that maximize the previous quantity is called the \textbf{maximum likelihood} (ML) approach. Because of its importance, we reframe it briefly below.
+Нахождение параметров $s$, которые максимизируют предыдущую величину, называется подходом \textbf{максимального правдоподобия} (МП). Из-за его важности мы кратко переформулируем его ниже.
 
 \newpage
-\begin{definition}[Maximum likelihood] \addbottle
-Given a parametric family of probability distributions $f(x; s)$, and a set of $n$ values $\left\{x_i\right\}_{i=1}^n$ which are i.i.d. samples from an unknown distribution $p(x)$, the best approximation to $p(x)$ according to the \textbf{maximum likelihood} (ML) principle is:
+\begin{definition}[Максимальное правдоподобие] \addbottle
+Для параметрического семейства распределений вероятностей $f(x; s)$ и набора из $n$ значений $\left\{x_i\right\}_{i=1}^n$, которые являются i.i.d. выборками из неизвестного распределения $p(x)$, наилучшее приближение к $p(x)$ согласно принципу \textbf{максимального правдоподобия} (МП) задается как:
 %
 $$
 s^*=\underset{s}{\arg\max} \sum_{i=1}^n \log(f(x_i;s))
 $$
 \end{definition}
 
-If $f$ is differentiable, we can maximize the objective through gradient descent. This is the core approach we follow for training differentiable models. For now, we close the appendix by describing simple examples of ML estimation in the case of standard probability distributions. We do not provide worked out calculations, for which we refer to \cite{bishop2006pattern,bishop2024deep}.
+Если $f$ дифференцируема, мы можем максимизировать целевую функцию с помощью градиентного спуска. Это основной подход, которому мы следуем для обучения дифференцируемых моделей. Пока мы завершаем приложение, описывая простые примеры оценки МП в случае стандартных распределений вероятностей. Мы не приводим подробных вычислений, за которыми мы отсылаем к \cite{bishop2006pattern,bishop2024deep}.
 %
-\subsubsection*{Maximum likelihood for the Bernoulli distribution}
+\subsubsection*{Максимальное правдоподобие для распределения Бернулли}
 %
-Consider first the case of a Bernoulli distribution with unknown parameter $p$. In this case, the ML estimator is:
+Рассмотрим сначала случай распределения Бернулли с неизвестным параметром $p$. В этом случае оценщик МП равен:
 %
 $$
 p^*=\frac{\sum_i x_i}{n}
 $$
 %
-which is simply the ratio of positive samples over the entire dataset.
+что является просто отношением положительных выборок ко всему набору данных.
 
-\subsubsection*{Maximum likelihood for the Gaussian distribution}
+\subsubsection*{Максимальное правдоподобие для гауссова распределения}
 
-For the Gaussian distribution, we can rewrite its log likelihood as:
+Для гауссова распределения мы можем переписать его логарифм правдоподобия как:
 %
 $$
 L(\mu, \sigma^2) = - \frac{n}{2}\log(2\pi \sigma^2) - \frac{1}{2\sigma^2}\sum_{i=1}^n(x_i-\mu)^2
 $$
 %
-Maximizing for $\mu$ and $\sigma^2$ separately returns the known rules for computing the empirical mean and variance of a Gaussian distribution:
+Максимизация по $\mu$ и $\sigma^2$ по отдельности возвращает известные правила для вычисления эмпирического среднего и дисперсии гауссова распределения:
 %
 \begin{gather}
 \mu^*=\frac{1}{n}\sum_i x_i \\\sigma^{2*}=\frac{1}{n}\sum_i(x_i-\mu^*)^2
 \end{gather}
 %
-The two can be computed sequentially. Because we are using an estimate for the mean inside the variance’s formula, it can be shown the resulting estimation is slightly biased. This can be corrected by modifying the normalization term to $\frac{1}{n-1}$; this is known as Bessel’s correction.\footnote{\url{https://en.wikipedia.org/wiki/Bessel\%27s\_correction}} For large $n$, the difference between the two variants is minimal.
+Их можно вычислять последовательно. Поскольку мы используем оценку для среднего внутри формулы дисперсии, можно показать, что результирующая оценка немного смещена. Это можно исправить, изменив нормировочный член на $\frac{1}{n-1}$; это известно как поправка Бесселя.\footnote{\url{https://en.wikipedia.org/wiki/Bessel\%27s\_correction}} Для больших $n$ разница между двумя вариантами минимальна.

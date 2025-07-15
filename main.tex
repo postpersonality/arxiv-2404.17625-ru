@@ -29,6 +29,10 @@
 \usepackage{wrapfig}
 \usepackage{marginnote}
 \usepackage[marginparsep=0.5cm]{geometry}
+\usepackage[T2A]{fontenc}      % поддержка кириллицы в выводе
+\usepackage[utf8]{inputenc}    % поддержка utf8 во входных данных
+\usepackage[russian]{babel}    % правила переноса и локализация для русского
+
 
 % Vertical alignment for side captions
 \sidecaptionvpos{figure}{c}
@@ -89,7 +93,7 @@
 \fancyhead{} % clear all header fields
 \fancyhead[LE]{{\color{black!40}\thepage}}
 \fancyhead[RE]{\bfseries\normalfont {\color{black!40}\nouppercase{\rightmark}}}
-\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Chapter \thechapter: \leftmark}}}
+\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Глава \thechapter: \leftmark}}}
 \fancyhead[RO]{{\color{black!40}\thepage}}
 
 % Mathematical commands
@@ -118,7 +122,7 @@ innerrightmargin=0pt,
 skipabove=\baselineskip,
 skipabove=1.2\baselineskip,
 }
-\newmdtheoremenv[linecolor=drawred]{definition}{Definition}[chapter]
+\newmdtheoremenv[linecolor=drawred]{definition}{Определение}[chapter]
 
 % Theorems and definitions
 % hhttps://tex.stackexchange.com/questions/26041/different-colorcoded-theorems/26049#26049
@@ -133,14 +137,14 @@ innerrightmargin=0pt,
 skipabove=\baselineskip,
 skipabove=1.2\baselineskip,
 }
-\newmdtheoremenv[linecolor=drawviolet]{theorem}{Theorem}[chapter]
+\newmdtheoremenv[linecolor=drawviolet]{theorem}{Теорема}[chapter]
 
 % Python environment (development)
 %\usepackage[newfloat=true,finalizecache,cachedir=mintedcache]{minted}
 % Python environment (arXiv, remember to copy the pyg cache)
 \usepackage[newfloat=true,frozencache,cachedir=mintedcache]{minted}
 %\usepackage[newfloat=true]{minted}
-\SetupFloatingEnvironment{listing}{name=Box}
+\SetupFloatingEnvironment{listing}{name=Листинг}
 \surroundwithmdframed[linecolor=drawgreen]{minted}
 \newenvironment{mypy}[2]{%
 \VerbatimEnvironment
@@ -205,11 +209,11 @@ skipabove=1.2\baselineskip,
     \begin{flushright}
     {\Huge
     \vspace{20em}
-        {\fontsize{30}{30}\selectfont Alice's Adventures in a {\color{Peach}\textbf{differentiable}} wonderland}\\
+        {\fontsize{30}{30}\selectfont Приключения Алисы в {\color{Peach}\textbf{дифференцируемой}} стране чудес}\\
         \vskip0.5cm
-        {\fontsize{20}{20}\selectfont \textit{A primer on designing neural networks}} \\ {\fontsize{18}{18}\selectfont \textbf{Vol. I - A tour of the land}}\\
+        {\fontsize{20}{20}\selectfont \textit{Букварь по проектированию нейронных сетей}} \\ {\fontsize{18}{18}\selectfont \textbf{Том I - Путешествие по стране}}\\
         \vskip1cm
-       \large Simone Scardapane
+       \large Симоне Скардапане
     }
     \end{flushright}
     \tikz[remember picture,overlay] \node[opacity=0.1,inner sep=0pt] at (4, -5){\includegraphics[width=11.5cm]{images/Alice-1.pdf}};
@@ -223,28 +227,28 @@ skipabove=1.2\baselineskip,
 
 \begin{spacing}{1.2}
 \tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (3, -7.5){\includegraphics[width=11cm]{images/Shutterstock_1977296960.png}};
-\begin{quote}\begin{flushright}\large“\textit{For, you see, so many out-of-the-way things had happened lately, that Alice had begun to think that very few things indeed were really impossible.}” \\\vspace{1em} — \textbf{Chapter 1, Down the Rabbit-Hole}\end{flushright}\end{quote}
+\begin{quote}\begin{flushright}\large“\textit{Видите ли, в последнее время произошло столько невероятных событий, что Алиса начала думать, что на самом деле очень мало что действительно невозможно.}” \\\vspace{1em} — \textbf{Глава 1, Вниз по кроличьей норе}\end{flushright}\end{quote}
 \end{spacing}
 \newpage\pagecolor{white}
 
 
 \frontmatter
 
-\chapter*{Foreword}
+\chapter*{Предисловие}
 \markboth{}{}
 
 %\addcontentsline{toc}{chapter}{Foreword}
 
-This book is an introduction to the topic of (deep) \textbf{neural networks} (NNs), the core technique at the hearth of large language models, generative artificial intelligence - and many other applications. Because the term \textit{neural} comes with a lot of historical baggage, and because NNs are simply compositions of differentiable primitives, I refer to them -- when feasible -- with the simpler term \textbf{differentiable models}.
+Эта книга — введение в тему (глубоких) \textbf{нейронных сетей} (НС), основной технологии, лежащей в основе больших языковых моделей, генеративного искусственного интеллекта и многих других приложений. Поскольку термин \textit{нейронный} несет в себе большой исторический багаж, и поскольку НС — это просто композиции дифференцируемых примитивов, я буду называть их — по возможности — более простым термином \textbf{дифференцируемые модели}.
 
-In 2009, I stumbled almost by chance upon a paper by Yoshua Bengio on the power of `deep' NNs \cite{bengio2009learning}, at the same time when automatic differentiation libraries like Theano \cite{al2016theano} were becoming popular. Like Alice, I had stumbled upon a strange programming realm - a \textit{differentiable} wonderland where simple things, such as selecting an element, were incredibly hard, and other things, such as recognizing cats, were amazingly simple.
+В 2009 году я почти случайно наткнулся на статью Йошуа Бенжио о мощи «глубоких» НС \cite{bengio2009learning}, в то же время, когда становились популярными библиотеки для автоматического дифференцирования, такие как Theano \cite{al2016theano}. Как и Алиса, я наткнулся на странное царство программирования — \textit{дифференцируемую} страну чудес, где простые вещи, такие как выбор элемента, были невероятно сложны, а другие вещи, такие как распознавание кошек, были удивительно просты.
 
-I have spent more than ten years reading about, implementing, and teaching about these models. This book is a rough attempt at condensing something of what I have learned in the process, with a focus on their design and most common components. Because the field is evolving quickly, I have tried to strike a good balance between theory and code, historical considerations and recent trends. I assume the reader has some exposure to machine learning and linear algebra, but I try to cover the preliminaries when necessary.
+Я потратил более десяти лет на чтение, реализацию и преподавание этих моделей. Эта книга — грубая попытка сжато изложить то, что я узнал в процессе, с акцентом на их проектирование и наиболее распространенные компоненты. Поскольку область быстро развивается, я постарался найти хороший баланс между теорией и кодом, историческими соображениями и последними тенденциями. Я предполагаю, что читатель знаком с машинным обучением и линейной алгеброй, но стараюсь при необходимости освещать предварительные сведения.
 
 \vspace{3.5em}
 \hfill%
 \begin{minipage}{0.75\textwidth}\begin{flushright}\large
-\textit{Gather round, friends: it's time for our beloved \\ {\color{drawred}{Alice's adventures in a differentiable wonderland}}!}\end{flushright}
+\textit{Собирайтесь, друзья: пришло время для любимых нами \\ {\color{drawred}{приключений Алисы в дифференцируемой стране чудес}}!}\end{flushright}
 \end{minipage}
 \tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (-13.5,-1.3){\includegraphics[width=6.5cm]{images/shutterstock_1675103158.jpg}};
 
@@ -264,23 +268,23 @@ I have spent more than ten years reading about, implementing, and teaching about
 \include{1_introduction}
 
 % Note to self: this is a mess
-\part[Compass and needle]{
+\part[Компас и игла]{
 \pagecolor{titlecolor}
 \label{part:compass_and_needle}
 \vspace*{1em}
 \begin{flushright}
-\vspace{-2em}Compass and needle\end{flushright}\vspace*{2em}
+\vspace{-2em}Компас и игла\end{flushright}\vspace*{2em}
 \begin{spacing}{1.2}
 \begin{minipage}[l]{17cm}
 \begin{quote}\begin{flushright}
-\normalfont\large\textit{“Would you tell me, please, which way I ought to go from here?” \\
-“That depends a good deal on where you want to get to,” said  the Cat.\\
-“I don’t much care where” said Alice.\\
-“Then it doesn’t matter which way you go,” said the Cat.} \\\vspace{1em} — \textbf{Chapter 6, Pig and Pepper}
+\normalfont\large\textit{“Скажите, пожалуйста, куда мне отсюда идти?” \\
+“Это во многом зависит от того, куда ты хочешь попасть”, — сказал Кот.\\
+“Мне все равно, куда”, — сказала Алиса.\\
+“Тогда неважно, куда идти”, — сказал Кот.} \\\vspace{1em} — \textbf{Глава 6, Свинья и перец}
 \end{flushright}\end{quote} 
 \tikz[remember picture,overlay] \node[opacity=0.8,inner sep=0pt] at (3,10){\includegraphics[width=8cm]{images/Alice-3.pdf}};
 \end{minipage}\end{spacing} \newpage\pagecolor{white}
-} 
+}
 
 
 \include{2_preliminaries}
@@ -289,14 +293,14 @@ I have spent more than ten years reading about, implementing, and teaching about
 \include{5_fully_connected_models}
 \include{6_automatic_differentiation}
 
-\part[A strange land]{\pagecolor{titlecolor}
+\part[Странная страна]{\pagecolor{titlecolor}
 \label{part:a_strange_land}
 \vspace*{1em}
-\vspace{-2em}\hspace{3.8em}A strange land\vspace*{2em}
+\vspace{-2em}\hspace{3.8em}Странная страна\vspace*{2em}
 \begin{spacing}{1.2}
 \begin{minipage}[l]{15cm}
 \begin{quote}\begin{flushright}
-\normalfont\large\textit{“Curiouser and curiouser!” cried Alice (she was so much surprised, that for the moment she quite forgot \\ how to speak good English).} \\\vspace{1em} — \textbf{Chapter 2, The Pool of Tears}
+\normalfont\large\textit{“Все страньше и страньше!” — воскликнула Алиса (она была так удивлена, что на мгновение совсем забыла, \\ как правильно говорить по-английски).} \\\vspace{1em} — \textbf{Глава 2, Море слез}
 \end{flushright}\end{quote} 
 \tikz[remember picture,overlay] \node[opacity=0.8,inner sep=0pt] at (2.5,8.5){\includegraphics[width=5cm]{images/Alice-4.pdf}};
 \end{minipage}\end{spacing}
@@ -308,14 +312,14 @@ I have spent more than ten years reading about, implementing, and teaching about
 \include{8_convolutions_beyond_images}
 \include{9_building_deep_cnns}
 
-\part[Down the rabbit-hole]{\pagecolor{titlecolor}
+\part[Вниз по кроличьей норе]{\pagecolor{titlecolor}
 \label{part:down_the_rabbit_hole}
 \vspace*{1em}
-\vspace{-2em}\hspace{6.0em} $\,$Down the rabbit-hole\vspace*{2em}
+\vspace{-2em}\hspace{6.0em} $\,$Вниз по кроличьей норе\vspace*{2em}
 \begin{spacing}{1.2}
 \begin{minipage}[l]{15cm}
 \begin{quote}\begin{flushright}
-\normalfont\large\textit{“It would be so nice if something made sense for a change.”} \\\vspace{1em} \textbf{—Alice in Wonderland, 1951 movie}
+\normalfont\large\textit{“Было бы так хорошо, если бы хоть что-то имело смысл для разнообразия.”} \\\vspace{1em} \textbf{—Алиса в стране чудес, фильм 1951 года}
 \end{flushright}\end{quote} 
 \tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (3,6.5){\includegraphics[width=7.5cm]{images/Shutterstock_2274674539.png}};
 \end{minipage}\end{spacing}
@@ -328,26 +332,26 @@ I have spent more than ten years reading about, implementing, and teaching about
 \include{13_recurrent_models}
 
 \pagecolor{white}
-\chapter*{Goodbye (for now)}
+\chapter*{До свидания (пока что)}
 
-And so, Alice's first trip in this differentiable wonderland has come (for now) to an end. We only made a very broad tour, with a focus on the many ways layers can be designed and composed to create modern differentiable models (a.k.a., neural networks).
+И вот, первое путешествие Алисы в этой дифференцируемой стране чудес подошло (пока что) к концу. Мы совершили лишь очень общий обзор, сосредоточившись на множестве способов, которыми слои могут быть спроектированы и скомпонованы для создания современных дифференцируемых моделей (также известных как нейронные сети).
 
 \begin{wrapfigure}{r}{6.5cm}
 \includegraphics[width=6.5cm]{images/alice_mad_hatter.jpg}
 \end{wrapfigure} 
 
-There are many topics we discussed only briefly, including how we can \textit{use} these models in practice: from fine-tuning to generative modeling, explainability, and more. We also skimmed on many engineering aspects: training and serving large models is a huge engineering feat which requires, among other things, distributed training strategies, fast compilers, and DevOps techniques. And the emergence of LLMs has opened up new avenues for their use where knowledge of their inner workings is not even a prerequisite, from prompt engineering to model chaining and agentic behaviours.
+Есть много тем, которые мы обсуждали лишь вкратце, включая то, как мы можем \textit{использовать} эти модели на практике: от дообучения до генеративного моделирования, объяснимости и многого другого. Мы также поверхностно коснулись многих инженерных аспектов: обучение и обслуживание больших моделей — это огромный инженерный подвиг, который требует, среди прочего, распределенных стратегий обучения, быстрых компиляторов и техник DevOps. А появление БЯМ открыло новые возможности для их использования, где знание их внутреннего устройства даже не является обязательным условием, от промпт-инжиниринга до цепочек моделей и агентного поведения.
 
-This book has a companion website,\footnote{\url{https://sscardapane.it/alice-book}} where I hope to publish additional chapters that touch upon some of these topics. If time allows, some of them may be joined together in a new volume.
+У этой книги есть сопутствующий веб-сайт,\footnote{\url{https://sscardapane.it/alice-book}} где я надеюсь опубликовать дополнительные главы, затрагивающие некоторые из этих тем. Если позволит время, некоторые из них могут быть объединены в новый том.
 
-I hope you appreciated the journey! For comments, suggestions, and feedback on the book do not hesitate to contact me.
+Надеюсь, вам понравилось путешествие! За комментариями, предложениями и отзывами о книге не стесняйтесь обращаться ко мне.
 
 \newpage
 \pagecolor{white}
 \pagestyle{fancy}
 
 \appendix
-\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Appendix \thechapter: \leftmark}}}
+\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Приложение \thechapter: \leftmark}}}
 \include{appendix_a}
 \include{appendix_b}
 
