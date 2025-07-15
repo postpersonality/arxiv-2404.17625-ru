@@ -1,0 +1,1186 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{GWFM{\etalchar{+}}13}
+
+\bibitem[AB21]{angelopoulos2021gentle}
+A.~N. Angelopoulos and S.~Bates.
+\newblock A gentle introduction to conformal prediction and distribution-free
+  uncertainty quantification.
+\newblock {\em arXiv preprint arXiv:2107.07511}, 2021.
+
+\bibitem[ADIP21]{apicella2021survey}
+A.~Apicella, F.~Donnarumma, F.~Isgr{\`o}, and R.~Prevete.
+\newblock A survey on modern trainable activation functions.
+\newblock {\em Neural Networks}, 138:14--32, 2021.
+
+\bibitem[AHS23]{ainsworth2022git}
+S.~K. Ainsworth, J.~Hayase, and S.~Srinivasa.
+\newblock Git re-basin: Merging models modulo permutation symmetries.
+\newblock In {\em ICLR}, 2023.
+
+\bibitem[AHSB14]{agostinelli2014learning}
+F.~Agostinelli, M.~Hoffman, P.~Sadowski, and P.~Baldi.
+\newblock Learning activation functions to improve deep neural networks.
+\newblock {\em arXiv preprint arXiv:1412.6830}, 2014.
+
+\bibitem[AJB{\etalchar{+}}17]{arpit2017closer}
+D.~Arpit, S.~Jastrz{\k{e}}bski, N.~Ballas, D.~Krueger, E.~Bengio, M.~S. Kanwal,
+  T.~Maharaj, A.~Fischer, A.~Courville, Y.~Bengio, et~al.
+\newblock A closer look at memorization in deep networks.
+\newblock In {\em International conference on machine learning}, pages
+  233--242. PMLR, 2017.
+
+\bibitem[AR00]{anderson2000talking}
+J.~A. Anderson and E.~Rosenfeld.
+\newblock {\em Talking nets: An oral history of neural networks}.
+\newblock MIT Press, 2000.
+
+\bibitem[ARAA{\etalchar{+}}16]{al2016theano}
+R.~Al-Rfou, G.~Alain, A.~Almahairi, C.~Angermueller, D.~Bahdanau, N.~Ballas,
+  F.~Bastien, J.~Bayer, A.~Belikov, A.~Belopolsky, et~al.
+\newblock Theano: A python framework for fast computation of mathematical
+  expressions.
+\newblock {\em arXiv preprint arXiv:1605.02688}, pages 1--19, 2016.
+
+\bibitem[ASA{\etalchar{+}}23]{akyurek2022learning}
+E.~Aky{\"u}rek, D.~Schuurmans, J.~Andreas, T.~Ma, and D.~Zhou.
+\newblock What learning algorithm is in-context learning? investigations with
+  linear models.
+\newblock In {\em ICLR}, 2023.
+
+\bibitem[AST{\etalchar{+}}24]{ansari2024chronos}
+A.~F. Ansari, L.~Stella, C.~Turkmen, X.~Zhang, P.~Mercado, H.~Shen, O.~Shchur,
+  S.~S. Rangapuram, S.~P. Arango, S.~Kapoor, et~al.
+\newblock Chronos: Learning the language of time series.
+\newblock {\em arXiv preprint arXiv:2403.07815}, 2024.
+
+\bibitem[AZLL19]{allen2019learning}
+Z.~Allen-Zhu, Y.~Li, and Y.~Liang.
+\newblock Learning and generalization in overparameterized neural networks,
+  going beyond two layers.
+\newblock In {\em NeurIPS}, 2019.
+
+\bibitem[BAY22]{brody2021attentive}
+S.~Brody, U.~Alon, and E.~Yahav.
+\newblock How attentive are graph attention networks?
+\newblock In {\em ICLR}, 2022.
+
+\bibitem[BB23]{bishop2024deep}
+C.~M. Bishop and H.~Bishop.
+\newblock {\em Deep learning: Foundations and concepts}.
+\newblock Springer Nature, 2023.
+
+\bibitem[BBCJ20]{biesialska2020continual}
+M.~Biesialska, K.~Biesialska, and M.~R. Costa-Jussa.
+\newblock Continual lifelong learning in natural language processing: A survey.
+\newblock In {\em COLING}, pages 6523--6541, 2020.
+
+\bibitem[BBL{\etalchar{+}}17]{bronstein2017geometric}
+M.~M. Bronstein, J.~Bruna, Y.~LeCun, A.~Szlam, and P.~Vandergheynst.
+\newblock Geometric deep learning: going beyond {Euclidean} data.
+\newblock {\em IEEE Signal Processing Magazine}, 34(4):18--42, 2017.
+
+\bibitem[BCB15]{bahdanau2014neural}
+D.~Bahdanau, K.~Cho, and Y.~Bengio.
+\newblock Neural machine translation by jointly learning to align and
+  translate.
+\newblock In {\em ICLR}, 2015.
+
+\bibitem[BCZ{\etalchar{+}}16]{bolukbasi2016man}
+T.~Bolukbasi, K.-W. Chang, J.~Y. Zou, V.~Saligrama, and A.~T. Kalai.
+\newblock Man is to computer programmer as woman is to homemaker? debiasing
+  word embeddings.
+\newblock In {\em NeurIPS}, volume~29, 2016.
+
+\bibitem[Ben09]{bengio2009learning}
+Y.~Bengio.
+\newblock Learning deep architectures for {AI}.
+\newblock {\em Foundations and Trends{\textregistered} in Machine Learning},
+  2(1):1--127, 2009.
+
+\bibitem[BGHN24]{blasiok2024does}
+J.~Blasiok, P.~Gopalan, L.~Hu, and P.~Nakkiran.
+\newblock When does optimizing a proper loss yield calibration?
+\newblock In {\em NeurIPS}, 2024.
+
+\bibitem[BGLA21]{bianchi2021graph}
+F.~M. Bianchi, D.~Grattarola, L.~Livi, and C.~Alippi.
+\newblock Graph neural networks with convolutional arma filters.
+\newblock {\em IEEE Transactions on Pattern Analysis and Machine Intelligence},
+  44(7):3496--3507, 2021.
+
+\bibitem[BGMMS21]{bender2021dangers}
+E.~M. Bender, T.~Gebru, A.~McMillan-Major, and S.~Shmitchell.
+\newblock On the dangers of stochastic parrots: Can language models be too big?
+\newblock In {\em ACM FAccT}, pages 610--623. ACM, 2021.
+
+\bibitem[BGSW18]{bjorck2018understanding}
+N.~Bjorck, C.~P. Gomes, B.~Selman, and K.~Q. Weinberger.
+\newblock Understanding batch normalization.
+\newblock In {\em NeurIPS}, 2018.
+
+\bibitem[BHB{\etalchar{+}}18]{battaglia2018relational}
+P.~W. Battaglia, J.~B. Hamrick, V.~Bapst, A.~Sanchez-Gonzalez, V.~Zambaldi,
+  M.~Malinowski, A.~Tacchetti, D.~Raposo, A.~Santoro, R.~Faulkner, et~al.
+\newblock Relational inductive biases, deep learning, and graph networks.
+\newblock {\em arXiv preprint arXiv:1806.01261}, 2018.
+
+\bibitem[Bis95]{bishop1995training}
+C.~M. Bishop.
+\newblock Training with noise is equivalent to tikhonov regularization.
+\newblock {\em Neural Computation}, 7(1):108--116, 1995.
+
+\bibitem[Bis06]{bishop2006pattern}
+C.~Bishop.
+\newblock {\em Pattern recognition and machine learning}.
+\newblock Springer, 2006.
+
+\bibitem[BJMO12]{bach2012optimization}
+F.~Bach, R.~Jenatton, J.~Mairal, and G.~Obozinski.
+\newblock Optimization with sparsity-inducing penalties.
+\newblock {\em Foundations and Trends{\textregistered} in Machine Learning},
+  4(1):1--106, 2012.
+
+\bibitem[BKH16]{ba2016layer}
+J.~L. Ba, J.~R. Kiros, and G.~E. Hinton.
+\newblock Layer normalization.
+\newblock {\em arXiv preprint arXiv:1607.06450}, 2016.
+
+\bibitem[BKK19]{bai2019deep}
+S.~Bai, J.~Z. Kolter, and V.~Koltun.
+\newblock Deep equilibrium models.
+\newblock In {\em NeurIPS}, 2019.
+
+\bibitem[Ble90]{blelloch1990prefix}
+G.~E. Blelloch.
+\newblock {\em Prefix sums and their applications}.
+\newblock School of Computer Science, Carnegie Mellon University Pittsburgh,
+  PA, USA, 1990.
+
+\bibitem[BNS06]{belkin2006manifold}
+M.~Belkin, P.~Niyogi, and V.~Sindhwani.
+\newblock Manifold regularization: A geometric framework for learning from
+  labeled and unlabeled examples.
+\newblock {\em Journal of Machine Learning Research}, 7(11), 2006.
+
+\bibitem[BP20]{bolte2020mathematical}
+J.~Bolte and E.~Pauwels.
+\newblock A mathematical model for automatic differentiation in machine
+  learning.
+\newblock In {\em NeurIPS}, pages 10809--10819, 2020.
+
+\bibitem[BPA{\etalchar{+}}24]{bordes2024introduction}
+F.~Bordes, R.~Y. Pang, A.~Ajay, A.~C. Li, A.~Bardes, S.~Petryk, O.~Ma{\~n}as,
+  Z.~Lin, A.~Mahmoud, B.~Jayaraman, et~al.
+\newblock An introduction to vision-language modeling.
+\newblock {\em arXiv preprint arXiv:2405.17247}, 2024.
+
+\bibitem[BPRS18]{baydin2018automatic}
+A.~G. Baydin, B.~A. Pearlmutter, A.~A. Radul, and J.~M. Siskind.
+\newblock Automatic differentiation in machine learning: a survey.
+\newblock {\em Journal of Marchine Learning Research}, 18:1--43, 2018.
+
+\bibitem[BPS{\etalchar{+}}24]{beck2024xlstm}
+M.~Beck, K.~P{\"o}ppel, M.~Spanring, A.~Auer, O.~Prudnikova, M.~Kopp,
+  G.~Klambauer, J.~Brandstetter, and S.~Hochreiter.
+\newblock xlstm: Extended long short-term memory.
+\newblock {\em arXiv preprint arXiv:2405.04517}, 2024.
+
+\bibitem[BR07]{bogachev2007measure}
+V.~I. Bogachev and M.~A.~S. Ruas.
+\newblock {\em Measure theory}.
+\newblock Springer, 2007.
+
+\bibitem[BR24]{blondel2024elements}
+M.~Blondel and V.~Roulet.
+\newblock The elements of differentiable programming.
+\newblock {\em arXiv preprint arXiv:2403.14606}, 2024.
+
+\bibitem[BZMA20]{baevski2020wav2vec}
+A.~Baevski, Y.~Zhou, A.~Mohamed, and M.~Auli.
+\newblock wav2vec 2.0: A framework for self-supervised learning of speech
+  representations.
+\newblock In {\em NeurIPS}, pages 12449--12460, 2020.
+
+\bibitem[CCGC24]{cheng2024multilinear}
+Y.~Cheng, G.~G. Chrysos, M.~Georgopoulos, and V.~Cevher.
+\newblock Multilinear operator networks.
+\newblock In {\em ICLR}, 2024.
+
+\bibitem[CMMB22]{cinus2022effect}
+F.~Cinus, M.~Minici, C.~Monti, and F.~Bonchi.
+\newblock The effect of people recommenders on echo chambers and polarization.
+\newblock In {\em AAAI ICWSM}, volume~16, pages 90--101, 2022.
+
+\bibitem[CPPM22]{chien2021you}
+E.~Chien, C.~Pan, J.~Peng, and O.~Milenkovic.
+\newblock You are allset: A multiset function framework for hypergraph neural
+  networks.
+\newblock In {\em ICLR}, 2022.
+
+\bibitem[CRBD18]{chen2018neural}
+R.~T. Chen, Y.~Rubanova, J.~Bettencourt, and D.~K. Duvenaud.
+\newblock Neural ordinary differential equations.
+\newblock In {\em NeurIPS}, 2018.
+
+\bibitem[CS21]{chung2021turing}
+S.~Chung and H.~Siegelmann.
+\newblock Turing completeness of bounded-precision recurrent neural networks.
+\newblock pages 28431--28441, 2021.
+
+\bibitem[CVMG{\etalchar{+}}14]{cho2014learning}
+K.~Cho, B.~Van~Merri{\"e}nboer, C.~Gulcehre, D.~Bahdanau, F.~Bougares,
+  H.~Schwenk, and Y.~Bengio.
+\newblock Learning phrase representations using rnn encoder-decoder for
+  statistical machine translation.
+\newblock In {\em EMNLP}. ACL, 2014.
+
+\bibitem[CW82]{coppersmith1982asymptotic}
+D.~Coppersmith and S.~Winograd.
+\newblock On the asymptotic complexity of matrix multiplication.
+\newblock {\em SIAM Journal on Computing}, 11(3):472--492, 1982.
+
+\bibitem[Cyb89]{cybenko1989approximation}
+G.~Cybenko.
+\newblock Approximation by superpositions of a sigmoidal function.
+\newblock {\em Mathematics of Control, Signals and Systems}, 2(4):303--314,
+  1989.
+
+\bibitem[CZJ{\etalchar{+}}22]{chang2022maskgit}
+H.~Chang, H.~Zhang, L.~Jiang, C.~Liu, and W.~T. Freeman.
+\newblock Maskgit: Masked generative image transformer.
+\newblock In {\em IEEE/CVF CVPR}, pages 11315--11325, 2022.
+
+\bibitem[CZSL20]{cubuk2020randaugment}
+E.~D. Cubuk, B.~Zoph, J.~Shlens, and Q.~V. Le.
+\newblock Randaugment: Practical automated data augmentation with a reduced
+  search space.
+\newblock In {\em IEEE/CVF CVPR Workshops}, pages 702--703, 2020.
+
+\bibitem[DBK{\etalchar{+}}21]{dosovitskiy2020image}
+A.~Dosovitskiy, L.~Beyer, A.~Kolesnikov, D.~Weissenborn, X.~Zhai,
+  T.~Unterthiner, M.~Dehghani, M.~Minderer, G.~Heigold, S.~Gelly, et~al.
+\newblock An image is worth 16x16 words: Transformers for image recognition at
+  scale.
+\newblock In {\em ICLR}, 2021.
+
+\bibitem[DCLT18]{devlin2018bert}
+J.~Devlin, M.-W. Chang, K.~Lee, and K.~Toutanova.
+\newblock Bert: Pre-training of deep bidirectional transformers for language
+  understanding.
+\newblock In {\em NAACL-HLT}, page 4171–4186. ACL, 2018.
+
+\bibitem[DCSA23]{defossez2022high}
+A.~D{\'e}fossez, J.~Copet, G.~Synnaeve, and Y.~Adi.
+\newblock High fidelity neural audio compression.
+\newblock {\em Transactions on Machine Learning Research}, 2023.
+
+\bibitem[DDM{\etalchar{+}}23]{dehghani2023scaling}
+M.~Dehghani, J.~Djolonga, B.~Mustafa, P.~Padlewski, J.~Heek, J.~Gilmer, A.~P.
+  Steiner, M.~Caron, R.~Geirhos, I.~Alabdulmohsin, et~al.
+\newblock Scaling vision transformers to 22 billion parameters.
+\newblock In {\em ICML}, pages 7480--7512, 2023.
+
+\bibitem[DFAG17]{dauphin2017language}
+Y.~N. Dauphin, A.~Fan, M.~Auli, and D.~Grangier.
+\newblock Language modeling with gated convolutional networks.
+\newblock In {\em ICML}, pages 933--941, 2017.
+
+\bibitem[DFE{\etalchar{+}}22]{dao2022flashattention}
+T.~Dao, D.~Fu, S.~Ermon, A.~Rudra, and C.~R{\'e}.
+\newblock Flash{A}ttention: Fast and memory-efficient exact attention with
+  {IO}-awareness.
+\newblock In {\em NeurIPS}, pages 16344--16359, 2022.
+
+\bibitem[DLL{\etalchar{+}}22]{dwivedi2021graph}
+V.~P. Dwivedi, A.~T. Luu, T.~Laurent, Y.~Bengio, and X.~Bresson.
+\newblock Graph neural networks with learnable structural and positional
+  representations.
+\newblock In {\em ICLR}, 2022.
+
+\bibitem[DOMB24]{darcet2023vision}
+T.~Darcet, M.~Oquab, J.~Mairal, and P.~Bojanowski.
+\newblock Vision transformers need registers.
+\newblock In {\em ICLR}, 2024.
+
+\bibitem[DS20]{de2020batch}
+S.~De and S.~Smith.
+\newblock Batch normalization biases residual blocks towards the identity
+  function in deep networks.
+\newblock In {\em NeurIPS}, pages 19964--19975, 2020.
+
+\bibitem[DT17]{devries2017improved}
+T.~DeVries and G.~W. Taylor.
+\newblock Improved regularization of convolutional neural networks with cutout.
+\newblock {\em arXiv preprint arXiv:1708.04552}, 2017.
+
+\bibitem[DZPS19]{du2018gradient}
+S.~S. Du, X.~Zhai, B.~Poczos, and A.~Singh.
+\newblock Gradient descent provably optimizes over-parameterized neural
+  networks.
+\newblock In {\em ICLR}, 2019.
+
+\bibitem[EHB23]{eijkelboom2023n}
+F.~Eijkelboom, R.~Hesselink, and E.~J. Bekkers.
+\newblock E $(n) $ equivariant message passing simplicial networks.
+\newblock In {\em ICML}, pages 9071--9081, 2023.
+
+\bibitem[FAL17]{finn2017model}
+C.~Finn, P.~Abbeel, and S.~Levine.
+\newblock Model-agnostic meta-learning for fast adaptation of deep networks.
+\newblock In {\em ICML}, pages 1126--1135. PMLR, 2017.
+
+\bibitem[Fle23]{fleuret2023little}
+F.~Fleuret.
+\newblock {\em The Little Book of Deep Learning}.
+\newblock Lulu Press, Inc., 2023.
+
+\bibitem[GBGB21]{gauthier2021next}
+D.~J. Gauthier, E.~Bollt, A.~Griffith, and W.~A. Barbosa.
+\newblock Next generation reservoir computing.
+\newblock {\em Nature Communications}, 12(1):5564, 2021.
+
+\bibitem[GD23]{gu2023mamba}
+A.~Gu and T.~Dao.
+\newblock Mamba: Linear-time sequence modeling with selective state spaces.
+\newblock {\em arXiv preprint arXiv:2312.00752}, 2023.
+
+\bibitem[GDE{\etalchar{+}}20]{gu2020hippo}
+A.~Gu, T.~Dao, S.~Ermon, A.~Rudra, and C.~R{\'e}.
+\newblock Hippo: Recurrent memory with optimal polynomial projections.
+\newblock In {\em NeurIPS}, pages 1474--1487, 2020.
+
+\bibitem[GFGS06]{graves2012connectionist}
+A.~Graves, S.~Fern{\'a}ndez, F.~Gomez, and J.~Schmidhuber.
+\newblock Connectionist temporal classification: labelling unsegmented sequence
+  data with recurrent neural networks.
+\newblock In {\em ICML}, pages 369--376, 2006.
+
+\bibitem[GG16]{gal2016dropout}
+Y.~Gal and Z.~Ghahramani.
+\newblock Dropout as a bayesian approximation: Representing model uncertainty
+  in deep learning.
+\newblock In {\em ICML}, pages 1050--1059, 2016.
+
+\bibitem[GGR22]{gu2021efficiently}
+A.~Gu, K.~Goel, and C.~R{\'e}.
+\newblock Efficiently modeling long sequences with structured state spaces.
+\newblock In {\em ICLR}, 2022.
+
+\bibitem[GJG{\etalchar{+}}21]{gu2021combining}
+A.~Gu, I.~Johnson, K.~Goel, K.~Saab, T.~Dao, A.~Rudra, and C.~R{\'e}.
+\newblock Combining recurrent, convolutional, and continuous-time models with
+  linear state space layers.
+\newblock pages 572--585, 2021.
+
+\bibitem[GM17]{gallicchio2017echo}
+C.~Gallicchio and A.~Micheli.
+\newblock Echo state property of deep reservoir computing networks.
+\newblock {\em Cognitive Computation}, 9:337--350, 2017.
+
+\bibitem[GMS05]{gori2005new}
+M.~Gori, G.~Monfardini, and F.~Scarselli.
+\newblock A new model for learning in graph domains.
+\newblock In {\em IEEE IJCNN}, volume~2, pages 729--734. IEEE, 2005.
+
+\bibitem[GOV22]{grinsztajn2022tree}
+L.~Grinsztajn, E.~Oyallon, and G.~Varoquaux.
+\newblock Why do tree-based models still outperform deep learning on typical
+  tabular data?
+\newblock In {\em NeurIPS}, pages 507--520, 2022.
+
+\bibitem[GPE{\etalchar{+}}23]{golkar2023xval}
+S.~Golkar, M.~Pettee, M.~Eickenberg, A.~Bietti, M.~Cranmer, G.~Krawezik,
+  F.~Lanusse, M.~McCabe, R.~Ohana, L.~Parker, et~al.
+\newblock xval: A continuous number encoding for large language models.
+\newblock {\em arXiv preprint arXiv:2310.02989}, 2023.
+
+\bibitem[GPSW17]{guo2017calibration}
+C.~Guo, G.~Pleiss, Y.~Sun, and K.~Q. Weinberger.
+\newblock On calibration of modern neural networks.
+\newblock In {\em ICML}, pages 1321--1330. PMLR, 2017.
+
+\bibitem[Gri12]{griewank2012invented}
+A.~Griewank.
+\newblock Who invented the reverse mode of differentiation?
+\newblock {\em Documenta Mathematica, Extra Volume ISMP}, 389400, 2012.
+
+\bibitem[GSBL20]{geva2020transformer}
+M.~Geva, R.~Schuster, J.~Berant, and O.~Levy.
+\newblock Transformer feed-forward layers are key-value memories.
+\newblock In {\em EMNLP}, page 5484–5495. ACL, 2020.
+
+\bibitem[GSR{\etalchar{+}}17]{gilmer2017neural}
+J.~Gilmer, S.~S. Schoenholz, P.~F. Riley, O.~Vinyals, and G.~E. Dahl.
+\newblock Neural message passing for quantum chemistry.
+\newblock In {\em ICML}, pages 1263--1272, 2017.
+
+\bibitem[GW08]{griewank2008evaluating}
+A.~Griewank and A.~Walther.
+\newblock {\em Evaluating derivatives: principles and techniques of algorithmic
+  differentiation}.
+\newblock SIAM, 2008.
+
+\bibitem[GWFM{\etalchar{+}}13]{goodfellow2013maxout}
+I.~Goodfellow, D.~Warde-Farley, M.~Mirza, A.~Courville, and Y.~Bengio.
+\newblock Maxout networks.
+\newblock In {\em ICML}, pages 1319--1327, 2013.
+
+\bibitem[GZBA22]{grattarola2022understanding}
+D.~Grattarola, D.~Zambon, F.~M. Bianchi, and C.~Alippi.
+\newblock Understanding pooling in graph neural networks.
+\newblock {\em IEEE Transactions on Neural Networks and Learning Systems},
+  2022.
+
+\bibitem[HABN{\etalchar{+}}21]{hoefler2021sparsity}
+T.~Hoefler, D.~Alistarh, T.~Ben-Nun, N.~Dryden, and A.~Peste.
+\newblock Sparsity in deep learning: Pruning and growth for efficient inference
+  and training in neural networks.
+\newblock {\em Journal of Machine Learning Research}, 22(241):1--124, 2021.
+
+\bibitem[Hac19]{hackenberger2019bayes}
+B.~K. Hackenberger.
+\newblock Bayes or not bayes, is this the question?
+\newblock {\em Croatian Medical Journal}, 60(1):50, 2019.
+
+\bibitem[HBE{\etalchar{+}}24]{ho2024algorithmic}
+A.~Ho, T.~Besiroglu, E.~Erdil, D.~Owen, R.~Rahman, Z.~C. Guo, D.~Atkinson,
+  N.~Thompson, and J.~Sevilla.
+\newblock Algorithmic progress in language models.
+\newblock {\em arXiv preprint arXiv:1710.05941}, 2024.
+
+\bibitem[HDLL22]{hua2022transformer}
+W.~Hua, Z.~Dai, H.~Liu, and Q.~Le.
+\newblock Transformer quality in linear time.
+\newblock In {\em ICML}, pages 9099--9117, 2022.
+
+\bibitem[HG16]{hendrycks2016gaussian}
+D.~Hendrycks and K.~Gimpel.
+\newblock Gaussian error linear units ({GELUs}).
+\newblock {\em arXiv preprint arXiv:1606.08415}, 2016.
+
+\bibitem[HHWW14]{huang2014deep}
+P.~Huang, Y.~Huang, W.~Wang, and L.~Wang.
+\newblock Deep embedding network for clustering.
+\newblock In {\em ICPR}, pages 1532--1537. IEEE, 2014.
+
+\bibitem[Hoc98]{hochreiter1998recurrent}
+S.~Hochreiter.
+\newblock Recurrent neural net learning and vanishing gradient.
+\newblock {\em International Journal Of Uncertainity, Fuzziness and
+  Knowledge-Based Systems}, 6(2):107--116, 1998.
+
+\bibitem[Hor91]{hornik1991approximation}
+K.~Hornik.
+\newblock Approximation capabilities of multilayer feedforward networks.
+\newblock {\em Neural Networks}, 4(2):251--257, 1991.
+
+\bibitem[HR22]{hardt2022patterns}
+M.~Hardt and B.~Recht.
+\newblock {\em Patterns, predictions, and actions: Foundations of machine
+  learning}.
+\newblock Princeton University Press, 2022.
+
+\bibitem[HS97]{hochreiter1997long}
+S.~Hochreiter and J.~Schmidhuber.
+\newblock Long short-term memory.
+\newblock {\em Neural Computation}, 9(8):1735--1780, 1997.
+
+\bibitem[HSS08]{hofmann2008kernel}
+T.~Hofmann, B.~Sch{\"o}lkopf, and A.~J. Smola.
+\newblock Kernel methods in machine learning.
+\newblock {\em The Annals of Statistics}, 36(3):1171--1220, 2008.
+
+\bibitem[HTF09]{hastie2009elements}
+T.~Hastie, R.~Tibshirani, and J.~H. Friedman.
+\newblock {\em The elements of statistical learning: data mining, inference,
+  and prediction}, volume~2.
+\newblock Springer, 2009.
+
+\bibitem[HYL17]{hamilton2017inductive}
+W.~Hamilton, Z.~Ying, and J.~Leskovec.
+\newblock Inductive representation learning on large graphs.
+\newblock In {\em NeurIPS}, 2017.
+
+\bibitem[HZC{\etalchar{+}}17]{howard2017mobilenets}
+A.~G. Howard, M.~Zhu, B.~Chen, D.~Kalenichenko, W.~Wang, T.~Weyand,
+  M.~Andreetto, and H.~Adam.
+\newblock Mobilenets: Efficient convolutional neural networks for mobile vision
+  applications.
+\newblock {\em arXiv preprint arXiv:1704.04861}, 2017.
+
+\bibitem[HZRS15]{he2015delving}
+K.~He, X.~Zhang, S.~Ren, and J.~Sun.
+\newblock Delving deep into rectifiers: Surpassing human-level performance on
+  imagenet classification.
+\newblock In {\em IEEE ICCV}, pages 1026--1034, 2015.
+
+\bibitem[HZRS16]{he2016deep}
+K.~He, X.~Zhang, S.~Ren, and J.~Sun.
+\newblock Deep residual learning for image recognition.
+\newblock In {\em IEEE/CVF CVPR}, pages 770--778, 2016.
+
+\bibitem[ICS22]{irie2022dual}
+K.~Irie, R.~Csord{\'a}s, and J.~Schmidhuber.
+\newblock The dual form of neural networks revisited: Connecting test time
+  predictions to training patterns via spotlights of attention.
+\newblock In {\em ICML}, pages 9639--9659, 2022.
+
+\bibitem[IS15]{ioffe2015batch}
+S.~Ioffe and C.~Szegedy.
+\newblock Batch normalization: Accelerating deep network training by reducing
+  internal covariate shift.
+\newblock In {\em ICML}, pages 448--456, 2015.
+
+\bibitem[JGB{\etalchar{+}}21]{jaegle2021perceiver}
+A.~Jaegle, F.~Gimeno, A.~Brock, O.~Vinyals, A.~Zisserman, and J.~Carreira.
+\newblock Perceiver: General perception with iterative attention.
+\newblock In {\em ICML}, pages 4651--4664, 2021.
+
+\bibitem[JK{\etalchar{+}}17]{jain2017non}
+P.~Jain, P.~Kar, et~al.
+\newblock Non-convex optimization for machine learning.
+\newblock {\em Foundations and Trends{\textregistered} in Machine Learning},
+  10(3-4):142--363, 2017.
+
+\bibitem[JLB{\etalchar{+}}22]{jospin2022hands}
+L.~V. Jospin, H.~Laga, F.~Boussaid, W.~Buntine, and M.~Bennamoun.
+\newblock Hands-on bayesian neural networks—a tutorial for deep learning
+  users.
+\newblock {\em IEEE Computational Intelligence Magazine}, 17(2):29--48, 2022.
+
+\bibitem[KB15]{kingma2014adam}
+D.~P. Kingma and J.~Ba.
+\newblock Adam: A method for stochastic optimization.
+\newblock In {\em ICLR}, 2015.
+
+\bibitem[KG21]{kidger2021equinox}
+P.~Kidger and C.~Garcia.
+\newblock {E}quinox: neural networks in {JAX} via callable {P}y{T}rees and
+  filtered transformations.
+\newblock {\em Differentiable Programming workshop at Neural Information
+  Processing Systems 2021}, 2021.
+
+\bibitem[KL18]{kakade2018provably}
+S.~M. Kakade and J.~D. Lee.
+\newblock Provably correct automatic sub-differentiation for qualified
+  programs.
+\newblock In {\em NeurIPS}, 2018.
+
+\bibitem[KMH{\etalchar{+}}20]{kaplan2020scaling}
+J.~Kaplan, S.~McCandlish, T.~Henighan, T.~B. Brown, B.~Chess, R.~Child,
+  S.~Gray, A.~Radford, J.~Wu, and D.~Amodei.
+\newblock Scaling laws for neural language models.
+\newblock {\em arXiv preprint arXiv:2001.08361}, 2020.
+
+\bibitem[KPR{\etalchar{+}}17]{kirkpatrick2017overcoming}
+J.~Kirkpatrick, R.~Pascanu, N.~Rabinowitz, J.~Veness, G.~Desjardins, A.~A.
+  Rusu, K.~Milan, J.~Quan, T.~Ramalho, A.~Grabska-Barwinska, et~al.
+\newblock Overcoming catastrophic forgetting in neural networks.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  114(13):3521--3526, 2017.
+
+\bibitem[KSH12]{krizhevsky2012imagenet}
+A.~Krizhevsky, I.~Sutskever, and G.~E. Hinton.
+\newblock Imagenet classification with deep convolutional neural networks.
+\newblock In {\em NeurIPS}, 2012.
+
+\bibitem[KVPF20]{katharopoulos2020transformers}
+A.~Katharopoulos, A.~Vyas, N.~Pappas, and F.~Fleuret.
+\newblock Transformers are rnns: Fast autoregressive transformers with linear
+  attention.
+\newblock In {\em ICML}, pages 5156--5165, 2020.
+
+\bibitem[KW17]{kipf2016semi}
+T.~N. Kipf and M.~Welling.
+\newblock Semi-supervised classification with graph convolutional networks.
+\newblock In {\em ICLR}, 2017.
+
+\bibitem[Lau19]{laue2019equivalence}
+S.~Laue.
+\newblock On the equivalence of automatic and symbolic differentiation.
+\newblock {\em arXiv preprint arXiv:1904.02990}, 2019.
+
+\bibitem[LBBH98]{lecun1998gradient}
+Y.~LeCun, L.~Bottou, Y.~Bengio, and P.~Haffner.
+\newblock Gradient-based learning applied to document recognition.
+\newblock {\em Proceedings of the IEEE}, 86(11):2278--2324, 1998.
+
+\bibitem[LBH15]{lecun2015deep}
+Y.~LeCun, Y.~Bengio, and G.~Hinton.
+\newblock Deep learning.
+\newblock {\em Nature}, 521(7553):436--444, 2015.
+
+\bibitem[LCX{\etalchar{+}}23]{li2023generalized}
+J.~Li, Y.~Cheng, Z.~Xia, Y.~Mo, and G.~Huang.
+\newblock Generalized activation via multivariate projection.
+\newblock {\em arXiv preprint arXiv:2309.17194}, 2023.
+
+\bibitem[LDR23]{lialin2023scaling}
+V.~Lialin, V.~Deshpande, and A.~Rumshisky.
+\newblock Scaling down to scale up: A guide to parameter-efficient fine-tuning.
+\newblock {\em arXiv preprint arXiv:2303.15647}, 2023.
+
+\bibitem[LDSL21]{liu2021pay}
+H.~Liu, Z.~Dai, D.~So, and Q.~V. Le.
+\newblock Pay attention to {MLP}s.
+\newblock In {\em NeurIPS}, pages 9204--9215, 2021.
+
+\bibitem[LH19]{loshchilov2018fixing}
+I.~Loshchilov and F.~Hutter.
+\newblock Decoupled weight decay regularization.
+\newblock In {\em ICLR}, 2019.
+
+\bibitem[Lim21]{lim2021tensors}
+L.-H. Lim.
+\newblock Tensors in computations.
+\newblock {\em Acta Numerica}, 30:555--764, 2021.
+
+\bibitem[LJ09]{lukovsevivcius2009reservoir}
+M.~Luko{\v{s}}evi{\v{c}}ius and H.~Jaeger.
+\newblock Reservoir computing approaches to recurrent neural network training.
+\newblock {\em Computer Science Review}, 3(3):127--149, 2009.
+
+\bibitem[LKM23]{leviathan2023fast}
+Y.~Leviathan, M.~Kalman, and Y.~Matias.
+\newblock Fast inference from transformers via speculative decoding.
+\newblock In {\em ICML}, pages 19274--19286, 2023.
+
+\bibitem[LLLG22]{li2022graph}
+Y.~Li, B.~Lin, B.~Luo, and N.~Gui.
+\newblock Graph representation learning beyond node and homophily.
+\newblock {\em IEEE Transactions on Knowledge and Data Engineering},
+  35(5):4880--4893, 2022.
+
+\bibitem[LLS21]{lee2021vision}
+S.~H. Lee, S.~Lee, and B.~C. Song.
+\newblock Vision transformer for small-size datasets.
+\newblock {\em arXiv preprint arXiv:2112.13492}, 2021.
+
+\bibitem[LMW{\etalchar{+}}22]{liu2022convnet}
+Z.~Liu, H.~Mao, C.-Y. Wu, C.~Feichtenhofer, T.~Darrell, and S.~Xie.
+\newblock A {ConvNet} for the 2020s.
+\newblock In {\em IEEE/CVF CVPR}, pages 11976--11986, 2022.
+
+\bibitem[LPW{\etalchar{+}}17]{lu2017expressive}
+Z.~Lu, H.~Pu, F.~Wang, Z.~Hu, and L.~Wang.
+\newblock The expressive power of neural networks: A view from the width.
+\newblock In {\em NeurIPS}, 2017.
+
+\bibitem[LRZ{\etalchar{+}}23]{lim2022sign}
+D.~Lim, J.~Robinson, L.~Zhao, T.~Smidt, S.~Sra, H.~Maron, and S.~Jegelka.
+\newblock Sign and basis invariant networks for spectral graph representation
+  learning.
+\newblock In {\em ICLR}, 2023.
+
+\bibitem[LTM{\etalchar{+}}22]{liu2022few}
+H.~Liu, D.~Tam, M.~Muqeeth, J.~Mohta, T.~Huang, M.~Bansal, and C.~A. Raffel.
+\newblock Few-shot parameter-efficient fine-tuning is better and cheaper than
+  in-context learning.
+\newblock In {\em NeurIPS}, pages 1950--1965, 2022.
+
+\bibitem[LWV{\etalchar{+}}24]{liu2024kan}
+Z.~Liu, Y.~Wang, S.~Vaidya, F.~Ruehle, J.~Halverson, M.~Solja{\v{c}}i{\'c},
+  T.~Y. Hou, and M.~Tegmark.
+\newblock Kan: Kolmogorov-arnold networks.
+\newblock {\em arXiv preprint arXiv:2404.19756}, 2024.
+
+\bibitem[LZA23]{liu2023ring}
+H.~Liu, M.~Zaharia, and P.~Abbeel.
+\newblock Ring attention with blockwise transformers for near-infinite context.
+\newblock In {\em Foundation Models for Decision Making Workshop, NeurIPS},
+  2023.
+
+\bibitem[MCT{\etalchar{+}}]{maoposition}
+H.~Mao, Z.~Chen, W.~Tang, J.~Zhao, Y.~Ma, T.~Zhao, N.~Shah, M.~Galkin, and
+  J.~Tang.
+\newblock Position: Graph foundation models are already here.
+\newblock In {\em Forty-first International Conference on Machine Learning}.
+
+\bibitem[Met22]{metz2022genius}
+C.~Metz.
+\newblock {\em Genius makers: the mavericks who brought AI to Google, Facebook,
+  and the world}.
+\newblock Penguin, 2022.
+
+\bibitem[MGMR24]{muller2023attending}
+L.~M{\"u}ller, M.~Galkin, C.~Morris, and L.~Ramp{\'a}{\v{s}}ek.
+\newblock Attending to graph transformers.
+\newblock {\em Transactions on Machine Learning Research}, 2024.
+
+\bibitem[MKS{\etalchar{+}}20]{mukhoti2020calibrating}
+J.~Mukhoti, V.~Kulharia, A.~Sanyal, S.~Golodetz, P.~Torr, and P.~Dokania.
+\newblock Calibrating deep neural networks using focal loss.
+\newblock In {\em NeurIPS}, pages 15288--15299, 2020.
+
+\bibitem[MRF{\etalchar{+}}19]{morris2019weisfeiler}
+C.~Morris, M.~Ritzert, M.~Fey, W.~L. Hamilton, J.~E. Lenssen, G.~Rattan, and
+  M.~Grohe.
+\newblock Weisfeiler and leman go neural: Higher-order graph neural networks.
+\newblock In {\em AAAI Conference on Artificial Intelligence}, volume~33, pages
+  4602--4609, 2019.
+
+\bibitem[MRT18]{mohri2018foundations}
+M.~Mohri, A.~Rostamizadeh, and A.~Talwalkar.
+\newblock {\em Foundations of machine learning}.
+\newblock MIT Press, 2018.
+
+\bibitem[MSC{\etalchar{+}}13]{mikolov2013distributed}
+T.~Mikolov, I.~Sutskever, K.~Chen, G.~S. Corrado, and J.~Dean.
+\newblock Distributed representations of words and phrases and their
+  compositionality.
+\newblock In {\em NeurIPS}, 2013.
+
+\bibitem[MZBG18]{marra2018learning}
+G.~Marra, D.~Zanca, A.~Betti, and M.~Gori.
+\newblock Learning neuron non-linearities with kernel-based deep neural
+  networks.
+\newblock {\em arXiv preprint arXiv:1807.06302}, 2018.
+
+\bibitem[NCN{\etalchar{+}}23]{niculae2023discrete}
+V.~Niculae, C.~F. Corro, N.~Nangia, T.~Mihaylova, and A.~F. Martins.
+\newblock Discrete latent structure in neural networks.
+\newblock {\em arXiv preprint arXiv:2301.07473}, 2023.
+
+\bibitem[ODG{\etalchar{+}}23]{orvieto2023universality}
+A.~Orvieto, S.~De, C.~Gulcehre, R.~Pascanu, and S.~L. Smith.
+\newblock On the universality of linear recurrences followed by nonlinear
+  projections.
+\newblock In {\em HLD 2023 Workshop, ICML}, 2023.
+
+\bibitem[ODZ{\etalchar{+}}16]{oord2016wavenet}
+A.~v.~d. Oord, S.~Dieleman, H.~Zen, K.~Simonyan, O.~Vinyals, A.~Graves,
+  N.~Kalchbrenner, A.~Senior, and K.~Kavukcuoglu.
+\newblock Wavenet: A generative model for raw audio.
+\newblock In {\em ISCA SSW Workshop}, 2016.
+
+\bibitem[OSG{\etalchar{+}}23]{orvieto2023resurrecting}
+A.~Orvieto, S.~L. Smith, A.~Gu, A.~Fernando, C.~Gulcehre, R.~Pascanu, and
+  S.~De.
+\newblock Resurrecting recurrent neural networks for long sequences.
+\newblock In {\em ICML}, 2023.
+
+\bibitem[PAA{\etalchar{+}}23]{peng2023rwkv}
+B.~Peng, E.~Alcaide, Q.~Anthony, A.~Albalak, S.~Arcadinho, H.~Cao, X.~Cheng,
+  M.~Chung, M.~Grella, K.~K. GV, et~al.
+\newblock Rwkv: Reinventing rnns for the transformer era.
+\newblock In {\em EMNLP}. ACL, 2023.
+
+\bibitem[PABH{\etalchar{+}}21]{puny2021frame}
+O.~Puny, M.~Atzmon, H.~Ben-Hamu, I.~Misra, A.~Grover, E.~J. Smith, and
+  Y.~Lipman.
+\newblock Frame averaging for invariant and equivariant network design.
+\newblock {\em arXiv preprint arXiv:2110.03336}, 2021.
+
+\bibitem[PBE{\etalchar{+}}22]{power2022grokking}
+A.~Power, Y.~Burda, H.~Edwards, I.~Babuschkin, and V.~Misra.
+\newblock Grokking: Generalization beyond overfitting on small algorithmic
+  datasets.
+\newblock In {\em 1st Mathematical Reasoning in General Artificial Intelligence
+  Workshop, ICLR}, 2022.
+
+\bibitem[PBL20]{poggio2020theoretical}
+T.~Poggio, A.~Banburski, and Q.~Liao.
+\newblock Theoretical issues in deep networks.
+\newblock {\em Proceedings of the National Academy of Sciences},
+  117(48):30039--30045, 2020.
+
+\bibitem[PGCB14]{pascanu2013construct}
+R.~Pascanu, C.~Gulcehre, K.~Cho, and Y.~Bengio.
+\newblock How to construct deep recurrent neural networks.
+\newblock In {\em ICLR}, 2014.
+
+\bibitem[PKP{\etalchar{+}}19]{parisi2019continual}
+G.~I. Parisi, R.~Kemker, J.~L. Part, C.~Kanan, and S.~Wermter.
+\newblock Continual lifelong learning with neural networks: A review.
+\newblock {\em Neural Networks}, 113:54--71, 2019.
+
+\bibitem[PNR{\etalchar{+}}21]{papamakarios2021normalizing}
+G.~Papamakarios, E.~Nalisnick, D.~J. Rezende, S.~Mohamed, and
+  B.~Lakshminarayanan.
+\newblock Normalizing flows for probabilistic modeling and inference.
+\newblock {\em Journal of Machine Learning Research}, 22(57):1--64, 2021.
+
+\bibitem[PP08]{petersen2008matrix}
+K.~B. Petersen and M.~S. Pedersen.
+\newblock {\em The matrix cookbook}.
+\newblock Technical University of Denmark, 2008.
+
+\bibitem[PPVF21]{pesme2021implicit}
+S.~Pesme, L.~Pillaud-Vivien, and N.~Flammarion.
+\newblock Implicit bias of {SGD} for diagonal linear networks: a provable
+  benefit of stochasticity.
+\newblock 34:29218--29230, 2021.
+
+\bibitem[PRCB24]{patel2024datadreamer}
+A.~Patel, C.~Raffel, and C.~Callison-Burch.
+\newblock Datadreamer: A tool for synthetic data generation and reproducible
+  llm workflows.
+\newblock In {\em ACL}. ACL, 2024.
+
+\bibitem[Pri23]{prince2023understanding}
+S.~J. Prince.
+\newblock {\em Understanding Deep Learning}.
+\newblock MIT Press, 2023.
+
+\bibitem[PS{\etalchar{+}}03]{poggio2003mathematics}
+T.~Poggio, S.~Smale, et~al.
+\newblock The mathematics of learning: Dealing with data.
+\newblock {\em Notices of the AMS}, 50(5):537--544, 2003.
+
+\bibitem[PSL22]{press2021train}
+O.~Press, N.~A. Smith, and M.~Lewis.
+\newblock Train short, test long: Attention with linear biases enables input
+  length extrapolation.
+\newblock In {\em ICLR}, 2022.
+
+\bibitem[QPF{\etalchar{+}}24]{qiu2024compute}
+S.~Qiu, A.~Potapczynski, M.~Finzi, M.~Goldblum, and A.~G. Wilson.
+\newblock Compute better spent: Replacing dense layers with structured
+  matrices.
+\newblock {\em arXiv preprint arXiv:2406.06248}, 2024.
+
+\bibitem[RBOB18]{ravanelli2018light}
+M.~Ravanelli, P.~Brakel, M.~Omologo, and Y.~Bengio.
+\newblock Light gated recurrent units for speech recognition.
+\newblock {\em IEEE Transactions on Emerging Topics in Computational
+  Intelligence}, 2(2):92--102, 2018.
+
+\bibitem[RGD{\etalchar{+}}22]{rampavsek2022recipe}
+L.~Ramp{\'a}{\v{s}}ek, M.~Galkin, V.~P. Dwivedi, A.~T. Luu, G.~Wolf, and
+  D.~Beaini.
+\newblock Recipe for a general, powerful, scalable graph transformer.
+\newblock In {\em NeurIPS}, pages 14501--14515, 2022.
+
+\bibitem[RHM86]{rumelhart1986general}
+D.~E. Rumelhart, G.~E. Hinton, and J.~L. McClelland.
+\newblock A general framework for parallel distributed processing.
+\newblock In {\em Parallel Distributed Processing Volume 1}, page~26. MIT
+  Press, 1986.
+
+\bibitem[RKG{\etalchar{+}}22]{romero2022towards}
+D.~W. Romero, D.~M. Knigge, A.~Gu, E.~J. Bekkers, E.~Gavves, J.~M. Tomczak, and
+  M.~Hoogendoorn.
+\newblock Towards a general purpose cnn for long range dependencies in $n$d.
+\newblock {\em arXiv preprint arXiv:2206.03398}, 2022.
+
+\bibitem[RKX{\etalchar{+}}23]{radford2023robust}
+A.~Radford, J.~W. Kim, T.~Xu, G.~Brockman, C.~McLeavey, and I.~Sutskever.
+\newblock Robust speech recognition via large-scale weak supervision.
+\newblock In {\em ICML}, pages 28492--28518, 2023.
+
+\bibitem[RM22]{rocks2022memorizing}
+J.~W. Rocks and P.~Mehta.
+\newblock Memorizing without overfitting: Bias, variance, and interpolation in
+  overparameterized models.
+\newblock {\em Physical Review Research}, 4(1):013201, 2022.
+
+\bibitem[RS21]{rabe2021self}
+M.~N. Rabe and C.~Staats.
+\newblock Self-attention does not need $\mathcal{O}(n^{2})$ memory.
+\newblock {\em arXiv preprint arXiv:2112.05682}, 2021.
+
+\bibitem[RSR{\etalchar{+}}20]{raffel2020exploring}
+C.~Raffel, N.~Shazeer, A.~Roberts, K.~Lee, S.~Narang, M.~Matena, Y.~Zhou,
+  W.~Li, and P.~J. Liu.
+\newblock Exploring the limits of transfer learning with a unified text-to-text
+  transformer.
+\newblock {\em The Journal of Machine Learning Research}, 21(1):5485--5551,
+  2020.
+
+\bibitem[RWC{\etalchar{+}}19]{radford2019language}
+A.~Radford, J.~Wu, R.~Child, D.~Luan, D.~Amodei, I.~Sutskever, et~al.
+\newblock Language models are unsupervised multitask learners.
+\newblock {\em OpenAI blog}, 2019.
+
+\bibitem[RZL17]{ramachandran2017searching}
+P.~Ramachandran, B.~Zoph, and Q.~V. Le.
+\newblock Searching for activation functions.
+\newblock {\em arXiv preprint arXiv:1710.05941}, 2017.
+
+\bibitem[SAL{\etalchar{+}}24]{su2024roformer}
+J.~Su, M.~Ahmed, Y.~Lu, S.~Pan, W.~Bo, and Y.~Liu.
+\newblock Roformer: Enhanced transformer with rotary position embedding.
+\newblock {\em Neurocomputing}, 568:127063, 2024.
+
+\bibitem[Sch15]{schmidhuber2015deep}
+J.~Schmidhuber.
+\newblock Deep learning in neural networks: An overview.
+\newblock {\em Neural Networks}, 61:85--117, 2015.
+
+\bibitem[SCHU17]{scardapane2017group}
+S.~Scardapane, D.~Comminiello, A.~Hussain, and A.~Uncini.
+\newblock Group sparse regularization for deep neural networks.
+\newblock {\em Neurocomputing}, 241:81--89, 2017.
+
+\bibitem[SGT{\etalchar{+}}08]{scarselli2008graph}
+F.~Scarselli, M.~Gori, A.~C. Tsoi, M.~Hagenbuchner, and G.~Monfardini.
+\newblock The graph neural network model.
+\newblock {\em IEEE Transactions on Neural Networks}, 20(1):61--80, 2008.
+
+\bibitem[Sha19]{shazeer2019fast}
+N.~Shazeer.
+\newblock Fast transformer decoding: One write-head is all you need.
+\newblock {\em arXiv preprint arXiv:1911.02150}, 2019.
+
+\bibitem[Sha20]{shazeer2020glu}
+N.~Shazeer.
+\newblock {GLU} variants improve transformer.
+\newblock {\em arXiv preprint arXiv:2002.05202}, 2020.
+
+\bibitem[SHK{\etalchar{+}}14]{srivastava2014dropout}
+N.~Srivastava, G.~Hinton, A.~Krizhevsky, I.~Sutskever, and R.~Salakhutdinov.
+\newblock Dropout: a simple way to prevent neural networks from overfitting.
+\newblock {\em The Journal of Machine Learning Research}, 15(1):1929--1958,
+  2014.
+
+\bibitem[SHW21]{satorras2021n}
+V.~G. Satorras, E.~Hoogeboom, and M.~Welling.
+\newblock E(n) equivariant graph neural networks.
+\newblock In {\em ICML}, pages 9323--9332, 2021.
+
+\bibitem[SKF{\etalchar{+}}99]{shibata1999byte}
+Y.~Shibata, T.~Kida, S.~Fukamachi, M.~Takeda, A.~Shinohara, T.~Shinohara, and
+  S.~Arikawa.
+\newblock Byte pair encoding: A text compression scheme that accelerates
+  pattern matching.
+\newblock 1999.
+
+\bibitem[SKZ{\etalchar{+}}21]{steiner2021train}
+A.~Steiner, A.~Kolesnikov, X.~Zhai, R.~Wightman, J.~Uszkoreit, and L.~Beyer.
+\newblock How to train your vit? data, augmentation, and regularization in
+  vision transformers.
+\newblock {\em arXiv preprint arXiv:2106.10270}, 2021.
+
+\bibitem[SLJ{\etalchar{+}}15]{szegedy2015going}
+C.~Szegedy, W.~Liu, Y.~Jia, P.~Sermanet, S.~Reed, D.~Anguelov, D.~Erhan,
+  V.~Vanhoucke, and A.~Rabinovich.
+\newblock Going deeper with convolutions.
+\newblock In {\em IEEE CVPR}, pages 1--9, 2015.
+
+\bibitem[SMDH13]{sutskever2013importance}
+I.~Sutskever, J.~Martens, G.~Dahl, and G.~Hinton.
+\newblock On the importance of initialization and momentum in deep learning.
+\newblock In {\em ICML}, pages 1139--1147, 2013.
+
+\bibitem[SP97]{schuster1997bidirectional}
+M.~Schuster and K.~K. Paliwal.
+\newblock Bidirectional recurrent neural networks.
+\newblock {\em IEEE Transactions on Signal Processing}, 45(11):2673--2681,
+  1997.
+
+\bibitem[SSBD14]{shalev2014understanding}
+S.~Shalev-Shwartz and S.~Ben-David.
+\newblock {\em Understanding machine learning: From theory to algorithms}.
+\newblock Cambridge University Press, 2014.
+
+\bibitem[Sti81]{stigler1981gauss}
+S.~M. Stigler.
+\newblock Gauss and the invention of least squares.
+\newblock {\em The Annals of Statistics}, pages 465--474, 1981.
+
+\bibitem[SVL14]{sutskever2014sequence}
+I.~Sutskever, O.~Vinyals, and Q.~V. Le.
+\newblock Sequence to sequence learning with neural networks.
+\newblock In {\em NeurIPS}, 2014.
+
+\bibitem[SVVTU19]{scardapane2019kafnets}
+S.~Scardapane, S.~Van~Vaerenbergh, S.~Totaro, and A.~Uncini.
+\newblock Kafnets: Kernel-based non-parametric activation functions for neural
+  networks.
+\newblock {\em Neural Networks}, 110:19--32, 2019.
+
+\bibitem[SW17]{scardapane2017randomness}
+S.~Scardapane and D.~Wang.
+\newblock Randomness in neural networks: an overview.
+\newblock {\em Wiley Interdisciplinary Reviews: Data Mining and Knowledge
+  Discovery}, 7(2):e1200, 2017.
+
+\bibitem[SWF{\etalchar{+}}15]{sukhbaatar2015end}
+S.~Sukhbaatar, J.~Weston, R.~Fergus, et~al.
+\newblock End-to-end memory networks.
+\newblock 2015.
+
+\bibitem[SWL23]{smith2022simplified}
+J.~T. Smith, A.~Warrington, and S.~W. Linderman.
+\newblock Simplified state space layers for sequence modeling.
+\newblock In {\em ICLR}, 2023.
+
+\bibitem[TCB{\etalchar{+}}24]{tiezzi2024state}
+M.~Tiezzi, M.~Casoni, A.~Betti, M.~Gori, and S.~Melacci.
+\newblock State-space modeling in long sequence processing: A survey on
+  recurrence in the transformer era.
+\newblock {\em arXiv preprint arXiv:2406.09062}, 2024.
+
+\bibitem[TEM23]{tschannen2023givt}
+M.~Tschannen, C.~Eastwood, and F.~Mentzer.
+\newblock Givt: Generative infinite-vocabulary transformers.
+\newblock {\em arXiv preprint arXiv:2312.02116}, 2023.
+
+\bibitem[TGJ{\etalchar{+}}15]{tompson2015efficient}
+J.~Tompson, R.~Goroshin, A.~Jain, Y.~LeCun, and C.~Bregler.
+\newblock Efficient object localization using convolutional networks.
+\newblock In {\em IEEE/CVF CVPR}, pages 648--656, 2015.
+
+\bibitem[THK{\etalchar{+}}21]{tolstikhin2021mlp}
+I.~O. Tolstikhin, N.~Houlsby, A.~Kolesnikov, L.~Beyer, X.~Zhai, T.~Unterthiner,
+  J.~Yung, A.~Steiner, D.~Keysers, J.~Uszkoreit, et~al.
+\newblock {MLP}-mixer: An all-{MLP} architecture for vision.
+\newblock In {\em NeurIPS}, pages 24261--24272, 2021.
+
+\bibitem[TLI{\etalchar{+}}23]{touvron2023llama}
+H.~Touvron, T.~Lavril, G.~Izacard, X.~Martinet, M.-A. Lachaux, T.~Lacroix,
+  B.~Rozi{\`e}re, N.~Goyal, E.~Hambro, F.~Azhar, et~al.
+\newblock Llama: Open and efficient foundation language models.
+\newblock {\em arXiv preprint arXiv:2302.13971}, 2023.
+
+\bibitem[TNHA24]{teney2024neural}
+D.~Teney, A.~M. Nicolicioiu, V.~Hartmann, and E.~Abbasnejad.
+\newblock Neural redshift: Random networks are not random functions.
+\newblock In {\em Proceedings of the IEEE/CVF Conference on Computer Vision and
+  Pattern Recognition}, pages 4786--4796, 2024.
+
+\bibitem[Unc15]{uncini2015fundamentals}
+A.~Uncini.
+\newblock {\em Fundamentals of adaptive signal processing}.
+\newblock Springer, 2015.
+
+\bibitem[Vap13]{vapnik2013nature}
+V.~Vapnik.
+\newblock {\em The nature of statistical learning theory}.
+\newblock Springer Science \& Business Media, 2013.
+
+\bibitem[VCC{\etalchar{+}}18]{velivckovic2017graph}
+P.~Veli{\v{c}}kovi{\'c}, G.~Cucurull, A.~Casanova, A.~Romero, P.~Lio, and
+  Y.~Bengio.
+\newblock Graph attention networks.
+\newblock In {\em ICLR}, 2018.
+
+\bibitem[Vel22]{velivckovic2022message}
+P.~Veli{\v{c}}kovi{\'c}.
+\newblock Message passing all the way up.
+\newblock {\em arXiv preprint arXiv:2202.11097}, 2022.
+
+\bibitem[VSP{\etalchar{+}}17]{vaswani2017attention}
+A.~Vaswani, N.~Shazeer, N.~Parmar, J.~Uszkoreit, L.~Jones, A.~N. Gomez,
+  {\L}.~Kaiser, and I.~Polosukhin.
+\newblock Attention is all you need.
+\newblock In {\em NeurIPS}, 2017.
+
+\bibitem[VWB16]{veit2016residual}
+A.~Veit, M.~J. Wilber, and S.~Belongie.
+\newblock Residual networks behave like ensembles of relatively shallow
+  networks.
+\newblock In {\em NeurIPS}, 2016.
+
+\bibitem[WCW{\etalchar{+}}23]{wang2023neural}
+C.~Wang, S.~Chen, Y.~Wu, Z.~Zhang, L.~Zhou, S.~Liu, Z.~Chen, Y.~Liu, H.~Wang,
+  J.~Li, et~al.
+\newblock Neural codec language models are zero-shot text to speech
+  synthesizers.
+\newblock {\em arXiv preprint arXiv:2301.02111}, 2023.
+
+\bibitem[WFD{\etalchar{+}}23]{wang2023scientific}
+H.~Wang, T.~Fu, Y.~Du, W.~Gao, K.~Huang, Z.~Liu, P.~Chandak, S.~Liu,
+  P.~Van~Katwyk, A.~Deac, et~al.
+\newblock Scientific discovery in the age of artificial intelligence.
+\newblock {\em Nature}, 620(7972):47--60, 2023.
+
+\bibitem[WGGH18]{wang2018non}
+X.~Wang, R.~Girshick, A.~Gupta, and K.~He.
+\newblock Non-local neural networks.
+\newblock In {\em IEEE/CVF CVPR}, pages 7794--7803, 2018.
+
+\bibitem[WJ21]{wu2021rethinking}
+Y.~Wu and J.~Johnson.
+\newblock Rethinking "{B}atch" in {BatchNorm}.
+\newblock {\em arXiv preprint arXiv:2105.07576}, 2021.
+
+\bibitem[WZZ{\etalchar{+}}13]{wan2013regularization}
+L.~Wan, M.~Zeiler, S.~Zhang, Y.~Le~Cun, and R.~Fergus.
+\newblock Regularization of neural networks using {DropConnect}.
+\newblock In {\em ICML}, pages 1058--1066, 2013.
+
+\bibitem[XYH{\etalchar{+}}20]{xiong2020layer}
+R.~Xiong, Y.~Yang, D.~He, K.~Zheng, S.~Zheng, C.~Xing, H.~Zhang, Y.~Lan,
+  L.~Wang, and T.~Liu.
+\newblock On layer normalization in the transformer architecture.
+\newblock In {\em ICML}, pages 10524--10533, 2020.
+
+\bibitem[YCC{\etalchar{+}}24]{yuan2024revisiting}
+L.~Yuan, Y.~Chen, G.~Cui, H.~Gao, F.~Zou, X.~Cheng, H.~Ji, Z.~Liu, and M.~Sun.
+\newblock Revisiting out-of-distribution robustness in nlp: Benchmarks,
+  analysis, and llms evaluations.
+\newblock In {\em NeurIPS}, 2024.
+
+\bibitem[YHO{\etalchar{+}}19]{yun2019cutmix}
+S.~Yun, D.~Han, S.~J. Oh, S.~Chun, J.~Choe, and Y.~Yoo.
+\newblock Cutmix: Regularization strategy to train strong classifiers with
+  localizable features.
+\newblock In {\em IEEE/CVF ICCV}, pages 6023--6032, 2019.
+
+\bibitem[YLC{\etalchar{+}}22]{yu2022s2}
+T.~Yu, X.~Li, Y.~Cai, M.~Sun, and P.~Li.
+\newblock S2-{MLP}: Spatial-shift {MLP} architecture for vision.
+\newblock In {\em IEEE/CVF WACV}, pages 297--306, 2022.
+
+\bibitem[YLZ{\etalchar{+}}22]{yu2022metaformer}
+W.~Yu, M.~Luo, P.~Zhou, C.~Si, Y.~Zhou, X.~Wang, J.~Feng, and S.~Yan.
+\newblock Metaformer is actually what you need for vision.
+\newblock In {\em IEEE/CVF CVPR}, pages 10819--10829, 2022.
+
+\bibitem[YYZ17]{yu2017spatio}
+B.~Yu, H.~Yin, and Z.~Zhu.
+\newblock Spatio-temporal graph convolutional networks: A deep learning
+  framework for traffic forecasting.
+\newblock In {\em IJCAI}, 2017.
+
+\bibitem[ZBH{\etalchar{+}}21]{zhang2021understanding}
+C.~Zhang, S.~Bengio, M.~Hardt, B.~Recht, and O.~Vinyals.
+\newblock Understanding deep learning (still) requires rethinking
+  generalization.
+\newblock {\em Communications of the ACM}, 64(3):107--115, 2021.
+
+\bibitem[ZCDLP17]{zhang2017mixup}
+H.~Zhang, M.~Cisse, Y.~N. Dauphin, and D.~Lopez-Paz.
+\newblock mixup: Beyond empirical risk minimization.
+\newblock In {\em ICLR}, 2017.
+
+\bibitem[ZER{\etalchar{+}}23]{zador2023catalyzing}
+A.~Zador, S.~Escola, B.~Richards, B.~{\"O}lveczky, Y.~Bengio, K.~Boahen,
+  M.~Botvinick, D.~Chklovskii, A.~Churchland, C.~Clopath, et~al.
+\newblock Catalyzing next-generation artificial intelligence through {neuroAI}.
+\newblock {\em Nature Communications}, 14(1):1597, 2023.
+
+\bibitem[ZJM{\etalchar{+}}21]{zbontar2021barlow}
+J.~Zbontar, L.~Jing, I.~Misra, Y.~LeCun, and S.~Deny.
+\newblock Barlow twins: Self-supervised learning via redundancy reduction.
+\newblock In {\em ICML}, pages 12310--12320. PMLR, 2021.
+
+\bibitem[ZKR{\etalchar{+}}17]{zaheer2017deep}
+M.~Zaheer, S.~Kottur, S.~Ravanbakhsh, B.~Poczos, R.~R. Salakhutdinov, and A.~J.
+  Smola.
+\newblock Deep sets.
+\newblock 30, 2017.
+
+\bibitem[ZLLS23]{zhang2023dive}
+A.~Zhang, Z.~C. Lipton, M.~Li, and A.~J. Smola.
+\newblock {\em Dive into deep learning}.
+\newblock Cambridge University Press, 2023.
+
+\bibitem[ZS19]{zhang2019root}
+B.~Zhang and R.~Sennrich.
+\newblock Root mean square layer normalization.
+\newblock In {\em NeurIPS}, 2019.
+
+\bibitem[ZTS{\etalchar{+}}21]{zhai2021attention}
+S.~Zhai, W.~Talbott, N.~Srivastava, C.~Huang, H.~Goh, R.~Zhang, and
+  J.~Susskind.
+\newblock An attention free transformer.
+\newblock {\em arXiv preprint arXiv:2105.14103}, 2021.
+
+\bibitem[ZW23]{ziyin2023spred}
+L.~Ziyin and Z.~Wang.
+\newblock spred: Solving l1 penalty with sgd.
+\newblock In {\em ICML}, pages 43407--43422, 2023.
+
+\end{thebibliography}

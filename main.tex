@@ -1,0 +1,358 @@
+\documentclass[12pt]{book}
+
+% Packages
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb}
+\usepackage[amsmath]{ntheorem}
+\usepackage[bitstream-charter]{mathdesign}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage[hyphens]{url}
+\usepackage{textcomp}
+\usepackage{upquote}
+\usepackage[backref=page]{hyperref}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{anyfontsize}
+\usepackage{tcolorbox}
+\usepackage{setspace}
+\usepackage[skip=10pt plus1pt, indent=0pt]{parskip}
+\usepackage{booktabs}
+\usepackage{svg}
+\usepackage{mathtools}
+\usepackage{annotate-equations}
+\usepackage{subcaption}
+\usepackage[leftcaption]{sidecap}
+\usepackage{soul}
+\usepackage{relsize}
+\usepackage{wrapfig}
+\usepackage{marginnote}
+\usepackage[marginparsep=0.5cm]{geometry}
+
+% Vertical alignment for side captions
+\sidecaptionvpos{figure}{c}
+
+% Colors
+\definecolor{titlecolor}{RGB}{245, 242, 238} 
+\definecolor{drawgray}{HTML}{666666}
+\definecolor{drawgray_l}{HTML}{F5F5F5}
+\definecolor{drawblue}{HTML}{6C8EBF}
+\definecolor{drawblue_l}{HTML}{DAE8FC}
+\definecolor{drawgreen}{HTML}{82B366}
+\definecolor{drawgreen_l}{HTML}{D5E8D4}
+\definecolor{draworange}{HTML}{D79B00}
+\definecolor{draworange_l}{HTML}{FFE6CC}
+\definecolor{drawyellow}{HTML}{D6B656}
+\definecolor{drawyellow_l}{HTML}{FFF2CC}
+\definecolor{drawred}{HTML}{B85450}
+\definecolor{drawred_l}{HTML}{EA6B66}
+\definecolor{drawviolet}{HTML}{9673A6}
+\definecolor{drawviolet_l}{HTML}{E1D5E7}
+
+% Soul
+\DeclareRobustCommand{\hlred}[1]{{\sethlcolor{drawred!30}\hl{#1}}}
+\DeclareRobustCommand{\hlgreen}[1]{{\sethlcolor{drawgreen!30}\hl{#1}}}
+\DeclareRobustCommand{\hlblue}[1]{{\sethlcolor{drawblue!30}\hl{#1}}}
+
+
+% Tcolorbox defaults
+\tcbset {
+  base/.style={
+    arc=0mm, 
+    bottomtitle=0.5mm,
+    boxrule=0mm,
+    colbacktitle=drawblue_l, 
+    colframe=drawblue,
+    coltitle=black,
+    fonttitle=\bfseries, 
+    left=2.5mm,
+    leftrule=1mm,
+    right=3.5mm,
+    title={#1},
+    toptitle=0.75mm, 
+  }
+}
+
+\newtcolorbox{supportbox}[1]{
+  colframe=drawblue, 
+  base={#1}
+}
+
+% URL size
+\renewcommand*{\UrlFont}{\ttfamily\smaller\relax}
+
+% Fancy header
+\usepackage{fancyhdr}
+\renewcommand{\chaptermark}[1]{\markboth{#1}{}}
+\renewcommand{\sectionmark}[1]{\markright{#1}}
+\fancyhead{} % clear all header fields
+\fancyhead[LE]{{\color{black!40}\thepage}}
+\fancyhead[RE]{\bfseries\normalfont {\color{black!40}\nouppercase{\rightmark}}}
+\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Chapter \thechapter: \leftmark}}}
+\fancyhead[RO]{{\color{black!40}\thepage}}
+
+% Mathematical commands
+\newcommand*{\vc}[1]{\boldsymbol{\mathbf{#1}}}
+\newcommand*{\idx}[2]{{\color{gray!70}\left[\kern-\nulldelimiterspace\right.}#1{\color{gray!70}\left.\kern-\nulldelimiterspace\right]}_{\color{gray!70}#2}}
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+
+% Captions
+\DeclareCaptionFormat{custom}
+{%
+    \textbf{#1#2}\textit{\small #3}
+}
+\captionsetup{format=custom}
+
+% Theorems and definitions
+% hhttps://tex.stackexchange.com/questions/26041/different-colorcoded-theorems/26049#26049
+\usepackage[style=0,ntheorem]{mdframed}
+\mdfsetup{%
+topline=false,
+rightline=false,
+bottomline=false,
+linewidth=3pt,
+innerleftmargin=15pt,
+innerrightmargin=0pt,
+skipabove=\baselineskip,
+skipabove=1.2\baselineskip,
+}
+\newmdtheoremenv[linecolor=drawred]{definition}{Definition}[chapter]
+
+% Theorems and definitions
+% hhttps://tex.stackexchange.com/questions/26041/different-colorcoded-theorems/26049#26049
+\usepackage[style=0,ntheorem]{mdframed}
+\mdfsetup{%
+topline=false,
+rightline=false,
+bottomline=false,
+linewidth=3pt,
+innerleftmargin=15pt,
+innerrightmargin=0pt,
+skipabove=\baselineskip,
+skipabove=1.2\baselineskip,
+}
+\newmdtheoremenv[linecolor=drawviolet]{theorem}{Theorem}[chapter]
+
+% Python environment (development)
+%\usepackage[newfloat=true,finalizecache,cachedir=mintedcache]{minted}
+% Python environment (arXiv, remember to copy the pyg cache)
+\usepackage[newfloat=true,frozencache,cachedir=mintedcache]{minted}
+%\usepackage[newfloat=true]{minted}
+\SetupFloatingEnvironment{listing}{name=Box}
+\surroundwithmdframed[linecolor=drawgreen]{minted}
+\newenvironment{mypy}[2]{%
+\VerbatimEnvironment
+\def\myenvargumentI{#1}%
+\def\myenvargumentII{#2}%
+\begin{listing}[t]
+\footnotesize%
+\begin{minted}{python}%
+}{%
+\end{minted}%
+\caption{\myenvargumentI}
+\label{\myenvargumentII}
+\end{listing}
+}
+
+% Numbering
+\renewcommand{\theequation}{E.\thechapter.\arabic{equation}}
+\renewcommand{\thetable}{T.\thechapter.\arabic{table}}
+\renewcommand{\thefigure}{F.\thechapter.\arabic{figure}}
+\renewcommand{\thedefinition}{D.\thechapter.\arabic{definition}}
+\renewcommand{\thelisting}{C.\thechapter.\arabic{listing}}
+
+% tcolorbox with footnote at the end of the page
+% https://tex.stackexchange.com/questions/619214/footnote-inside-and-then-outsite-tcolorbox
+\usepackage{environ}% added  <<<<<<<<<<<<
+\usepackage{footnote}
+\NewEnviron{TCBx}{ % footnotes ouside the box
+    \begin{savenotes}
+        \begin{tcolorbox}
+                \BODY   
+        \end{tcolorbox}
+    \end{savenotes}
+}
+
+% Colors of hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=drawred_l,
+    breaklinks=true,
+    citecolor = drawred_l,
+    urlcolor=drawblue,
+}
+
+% Chapter title
+\usepackage{titlesec, blindtext, color}
+\definecolor{gray75}{gray}{0.75}
+\newcommand{\hsp}{\hspace{20pt}}
+\titleformat{\chapter}[hang]{\Huge\bfseries}{\selectfont \thechapter\hsp\textcolor{gray75}{|}\hsp}{0pt}{\Huge\bfseries}
+
+\newcommand{\addclock}{\marginnote{\includegraphics[width=1.27cm]{images/clock.jpg}}}
+\newcommand{\addteacup}{\marginnote{\includegraphics[width=1.25cm]{images/teacup.jpg}}}
+\newcommand{\addbottle}{\marginnote{\includegraphics[width=1.25cm]{images/definition.png}}}
+\newcommand{\addalice}{\marginnote{\includegraphics[width=2cm]{images/shutterstock_2075221579.jpg}}}
+
+%\includeonly{4_linear_models}
+
+\begin{document}
+
+\begin{titlepage}
+\pagecolor{titlecolor}
+
+    \begin{flushright}
+    {\Huge
+    \vspace{20em}
+        {\fontsize{30}{30}\selectfont Alice's Adventures in a {\color{Peach}\textbf{differentiable}} wonderland}\\
+        \vskip0.5cm
+        {\fontsize{20}{20}\selectfont \textit{A primer on designing neural networks}} \\ {\fontsize{18}{18}\selectfont \textbf{Vol. I - A tour of the land}}\\
+        \vskip1cm
+       \large Simone Scardapane
+    }
+    \end{flushright}
+    \tikz[remember picture,overlay] \node[opacity=0.1,inner sep=0pt] at (4, -5){\includegraphics[width=11.5cm]{images/Alice-1.pdf}};
+
+\end{titlepage}
+
+\clearpage
+\setstretch{1}
+
+\vspace*{0.1\paperheight}
+
+\begin{spacing}{1.2}
+\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (3, -7.5){\includegraphics[width=11cm]{images/Shutterstock_1977296960.png}};
+\begin{quote}\begin{flushright}\large“\textit{For, you see, so many out-of-the-way things had happened lately, that Alice had begun to think that very few things indeed were really impossible.}” \\\vspace{1em} — \textbf{Chapter 1, Down the Rabbit-Hole}\end{flushright}\end{quote}
+\end{spacing}
+\newpage\pagecolor{white}
+
+
+\frontmatter
+
+\chapter*{Foreword}
+\markboth{}{}
+
+%\addcontentsline{toc}{chapter}{Foreword}
+
+This book is an introduction to the topic of (deep) \textbf{neural networks} (NNs), the core technique at the hearth of large language models, generative artificial intelligence - and many other applications. Because the term \textit{neural} comes with a lot of historical baggage, and because NNs are simply compositions of differentiable primitives, I refer to them -- when feasible -- with the simpler term \textbf{differentiable models}.
+
+In 2009, I stumbled almost by chance upon a paper by Yoshua Bengio on the power of `deep' NNs \cite{bengio2009learning}, at the same time when automatic differentiation libraries like Theano \cite{al2016theano} were becoming popular. Like Alice, I had stumbled upon a strange programming realm - a \textit{differentiable} wonderland where simple things, such as selecting an element, were incredibly hard, and other things, such as recognizing cats, were amazingly simple.
+
+I have spent more than ten years reading about, implementing, and teaching about these models. This book is a rough attempt at condensing something of what I have learned in the process, with a focus on their design and most common components. Because the field is evolving quickly, I have tried to strike a good balance between theory and code, historical considerations and recent trends. I assume the reader has some exposure to machine learning and linear algebra, but I try to cover the preliminaries when necessary.
+
+\vspace{3.5em}
+\hfill%
+\begin{minipage}{0.75\textwidth}\begin{flushright}\large
+\textit{Gather round, friends: it's time for our beloved \\ {\color{drawred}{Alice's adventures in a differentiable wonderland}}!}\end{flushright}
+\end{minipage}
+\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (-13.5,-1.3){\includegraphics[width=6.5cm]{images/shutterstock_1675103158.jpg}};
+
+\newpage
+
+\pagestyle{empty}
+{
+\hypersetup{linkcolor=drawred}
+\setcounter{tocdepth}{1}
+\tableofcontents
+}
+\pagestyle{fancy}
+
+
+\mainmatter
+
+\include{1_introduction}
+
+% Note to self: this is a mess
+\part[Compass and needle]{
+\pagecolor{titlecolor}
+\label{part:compass_and_needle}
+\vspace*{1em}
+\begin{flushright}
+\vspace{-2em}Compass and needle\end{flushright}\vspace*{2em}
+\begin{spacing}{1.2}
+\begin{minipage}[l]{17cm}
+\begin{quote}\begin{flushright}
+\normalfont\large\textit{“Would you tell me, please, which way I ought to go from here?” \\
+“That depends a good deal on where you want to get to,” said  the Cat.\\
+“I don’t much care where” said Alice.\\
+“Then it doesn’t matter which way you go,” said the Cat.} \\\vspace{1em} — \textbf{Chapter 6, Pig and Pepper}
+\end{flushright}\end{quote} 
+\tikz[remember picture,overlay] \node[opacity=0.8,inner sep=0pt] at (3,10){\includegraphics[width=8cm]{images/Alice-3.pdf}};
+\end{minipage}\end{spacing} \newpage\pagecolor{white}
+} 
+
+
+\include{2_preliminaries}
+\include{3_datasets_and_loss_functions}
+\include{4_linear_models}
+\include{5_fully_connected_models}
+\include{6_automatic_differentiation}
+
+\part[A strange land]{\pagecolor{titlecolor}
+\label{part:a_strange_land}
+\vspace*{1em}
+\vspace{-2em}\hspace{3.8em}A strange land\vspace*{2em}
+\begin{spacing}{1.2}
+\begin{minipage}[l]{15cm}
+\begin{quote}\begin{flushright}
+\normalfont\large\textit{“Curiouser and curiouser!” cried Alice (she was so much surprised, that for the moment she quite forgot \\ how to speak good English).} \\\vspace{1em} — \textbf{Chapter 2, The Pool of Tears}
+\end{flushright}\end{quote} 
+\tikz[remember picture,overlay] \node[opacity=0.8,inner sep=0pt] at (2.5,8.5){\includegraphics[width=5cm]{images/Alice-4.pdf}};
+\end{minipage}\end{spacing}
+\newpage
+\pagecolor{white}
+}
+
+\include{7_convolutional_layers}
+\include{8_convolutions_beyond_images}
+\include{9_building_deep_cnns}
+
+\part[Down the rabbit-hole]{\pagecolor{titlecolor}
+\label{part:down_the_rabbit_hole}
+\vspace*{1em}
+\vspace{-2em}\hspace{6.0em} $\,$Down the rabbit-hole\vspace*{2em}
+\begin{spacing}{1.2}
+\begin{minipage}[l]{15cm}
+\begin{quote}\begin{flushright}
+\normalfont\large\textit{“It would be so nice if something made sense for a change.”} \\\vspace{1em} \textbf{—Alice in Wonderland, 1951 movie}
+\end{flushright}\end{quote} 
+\tikz[remember picture,overlay] \node[opacity=1.0,inner sep=0pt] at (3,6.5){\includegraphics[width=7.5cm]{images/Shutterstock_2274674539.png}};
+\end{minipage}\end{spacing}
+\newpage\pagecolor{white}
+}
+
+\include{10_transformers}
+\include{11_advanced_transformers}
+\include{12_graph_models}
+\include{13_recurrent_models}
+
+\pagecolor{white}
+\chapter*{Goodbye (for now)}
+
+And so, Alice's first trip in this differentiable wonderland has come (for now) to an end. We only made a very broad tour, with a focus on the many ways layers can be designed and composed to create modern differentiable models (a.k.a., neural networks).
+
+\begin{wrapfigure}{r}{6.5cm}
+\includegraphics[width=6.5cm]{images/alice_mad_hatter.jpg}
+\end{wrapfigure} 
+
+There are many topics we discussed only briefly, including how we can \textit{use} these models in practice: from fine-tuning to generative modeling, explainability, and more. We also skimmed on many engineering aspects: training and serving large models is a huge engineering feat which requires, among other things, distributed training strategies, fast compilers, and DevOps techniques. And the emergence of LLMs has opened up new avenues for their use where knowledge of their inner workings is not even a prerequisite, from prompt engineering to model chaining and agentic behaviours.
+
+This book has a companion website,\footnote{\url{https://sscardapane.it/alice-book}} where I hope to publish additional chapters that touch upon some of these topics. If time allows, some of them may be joined together in a new volume.
+
+I hope you appreciated the journey! For comments, suggestions, and feedback on the book do not hesitate to contact me.
+
+\newpage
+\pagecolor{white}
+\pagestyle{fancy}
+
+\appendix
+\fancyhead[LO]{\bfseries\normalfont {\color{black!40}\nouppercase{Appendix \thechapter: \leftmark}}}
+\include{appendix_a}
+\include{appendix_b}
+
+\bibliographystyle{alphaabbr}
+\footnotesize
+\bibliography{biblio}
+
+\end{document}
