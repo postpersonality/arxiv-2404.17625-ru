@@ -1,0 +1,5 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{X} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{l+m+mi}{5}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{))}
+\PYG{n}{X} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{exp}\PYG{p}{(}\PYG{n}{X}\PYG{p}{)}               \PYG{c+c1}{\PYGZsh{} Element\PYGZhy{}wise exponential}
+\PYG{n}{X} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{linalg}\PYG{o}{.}\PYG{n}{matrix\PYGZus{}exp}\PYG{p}{(}\PYG{n}{X}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} Matrix exponential}
+\end{Verbatim}

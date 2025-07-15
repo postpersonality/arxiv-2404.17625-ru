@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{X} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{))}
+\PYG{n}{Y} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{l+m+mi}{2}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{))}
+\PYG{p}{(}\PYG{n}{torch}\PYG{o}{.}\PYG{n}{matmul}\PYG{p}{(}\PYG{n}{X}\PYG{p}{,} \PYG{n}{Y}\PYG{p}{))}\PYG{o}{.}\PYG{n}{shape} \PYG{c+c1}{\PYGZsh{} Or X @ Y}
+\PYG{c+c1}{\PYGZsh{} [Out]: (4, 5, 3)}
+\end{Verbatim}

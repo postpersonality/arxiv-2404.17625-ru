@@ -1,0 +1,3 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{r} \PYG{o}{=} \PYG{n}{X}\PYG{o}{.}\PYG{n}{sum}\PYG{p}{(}\PYG{n}{axis}\PYG{o}{=}\PYG{l+m+mi}{1}\PYG{p}{)}
+\end{Verbatim}

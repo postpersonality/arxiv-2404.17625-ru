@@ -1,0 +1,13 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{from} \PYG{n+nn}{einops} \PYG{k+kn}{import} \PYG{n}{rearrange}
+\PYG{c+c1}{\PYGZsh{} A batch of images}
+\PYG{n}{xb} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{l+m+mi}{32}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{64}\PYG{p}{,} \PYG{l+m+mi}{64}\PYG{p}{))}
+
+\PYG{c+c1}{\PYGZsh{} Define the operation: differently from standard einsum,}
+\PYG{c+c1}{\PYGZsh{} we can split the output in blocks using brackets}
+\PYG{n}{op} \PYG{o}{=} \PYG{l+s+s1}{\PYGZsq{}b c (h ph) (w pw) \PYGZhy{}\PYGZgt{} b (h w) (ph pw c)\PYGZsq{}}
+
+\PYG{c+c1}{\PYGZsh{} Run the operation with a given patch size}
+\PYG{n}{patches} \PYG{o}{=} \PYG{n}{rearrange}\PYG{p}{(}\PYG{n}{xb}\PYG{p}{,} \PYG{n}{op}\PYG{p}{,} \PYG{n}{ph}\PYG{o}{=}\PYG{l+m+mi}{8}\PYG{p}{,} \PYG{n}{pw}\PYG{o}{=}\PYG{l+m+mi}{8}\PYG{p}{)}
+\PYG{n+nb}{print}\PYG{p}{(}\PYG{n}{patches}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} [Out]: (32, 64, 192)}
+\end{Verbatim}

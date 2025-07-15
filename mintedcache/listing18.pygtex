@@ -1,0 +1,15 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{least\PYGZus{}squares\PYGZus{}gd}\PYG{p}{(}\PYG{n}{X}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n c\PYGZdq{}}\PYG{p}{],}
+                     \PYG{n}{y}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n\PYGZdq{}}\PYG{p}{],}
+                     \PYG{n}{learning\PYGZus{}rate}\PYG{o}{=}\PYG{l+m+mf}{1e\PYGZhy{}3}\PYG{p}{)} \PYGZbs{}
+                     \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}c\PYGZdq{}}\PYG{p}{]:}
+    \PYG{c+c1}{\PYGZsh{} Initializing the parameters}
+    \PYG{n}{w} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{n}{X}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{],} \PYG{l+m+mi}{1}\PYG{p}{))}
+
+    \PYG{c+c1}{\PYGZsh{} Fixed number of iterations}
+    \PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{l+m+mi}{15000}\PYG{p}{):}
+      \PYG{c+c1}{\PYGZsh{} Note the sign: the derivative has a minus!}
+      \PYG{n}{w} \PYG{o}{=} \PYG{n}{w} \PYG{o}{+} \PYG{n}{learning\PYGZus{}rate} \PYG{o}{*} \PYG{n}{X}\PYG{o}{.}\PYG{n}{T} \PYG{o}{@} \PYG{p}{(}\PYG{n}{y} \PYG{o}{\PYGZhy{}} \PYG{n}{X} \PYG{o}{@} \PYG{n}{w}\PYG{p}{)}
+
+    \PYG{k}{return} \PYG{n}{w}
+\end{Verbatim}

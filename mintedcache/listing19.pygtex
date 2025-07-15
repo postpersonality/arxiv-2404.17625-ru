@@ -1,0 +1,10 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} Binary cross\PYGZhy{}entropy}
+\PYG{n}{torch}\PYG{o}{.}\PYG{n}{nn}\PYG{o}{.}\PYG{n}{functional}\PYG{o}{.}\PYG{n}{binary\PYGZus{}cross\PYGZus{}entropy}
+\PYG{c+c1}{\PYGZsh{} Binary cross\PYGZhy{}entropy accepting logits}
+\PYG{n}{torch}\PYG{o}{.}\PYG{n}{nn}\PYG{o}{.}\PYG{n}{functional}\PYG{o}{.}\PYG{n}{binary\PYGZus{}cross\PYGZus{}entropy\PYGZus{}with\PYGZus{}logits}
+\PYG{c+c1}{\PYGZsh{} Standard cross\PYGZhy{}entropy, only works with logits}
+\PYG{n}{torch}\PYG{o}{.}\PYG{n}{nn}\PYG{o}{.}\PYG{n}{functional}\PYG{o}{.}\PYG{n}{cross\PYGZus{}entropy}
+\PYG{c+c1}{\PYGZsh{} Cross\PYGZhy{}entropy accepting log f(x) as inputs}
+\PYG{n}{torch}\PYG{o}{.}\PYG{n}{nn}\PYG{o}{.}\PYG{n}{functional}\PYG{o}{.}\PYG{n}{nll\PYGZus{}loss}
+\end{Verbatim}

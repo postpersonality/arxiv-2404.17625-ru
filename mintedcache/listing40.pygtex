@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{sympy} \PYG{k}{as} \PYG{n+nn}{sp}
+\PYG{n}{x}\PYG{p}{,} \PYG{n}{a}\PYG{p}{,} \PYG{n}{b} \PYG{o}{=} \PYG{n}{sp}\PYG{o}{.}\PYG{n}{symbols}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}x a b\PYGZsq{}}\PYG{p}{)}
+\PYG{n}{y} \PYG{o}{=} \PYG{n}{a}\PYG{o}{*}\PYG{n}{sp}\PYG{o}{.}\PYG{n}{sin}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)} \PYG{o}{+} \PYG{n}{b}\PYG{o}{*}\PYG{n}{x}\PYG{o}{*}\PYG{n}{sp}\PYG{o}{.}\PYG{n}{sin}\PYG{p}{(}\PYG{n}{x}\PYG{p}{)}
+\PYG{n}{sp}\PYG{o}{.}\PYG{n}{diff}\PYG{p}{(}\PYG{n}{y}\PYG{p}{,} \PYG{n}{x}\PYG{p}{)} \PYG{c+c1}{\PYGZsh{} [Out]: acos(x)+bxcos(x)+bsin(x)}
+\end{Verbatim}

@@ -1,0 +1,16 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} Image tensor (batch, channels, height, width)}
+\PYG{n}{img} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randint}\PYG{p}{(}\PYG{l+m+mi}{0}\PYG{p}{,} \PYG{l+m+mi}{256}\PYG{p}{,} \PYG{n}{size}\PYG{o}{=}\PYG{p}{(}\PYG{l+m+mi}{32}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{256}\PYG{p}{,} \PYG{l+m+mi}{256}\PYG{p}{))}
+
+\PYG{c+c1}{\PYGZsh{} Data augmentation pipeline}
+\PYG{k+kn}{from} \PYG{n+nn}{torchvision.transforms} \PYG{k+kn}{import} \PYG{n}{v2}
+\PYG{n}{transforms} \PYG{o}{=} \PYG{n}{v2}\PYG{o}{.}\PYG{n}{Compose}\PYG{p}{([}
+    \PYG{n}{v2}\PYG{o}{.}\PYG{n}{RandomHorizontalFlip}\PYG{p}{(}\PYG{n}{p}\PYG{o}{=}\PYG{l+m+mf}{0.5}\PYG{p}{),}
+    \PYG{n}{v2}\PYG{o}{.}\PYG{n}{RandomRotation}\PYG{p}{(}\PYG{l+m+mi}{10}\PYG{p}{),}
+\PYG{p}{])}
+
+\PYG{c+c1}{\PYGZsh{} Applying the data augmentation pipeline: each function}
+\PYG{c+c1}{\PYGZsh{} call returns a different mini\PYGZhy{}batch starting from the}
+\PYG{c+c1}{\PYGZsh{} same input tensor.}
+\PYG{n}{img} \PYG{o}{=} \PYG{n}{transforms}\PYG{p}{(}\PYG{n}{img}\PYG{p}{)}
+\end{Verbatim}

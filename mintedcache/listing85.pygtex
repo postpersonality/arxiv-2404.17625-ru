@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{self\PYGZus{}attention}\PYG{p}{(}\PYG{n}{Q}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Array}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n k\PYGZdq{}}\PYG{p}{],}
+                   \PYG{n}{K}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Array}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n k\PYGZdq{}}\PYG{p}{],}
+                   \PYG{n}{V}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Array}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n v\PYGZdq{}}\PYG{p}{]}
+                 \PYG{p}{)} \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Array}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n v\PYGZdq{}}\PYG{p}{]:}
+	\PYG{k}{return} \PYG{n}{nn}\PYG{o}{.}\PYG{n}{softmax}\PYG{p}{(}\PYG{n}{Q} \PYG{o}{@} \PYG{n}{K}\PYG{o}{.}\PYG{n}{T}\PYG{p}{)} \PYG{o}{@} \PYG{n}{V}
+\end{Verbatim}

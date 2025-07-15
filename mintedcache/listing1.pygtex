@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k+kn}{import} \PYG{n+nn}{torch}
+\PYG{n}{x} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{l+m+mi}{4}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{))}  \PYG{c+c1}{\PYGZsh{} \PYGZdq{}Column\PYGZdq{} vector}
+\PYG{n}{y} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{((}\PYG{l+m+mi}{4}\PYG{p}{,))}    \PYG{c+c1}{\PYGZsh{} 1\PYGZhy{}dimensional tensor}
+\PYG{n+nb}{print}\PYG{p}{((}\PYG{n}{x} \PYG{o}{+} \PYG{n}{y}\PYG{p}{)}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{)}
+\PYG{c+c1}{\PYGZsh{} [Out]: (4,4) (because of broadcasting!)}
+\end{Verbatim}

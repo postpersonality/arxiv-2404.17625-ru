@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} Batched matrix multiply}
+\PYG{n}{M} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{einsum}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}ijz,izk\PYGZhy{}\PYGZgt{}ijk\PYGZsq{}}\PYG{p}{,} \PYG{n}{A}\PYG{p}{,} \PYG{n}{B}\PYG{p}{)}
+\PYG{c+c1}{\PYGZsh{} Generalized dot product}
+\PYG{n}{M} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{einsum}\PYG{p}{(}\PYG{l+s+s1}{\PYGZsq{}ijk,ijk\PYGZhy{}\PYGZgt{}\PYGZsq{}}\PYG{p}{,} \PYG{n}{A}\PYG{p}{,} \PYG{n}{B}\PYG{p}{)}
+\end{Verbatim}

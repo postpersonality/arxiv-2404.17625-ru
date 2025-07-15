@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{x} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{(}\PYG{l+m+mi}{16}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{32}\PYG{p}{,} \PYG{l+m+mi}{32}\PYG{p}{)}
+\PYG{n}{w} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{(}\PYG{l+m+mi}{64}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{)}
+\PYG{n}{torch}\PYG{o}{.}\PYG{n}{nn}\PYG{o}{.}\PYG{n}{functional}\PYG{o}{.}\PYG{n}{conv2d}\PYG{p}{(}\PYG{n}{x}\PYG{p}{,} \PYG{n}{w}\PYG{p}{,} \PYG{n}{padding}\PYG{o}{=}\PYG{l+s+s1}{\PYGZsq{}same\PYGZsq{}}\PYG{p}{)}\PYG{o}{.}\PYG{n}{shape}
+\PYG{c+c1}{\PYGZsh{} [Out]: torch.Size([16, 64, 32, 32])}
+\end{Verbatim}

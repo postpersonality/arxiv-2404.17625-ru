@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{n}{model} \PYG{o}{=} \PYG{n}{nn}\PYG{o}{.}\PYG{n}{Sequential}\PYG{p}{(}
+    \PYG{n}{FullyConnectedLayer}\PYG{p}{(}\PYG{l+m+mi}{3}\PYG{p}{,} \PYG{l+m+mi}{5}\PYG{p}{),}
+    \PYG{n}{FullyConnectedLayer}\PYG{p}{(}\PYG{l+m+mi}{5}\PYG{p}{,} \PYG{l+m+mi}{4}\PYG{p}{)}
+\PYG{p}{)}
+\end{Verbatim}

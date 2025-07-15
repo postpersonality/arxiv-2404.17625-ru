@@ -1,0 +1,12 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} Input tensor}
+\PYG{n}{x} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{(}\PYG{n}{batch\PYGZus{}size}\PYG{p}{,} \PYG{n}{sequence\PYGZus{}length}\PYG{p}{,} \PYG{n}{features}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} State tensor}
+\PYG{n}{s} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{zeros}\PYG{p}{(}\PYG{n}{batch\PYGZus{}size}\PYG{p}{,} \PYG{n}{state\PYGZus{}size}\PYG{p}{)}
+
+\PYG{c+c1}{\PYGZsh{} State update}
+\PYG{n}{state\PYGZus{}update} \PYG{o}{=} \PYG{n}{nn}\PYG{o}{.}\PYG{n}{RNNCell}\PYG{p}{(}\PYG{n}{features}\PYG{p}{,} \PYG{n}{state\PYGZus{}size}\PYG{p}{)}
+\PYG{k}{for} \PYG{n}{i} \PYG{o+ow}{in} \PYG{n+nb}{range}\PYG{p}{(}\PYG{n}{x}\PYG{o}{.}\PYG{n}{shape}\PYG{p}{[}\PYG{l+m+mi}{1}\PYG{p}{]):}
+  \PYG{n}{s} \PYG{o}{=} \PYG{n}{state\PYGZus{}update}\PYG{p}{(}\PYG{n}{x}\PYG{p}{[:,} \PYG{n}{i}\PYG{p}{,} \PYG{p}{:],} \PYG{n}{s}\PYG{p}{)}
+\end{Verbatim}

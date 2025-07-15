@@ -1,0 +1,28 @@
+<mxfile host="app.diagrams.net" modified="2024-03-28T15:10:06.118Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" etag="wuilpJKtkELcb8iR-HvE" version="24.2.0" type="device">
+  <diagram id="irW8Zy-MjcU6IgbgeGeX" name="Page-1">
+    <mxGraphModel dx="1247" dy="450" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="1" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="YdMa8IqmrHEzTlGY6boa-20" value="" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=none;direction=south;size=10;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="130" y="270" width="120" height="116" as="geometry" />
+        </mxCell>
+        <mxCell id="YdMa8IqmrHEzTlGY6boa-5" value="Width" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="170" y="393" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="YdMa8IqmrHEzTlGY6boa-7" value="Height" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=270;" parent="1" vertex="1">
+          <mxGeometry x="90" y="325" width="40" height="20" as="geometry" />
+        </mxCell>
+        <mxCell id="YdMa8IqmrHEzTlGY6boa-8" value="Channels" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;rotation=-45;" parent="1" vertex="1">
+          <mxGeometry x="233" y="388" width="40" as="geometry" />
+        </mxCell>
+        <mxCell id="YdMa8IqmrHEzTlGY6boa-23" value="" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.05;darkOpacity2=0.1;fillColor=#f8cecc;direction=south;size=10;dashed=1;strokeColor=default;strokeWidth=1;" parent="1" vertex="1">
+          <mxGeometry x="190" y="340" width="25.86" height="25" as="geometry" />
+        </mxCell>
+        <mxCell id="YdMa8IqmrHEzTlGY6boa-24" value="\[ P_{k}(i,j) \]" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;dashed=1;fontSize=11;" parent="1" vertex="1">
+          <mxGeometry x="185.93" y="316" width="40" height="20" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

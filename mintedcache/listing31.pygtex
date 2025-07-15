@@ -1,0 +1,13 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} A dataset composed by two tensors}
+\PYG{n}{dataset} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{utils}\PYG{o}{.}\PYG{n}{data}\PYG{o}{.}\PYG{n}{TensorDataset}\PYG{p}{(}
+    \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{(}\PYG{l+m+mi}{1000}\PYG{p}{,} \PYG{l+m+mi}{3}\PYG{p}{),} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{randn}\PYG{p}{(}\PYG{l+m+mi}{1000}\PYG{p}{,} \PYG{l+m+mi}{1}\PYG{p}{))}
+
+\PYG{c+c1}{\PYGZsh{} The data loader provides shuffling and mini\PYGZhy{}batching}
+\PYG{n}{dataloader} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{utils}\PYG{o}{.}\PYG{n}{data}\PYG{o}{.}\PYG{n}{DataLoader}\PYG{p}{(}\PYG{n}{dataset}\PYG{p}{,}
+                \PYG{n}{shuffle}\PYG{o}{=}\PYG{k+kc}{True}\PYG{p}{,} \PYG{n}{batch\PYGZus{}size}\PYG{o}{=}\PYG{l+m+mi}{32}\PYG{p}{)}
+
+\PYG{k}{for} \PYG{n}{xb}\PYG{p}{,} \PYG{n}{yb} \PYG{o+ow}{in} \PYG{n}{dataloader}\PYG{p}{:}
+  \PYG{c+c1}{\PYGZsh{} Iterating over the mini\PYGZhy{}batch sequence (one epoch)}
+  \PYG{c+c1}{\PYGZsh{} xb has shape (32, 3), yb has shape (32, 1)}
+\end{Verbatim}

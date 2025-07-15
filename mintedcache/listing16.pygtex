@@ -1,0 +1,7 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{linear\PYGZus{}model}\PYG{p}{(}\PYG{n}{w}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}c\PYGZdq{}}\PYG{p}{],}
+                 \PYG{n}{b}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{,}
+                 \PYG{n}{X}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n c\PYGZdq{}}\PYG{p}{])}
+                 \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n\PYGZdq{}}\PYG{p}{]:}
+  \PYG{k}{return} \PYG{n}{X} \PYG{o}{@} \PYG{n}{w} \PYG{o}{+} \PYG{n}{b}
+\end{Verbatim}

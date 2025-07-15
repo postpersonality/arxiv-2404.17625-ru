@@ -1,0 +1,12 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{k}{def} \PYG{n+nf}{least\PYGZus{}squares\PYGZus{}solve}\PYG{p}{(}\PYG{n}{w}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}c\PYGZdq{}}\PYG{p}{],}
+                        \PYG{n}{X}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n c\PYGZdq{}}\PYG{p}{],}
+                        \PYG{n}{y}\PYG{p}{:} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}n\PYGZdq{}}\PYG{p}{],}
+                        \PYG{n}{numerically\PYGZus{}stable} \PYG{o}{=} \PYG{k+kc}{True}\PYG{p}{)} \PYGZbs{}
+                        \PYG{o}{\PYGZhy{}\PYGZgt{}} \PYG{n}{Float}\PYG{p}{[}\PYG{n}{Tensor}\PYG{p}{,} \PYG{l+s+s2}{\PYGZdq{}c\PYGZdq{}}\PYG{p}{]:}
+  \PYG{c+c1}{\PYGZsh{} Explicit solution}
+  \PYG{k}{if} \PYG{o+ow}{not} \PYG{n}{numerically\PYGZus{}stable}\PYG{p}{:}
+    \PYG{k}{return} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{linalg}\PYG{o}{.}\PYG{n}{inv}\PYG{p}{(}\PYG{n}{X}\PYG{o}{.}\PYG{n}{T} \PYG{o}{@} \PYG{n}{X}\PYG{p}{)} \PYG{o}{@} \PYG{n}{X}\PYG{o}{.}\PYG{n}{T} \PYG{o}{@} \PYG{n}{y}
+  \PYG{k}{else}\PYG{p}{:}
+    \PYG{k}{return} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{linalg}\PYG{o}{.}\PYG{n}{solve}\PYG{p}{(}\PYG{n}{X}\PYG{o}{.}\PYG{n}{T} \PYG{o}{@} \PYG{n}{X}\PYG{p}{,} \PYG{n}{X}\PYG{o}{.}\PYG{n}{T} \PYG{o}{@} \PYG{n}{y}\PYG{p}{)}
+\end{Verbatim}

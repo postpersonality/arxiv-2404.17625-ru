@@ -1,0 +1,68 @@
+<mxfile host="app.diagrams.net" modified="2024-04-08T16:13:07.802Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36" etag="ehoLP2xetGPWJvkwqCeC" version="24.2.1" type="device">
+  <diagram name="Pagina-1" id="tp7-YIV_qzsAuCI_8di3">
+    <mxGraphModel dx="1808" dy="1152" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeWidth=2;" parent="1" source="xHTQdBXjE0BHyEhoHPTb-7" target="xHTQdBXjE0BHyEhoHPTb-9" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=2;" parent="1" source="xHTQdBXjE0BHyEhoHPTb-7" target="xHTQdBXjE0BHyEhoHPTb-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-7" value="" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=#666666;dashed=1;opacity=50;" parent="1" vertex="1">
+          <mxGeometry x="190" y="-20" width="340" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-1" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/6/63/Alice_par_John_Tenniel_04.png;imageBorder=default;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="110" y="80" width="105.39" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-2" value="Augmentation 1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=default;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="210" y="-10" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-3" value="Augmentation 2" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=default;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="300" y="-10" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-5" value="..." style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="1" vertex="1">
+          <mxGeometry x="377" y="-5" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-6" value="Augmentation &lt;i&gt;n&lt;/i&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f5f5f5;fontColor=#333333;strokeColor=default;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="430" y="-10" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=2;" parent="1" source="xHTQdBXjE0BHyEhoHPTb-9" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="299.8965517241379" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-9" value="Rotation" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=default;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="260" y="135" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;strokeWidth=2;" parent="1" source="xHTQdBXjE0BHyEhoHPTb-10" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="420.2413793103449" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-10" value="Cutmix" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffcc99;strokeColor=default;strokeWidth=2;" parent="1" vertex="1">
+          <mxGeometry x="380" y="135" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeWidth=2;" parent="1" source="xHTQdBXjE0BHyEhoHPTb-11" target="xHTQdBXjE0BHyEhoHPTb-10" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-11" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/d/df/Alice_par_John_Tenniel_14.png;strokeWidth=2;imageBorder=default;" parent="1" vertex="1">
+          <mxGeometry x="520" y="123.32000000000001" width="53.15" height="63.35" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-18" value="Sample" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Courier New;fontSize=14;" parent="1" vertex="1">
+          <mxGeometry x="370" y="50" width="60" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-22" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/6/63/Alice_par_John_Tenniel_04.png;imageBorder=default;strokeWidth=2;rotation=15;" parent="1" vertex="1">
+          <mxGeometry x="252.97" y="227.04" width="77.29" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-23" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/6/63/Alice_par_John_Tenniel_04.png;imageBorder=default;strokeWidth=2;opacity=60;" parent="1" vertex="1">
+          <mxGeometry x="382.71000000000004" y="230" width="77.29" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="xHTQdBXjE0BHyEhoHPTb-24" value="" style="shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;image=https://upload.wikimedia.org/wikipedia/commons/d/df/Alice_par_John_Tenniel_14.png;strokeWidth=2;imageBorder=#EA6B66;clipPath=inset(34.33% 56.35% 32.33% 3.97%);" parent="1" vertex="1">
+          <mxGeometry x="399.68999999999994" y="234" width="43.33" height="43.33" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

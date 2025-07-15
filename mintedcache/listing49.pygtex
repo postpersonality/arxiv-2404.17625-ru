@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{} Extract the parameters}
+\PYG{n}{params} \PYG{o}{=} \PYG{n+nb}{dict}\PYG{p}{(}\PYG{n}{model}\PYG{o}{.}\PYG{n}{named\PYGZus{}parameters}\PYG{p}{())}
+\PYG{c+c1}{\PYGZsh{} Functional call over the model\PYGZsq{}s forward function}
+\PYG{n}{y} \PYG{o}{=} \PYG{n}{torch}\PYG{o}{.}\PYG{n}{func}\PYG{o}{.}\PYG{n}{functional\PYGZus{}call}\PYG{p}{(}\PYG{n}{model}\PYG{p}{,} \PYG{n}{params}\PYG{p}{,} \PYG{n}{x}\PYG{p}{)}
+\end{Verbatim}
